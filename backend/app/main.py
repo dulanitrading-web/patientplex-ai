@@ -1,0 +1,62 @@
+"""PatientPlex AI FastAPI application entry point."""
+
+import logging
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.api.v1 import (
+    auth, onboarding, whatsapp, appointments, campaigns,
+    landing_pages, intelligence, calls, conversions, bookings, billing,
+)
+from app.core.config import settings
+
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan: runs startup and shutdown hooks."""
+    logger.info("PatientPlex AI API started")
+    yield
+    logger.info("PatientPlex AI API shutting down")
+
+
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    description=(
+        "Healthcare Patient Acquisition SaaS — automates Google/Meta/LinkedIn ads "
+        "for doctors and books appointments directly into their calendars."
+    ),
+    version="0.1.0",
+    lifespan=lifespan,
+)
+
+# CORS — allow all origins during development
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Routers
+app.include_router(auth.router, prefix=settings.API_V1_PREFIX)
+app.include_router(onboarding.router, prefix=settings.API_V1_PREFIX)
+app.include_router(whatsapp.router, prefix=settings.API_V1_PREFIX)
+app.include_router(appointments.router, prefix=settings.API_V1_PREFIX)
+app.include_router(campaigns.router, prefix=settings.API_V1_PREFIX)
+app.include_router(landing_pages.router, prefix=settings.API_V1_PREFIX)
+app.include_router(intelligence.router, prefix=settings.API_V1_PREFIX)
+app.include_router(calls.router, prefix=settings.API_V1_PREFIX)
+app.include_router(conversions.router, prefix=settings.API_V1_PREFIX)
+app.include_router(bookings.router, prefix=settings.API_V1_PREFIX)
+app.include_router(billing.router, prefix=settings.API_V1_PREFIX)
+
+
+@app.get("/", tags=["health"])
+async def health_check() -> dict:
+    """Basic health-check endpoint."""
+    return {"status": "healthy", "service": settings.PROJECT_NAME}

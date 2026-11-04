@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100;
+  }
+
+  ::selection {
+    @apply bg-blue-600/20 text-blue-900 dark:text-blue-100;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-5;
+  }
+
+  .card-elevated {
+    @apply bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 p-6;
+  }
+
+  .gradient-bg {
+    background: linear-gradient(135deg, #0B2545 0%, #13838C 50%, #0B2545 100%);
+  }
+
+  .gradient-hero {
+    background: linear-gradient(160deg, #0B2545 0%, #13838C 100%);
+  }
+
+  .input-base {
+    @apply block w-full rounded-lg border-gray-300 dark:border-gray-600
+      bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100
+      shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:ring-1
+      text-sm py-2.5 px-3 transition-colors
+      placeholder:text-gray-400 dark:placeholder:text-gray-500;
+  }
+}
+
+@layer utilities {
+  .animate-slide-in {
+    animation: slideIn 0.3s ease-out;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.4s ease-out;
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
