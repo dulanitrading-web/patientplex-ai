@@ -524,7 +524,7 @@ export default function LandingPage() {
               <p className="text-3xl font-bold mb-0.5">₹{p.price.toLocaleString("en-IN")}</p>
               <p className="text-[10px] text-slate-600 mb-5">/{annual ? "mo (billed annually)" : "month"}</p>
               <ul className="space-y-2 mb-6">{p.features.map((f, j) => <li key={j} className="text-xs text-slate-400 flex items-start gap-2"><span className="text-emerald-400 mt-0.5">&#10003;</span>{f}</li>)}</ul>
-              <button onClick={() => setShowTrialModal(true)} className={`w-full text-center py-2.5 rounded-xl text-sm font-semibold transition ${p.pop ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/20" : "bg-slate-900/50 hover:bg-slate-800/50 text-white border border-slate-800"}`}>
+              <button onClick={() => setModal(true)} className={`w-full text-center py-2.5 rounded-xl text-sm font-semibold transition ${p.pop ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/20" : "bg-slate-900/50 hover:bg-slate-800/50 text-white border border-slate-800"}`}>
                 {p.pop ? "Start Free Trial" : "Choose Plan"}
               </button>
             </div>
@@ -558,7 +558,7 @@ export default function LandingPage() {
         <div className="relative z-10 max-w-2xl mx-auto">
           <h2 className="text-4xl font-bold mb-4">Every missed call is a{" "}<span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">patient lost forever.</span></h2>
           <p className="text-slate-500 text-lg mb-8">Start your free trial. Book patients on autopilot. Replace your agency today.</p>
-          <button onClick={() => setShowTrialModal(true)} className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold px-10 py-4 rounded-xl text-lg shadow-2xl shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all inline-flex items-center gap-2">
+          <button onClick={() => setModal(true)} className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold px-10 py-4 rounded-xl text-lg shadow-2xl shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all inline-flex items-center gap-2">
             Start Free — No Credit Card <span>&rarr;</span>
           </button>
           <p className="text-slate-700 text-xs mt-4">14-day free trial &middot; No contracts &middot; Cancel anytime</p>
@@ -578,11 +578,11 @@ export default function LandingPage() {
       </footer>
 
       {/* ═══ 10. TRIAL MODAL ═══ */}
-      {showTrialModal && (
+      {modal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => { setShowTrialModal(false); setModalSent(false); }} />
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => { setModal(false); setModalSent(false); }} />
           <div className="relative bg-[#0f172a] border border-slate-800 rounded-2xl p-8 max-w-md w-full shadow-2xl shadow-black/60">
-            <button onClick={() => { setShowTrialModal(false); setModalSent(false); }} className="absolute top-4 right-4 text-slate-600 hover:text-white transition text-lg">&times;</button>
+            <button onClick={() => { setModal(false); setModalSent(false); }} className="absolute top-4 right-4 text-slate-600 hover:text-white transition text-lg">&times;</button>
             {!modalSent ? (
               <>
                 <h3 className="text-xl font-bold mb-1">Start Your 14-Day Free Trial</h3>
