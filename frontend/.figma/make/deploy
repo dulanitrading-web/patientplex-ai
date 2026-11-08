@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+npx next build
+[[ -d .next ]]
+figma make deploy --build-dir .next
