@@ -85,13 +85,13 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6 max-w-3xl">
       <div>
-        <h1 className="text-2xl font-bold text-white">Settings</h1>
-        <p className="text-slate-500 text-sm mt-1">Manage your clinic profile, integrations, and subscription.</p>
+        <h1 className="text-2xl font-bold text-slate-900">Settings</h1>
+        <p className="text-slate-600 text-sm mt-1">Manage your clinic profile, integrations, and subscription.</p>
       </div>
 
       {/* Profile Section */}
-      <div className="bg-[#0F172A] rounded-xl border border-white/5 p-5">
-        <SectionHeader icon={<User className="w-5 h-5 text-emerald-400" />} title="Profile" />
+      <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <SectionHeader icon={<User className="w-5 h-5 text-emerald-600" />} title="Profile" />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
           <InfoField label="Full Name" value={doctor?.full_name} />
           <InfoField label="Email" value={doctor?.email} />
@@ -102,8 +102,8 @@ export default function SettingsPage() {
       </div>
 
       {/* Clinic Details */}
-      <div className="bg-[#0F172A] rounded-xl border border-white/5 p-5">
-        <SectionHeader icon={<Building2 className="w-5 h-5 text-cyan-400" />} title="Clinic Details" />
+      <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <SectionHeader icon={<Building2 className="w-5 h-5 text-cyan-600" />} title="Clinic Details" />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
           <InfoField label="Clinic Name" value={doctor?.clinic_name} />
           <InfoField label="Specialty" value={doctor?.specialty ? formatSpecialty(doctor.specialty) : undefined} />
@@ -113,10 +113,10 @@ export default function SettingsPage() {
         </div>
         {doctor?.services && doctor.services.length > 0 && (
           <div className="mt-4">
-            <label className="block text-sm font-medium text-slate-500 mb-2">Services</label>
+            <label className="block text-sm font-medium text-slate-600 mb-2">Services</label>
             <div className="flex flex-wrap gap-2">
               {doctor.services.map((s) => (
-                <span key={s} className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400">
+                <span key={s} className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-600">
                   {s}
                 </span>
               ))}
@@ -126,8 +126,8 @@ export default function SettingsPage() {
       </div>
 
       {/* Integration Status */}
-      <div className="bg-[#0F172A] rounded-xl border border-white/5 p-5">
-        <SectionHeader icon={<Link2 className="w-5 h-5 text-violet-400" />} title="Integration Status" />
+      <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <SectionHeader icon={<Link2 className="w-5 h-5 text-violet-600" />} title="Integration Status" />
         <div className="space-y-3 mt-4">
           <IntegrationRow
             icon={<Calendar className="w-4 h-4" />}
@@ -157,8 +157,8 @@ export default function SettingsPage() {
       </div>
 
       {/* Subscription */}
-      <div className="bg-[#0F172A] rounded-xl border border-white/5 p-5">
-        <SectionHeader icon={<CreditCard className="w-5 h-5 text-amber-400" />} title="Subscription" />
+      <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <SectionHeader icon={<CreditCard className="w-5 h-5 text-amber-600" />} title="Subscription" />
         {subscription ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
             <InfoField label="Plan" value={formatPlanName(subscription.plan)} />
@@ -170,17 +170,17 @@ export default function SettingsPage() {
           </div>
         ) : (
           <div className="mt-4">
-            <p className="text-sm text-slate-500">No active subscription. Start a free trial from the <a href="/dashboard/billing" className="text-emerald-400 hover:text-emerald-300">Billing</a> page.</p>
+            <p className="text-sm text-slate-600">No active subscription. Start a free trial from the <a href="/dashboard/billing" className="text-emerald-600 hover:text-emerald-300">Billing</a> page.</p>
           </div>
         )}
       </div>
 
       {/* Danger Zone */}
-      <div className="bg-[#0F172A] rounded-xl border border-red-500/20 p-5">
-        <SectionHeader icon={<AlertTriangle className="w-5 h-5 text-red-400" />} title="Danger Zone" className="text-red-400" />
-        <p className="text-sm text-slate-500 mt-2">Once you delete your account, there is no going back. All data will be permanently removed.</p>
+      <div className="bg-white rounded-xl border border-red-500/20 p-5">
+        <SectionHeader icon={<AlertTriangle className="w-5 h-5 text-red-600" />} title="Danger Zone" className="text-red-600" />
+        <p className="text-sm text-slate-600 mt-2">Once you delete your account, there is no going back. All data will be permanently removed.</p>
         <div className="mt-4">
-          <button disabled className="px-4 py-2 rounded-lg text-sm font-medium bg-red-500/10 text-red-400 cursor-not-allowed opacity-50">
+          <button disabled className="px-4 py-2 rounded-lg text-sm font-medium bg-red-50 text-red-600 cursor-not-allowed opacity-50">
             Delete Account
           </button>
           <p className="text-xs text-slate-600 mt-2">Account deletion is currently disabled. Contact support at support@patientplex.ai.</p>
@@ -194,7 +194,7 @@ export default function SettingsPage() {
 
 function SectionHeader({ icon, title, className }: { icon: React.ReactNode; title: string; className?: string }) {
   return (
-    <h3 className={`font-semibold text-white flex items-center gap-2 ${className || ""}`}>
+    <h3 className={`font-semibold text-slate-900 flex items-center gap-2 ${className || ""}`}>
       {icon} {title}
     </h3>
   );
@@ -203,8 +203,8 @@ function SectionHeader({ icon, title, className }: { icon: React.ReactNode; titl
 function InfoField({ label, value, className }: { label: string; value?: string | null; className?: string }) {
   return (
     <div className={className}>
-      <label className="block text-sm font-medium text-slate-500">{label}</label>
-      <p className="mt-0.5 text-sm text-slate-200">{value || <span className="text-slate-600">Not set</span>}</p>
+      <label className="block text-sm font-medium text-slate-600">{label}</label>
+      <p className="mt-0.5 text-sm text-slate-800">{value || <span className="text-slate-600">Not set</span>}</p>
     </div>
   );
 }
@@ -216,20 +216,20 @@ function IntegrationRow({ icon, name, status, detail }: {
   detail: string;
 }) {
   const statusConfig = {
-    connected: { icon: <CheckCircle2 className="w-4 h-4 text-emerald-400" />, label: "Connected", cls: "bg-emerald-500/10 text-emerald-400" },
-    pending: { icon: <Clock className="w-4 h-4 text-amber-400" />, label: "Pending", cls: "bg-amber-500/10 text-amber-400" },
-    not_connected: { icon: <XCircle className="w-4 h-4 text-slate-500" />, label: "Not Connected", cls: "bg-white/5 text-slate-500" },
-    coming_soon: { icon: <Clock className="w-4 h-4 text-cyan-400" />, label: "Coming Soon", cls: "bg-cyan-500/10 text-cyan-400" },
+    connected: { icon: <CheckCircle2 className="w-4 h-4 text-emerald-600" />, label: "Connected", cls: "bg-emerald-50 text-emerald-600" },
+    pending: { icon: <Clock className="w-4 h-4 text-amber-600" />, label: "Pending", cls: "bg-amber-50 text-amber-600" },
+    not_connected: { icon: <XCircle className="w-4 h-4 text-slate-600" />, label: "Not Connected", cls: "bg-white/5 text-slate-600" },
+    coming_soon: { icon: <Clock className="w-4 h-4 text-cyan-600" />, label: "Coming Soon", cls: "bg-cyan-50 text-cyan-600" },
   };
   const cfg = statusConfig[status];
 
   return (
-    <div className="flex items-center justify-between py-3 border-b border-white/5 last:border-0">
+    <div className="flex items-center justify-between py-3 border-b border-slate-200 last:border-0">
       <div className="flex items-center gap-3">
-        <div className="text-slate-500">{icon}</div>
+        <div className="text-slate-600">{icon}</div>
         <div>
-          <div className="text-sm font-medium text-slate-200">{name}</div>
-          <div className="text-xs text-slate-500">{detail}</div>
+          <div className="text-sm font-medium text-slate-800">{name}</div>
+          <div className="text-xs text-slate-600">{detail}</div>
         </div>
       </div>
       <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${cfg.cls}`}>

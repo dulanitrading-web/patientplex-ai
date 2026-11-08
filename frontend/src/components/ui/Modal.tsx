@@ -36,11 +36,11 @@ export default function Modal({ open, onClose, title, children, size = "md" }: M
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
       onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
     >
-      <div className={clsx("bg-[#0F172A] border border-white/10 rounded-xl shadow-2xl shadow-black/40 w-full", widths[size])}>
+      <div className={clsx("bg-white border border-slate-200 rounded-xl shadow-2xl shadow-lg w-full", widths[size])}>
         {title && (
-          <div className="flex items-center justify-between px-5 py-4 border-b border-white/5">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
             <h2 className="text-lg font-semibold text-white">{title}</h2>
-            <button onClick={onClose} className="p-1 text-slate-500 hover:text-slate-300 rounded-lg hover:bg-white/5">
+            <button onClick={onClose} className="p-1 text-slate-500 hover:text-slate-700 rounded-lg hover:bg-slate-100">
               <X className="w-5 h-5" />
             </button>
           </div>

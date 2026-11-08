@@ -121,22 +121,22 @@ export default function AnalyticsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-white">Analytics &amp; ROI</h1>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <h1 className="text-xl font-bold text-slate-900">Analytics &amp; ROI</h1>
+          <p className="text-sm text-slate-600 mt-0.5">
             Track your patient acquisition performance
           </p>
         </div>
 
         {/* Date Range Selector */}
-        <div className="flex bg-[#0F172A] border border-white/10 rounded-lg overflow-hidden">
+        <div className="flex bg-white border border-slate-200 rounded-lg overflow-hidden">
           {PERIOD_OPTIONS.map((opt) => (
             <button
               key={opt.days}
               onClick={() => setDays(opt.days)}
               className={`px-4 py-2 text-sm font-medium transition-colors ${
                 days === opt.days
-                  ? "bg-emerald-500 text-[#0A0E1A]"
-                  : "text-slate-400 hover:bg-white/5 hover:text-white"
+                  ? "bg-slate-900 text-white"
+                  : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
               }`}
             >
               {opt.label}
@@ -189,9 +189,9 @@ export default function AnalyticsPage() {
       {/* Funnel + Attribution */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Conversion Funnel */}
-        <div className="bg-[#0F172A] rounded-xl p-5 border border-white/5">
-          <h3 className="font-semibold text-white flex items-center gap-2 mb-5">
-            <TrendingUp className="w-5 h-5 text-emerald-400" /> Conversion Funnel
+        <div className="bg-white rounded-xl p-5 border border-slate-200">
+          <h3 className="font-semibold text-slate-900 flex items-center gap-2 mb-5">
+            <TrendingUp className="w-5 h-5 text-emerald-600" /> Conversion Funnel
           </h3>
           <div className="space-y-4">
             {funnelStages.map((stage, i) => {
@@ -200,8 +200,8 @@ export default function AnalyticsPage() {
               return (
                 <div key={stage.stage}>
                   <div className="flex justify-between text-sm mb-1.5">
-                    <span className="text-slate-300 font-medium">{stage.stage}</span>
-                    <span className="text-slate-500">
+                    <span className="text-slate-700 font-medium">{stage.stage}</span>
+                    <span className="text-slate-600">
                       {fmt(stage.count)}
                       {i > 0 && (
                         <span className="ml-1 text-xs text-slate-600">
@@ -215,7 +215,7 @@ export default function AnalyticsPage() {
                       className={`h-full ${colors[i % colors.length]} rounded-lg flex items-center pl-3 transition-all duration-500`}
                       style={{ width: `${widthPct}%` }}
                     >
-                      <span className="text-white text-xs font-medium whitespace-nowrap">
+                      <span className="text-slate-900 text-xs font-medium whitespace-nowrap">
                         {fmt(stage.count)}
                       </span>
                     </div>
@@ -232,14 +232,14 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Source Attribution */}
-        <div className="bg-[#0F172A] rounded-xl p-5 border border-white/5">
-          <h3 className="font-semibold text-white flex items-center gap-2 mb-5">
-            <BarChart3 className="w-5 h-5 text-cyan-400" /> Source Attribution
+        <div className="bg-white rounded-xl p-5 border border-slate-200">
+          <h3 className="font-semibold text-slate-900 flex items-center gap-2 mb-5">
+            <BarChart3 className="w-5 h-5 text-cyan-600" /> Source Attribution
           </h3>
           {channels.length === 0 ? (
             <div className="text-center py-8">
               <BarChart3 className="w-10 h-10 text-slate-700 mx-auto mb-2" />
-              <p className="text-slate-500 text-sm">No attribution data yet.</p>
+              <p className="text-slate-600 text-sm">No attribution data yet.</p>
               <p className="text-slate-600 text-xs mt-1">
                 Data will appear once campaigns start driving traffic.
               </p>
@@ -259,8 +259,8 @@ export default function AnalyticsPage() {
                 return (
                   <div key={ch.channel}>
                     <div className="flex justify-between text-sm mb-1.5">
-                      <span className="text-slate-300 font-medium capitalize">{ch.channel}</span>
-                      <span className="text-slate-500">
+                      <span className="text-slate-700 font-medium capitalize">{ch.channel}</span>
+                      <span className="text-slate-600">
                         {ch.count} <span className="text-xs text-slate-600">({ch.percentage}%)</span>
                       </span>
                     </div>
@@ -279,22 +279,22 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Campaign Performance */}
-      <div className="bg-[#0F172A] rounded-xl p-5 border border-white/5">
-        <h3 className="font-semibold text-white flex items-center gap-2 mb-5">
-          <IndianRupee className="w-5 h-5 text-amber-400" /> Campaign Performance Summary
+      <div className="bg-white rounded-xl p-5 border border-slate-200">
+        <h3 className="font-semibold text-slate-900 flex items-center gap-2 mb-5">
+          <IndianRupee className="w-5 h-5 text-amber-600" /> Campaign Performance Summary
         </h3>
         {!campaigns || campaigns.total_campaigns === 0 ? (
           <div className="text-center py-8">
             <BarChart3 className="w-10 h-10 text-slate-700 mx-auto mb-2" />
-            <p className="text-slate-500 text-sm">No campaigns running yet.</p>
+            <p className="text-slate-600 text-sm">No campaigns running yet.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-white/5">
-                  <th className="text-left py-3 px-2 text-slate-500 font-medium">Metric</th>
-                  <th className="text-right py-3 px-2 text-slate-500 font-medium">Value</th>
+                <tr className="border-b border-slate-200">
+                  <th className="text-left py-3 px-2 text-slate-600 font-medium">Metric</th>
+                  <th className="text-right py-3 px-2 text-slate-600 font-medium">Value</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.03]">
@@ -331,30 +331,30 @@ function KpiCard({
   color: string;
 }) {
   const cm: Record<string, string> = {
-    cyan: "bg-cyan-500/10 text-cyan-400",
+    cyan: "bg-cyan-50 text-cyan-600",
     green: "bg-green-500/10 text-green-400",
-    violet: "bg-violet-500/10 text-violet-400",
-    emerald: "bg-emerald-500/10 text-emerald-400",
-    amber: "bg-amber-500/10 text-amber-400",
-    rose: "bg-rose-500/10 text-rose-400",
+    violet: "bg-violet-50 text-violet-600",
+    emerald: "bg-emerald-50 text-emerald-600",
+    amber: "bg-amber-50 text-amber-600",
+    rose: "bg-rose-50 text-rose-600",
   };
   return (
-    <div className="bg-[#0F172A] rounded-xl p-4 border border-white/5">
+    <div className="bg-white rounded-xl p-4 border border-slate-200">
       <div className="flex items-center gap-2 mb-2">
         <div className={`p-1.5 rounded-lg ${cm[color] || cm.cyan}`}>{icon}</div>
-        <span className="text-xs text-slate-500">{label}</span>
+        <span className="text-xs text-slate-600">{label}</span>
       </div>
-      <div className="text-2xl font-bold text-white tabular-nums">{value}</div>
-      {sub && <div className="text-xs text-slate-500 mt-1">{sub}</div>}
+      <div className="text-2xl font-bold text-slate-900 tabular-nums">{value}</div>
+      {sub && <div className="text-xs text-slate-600 mt-1">{sub}</div>}
     </div>
   );
 }
 
 function CampaignRow({ label, value }: { label: string; value: string }) {
   return (
-    <tr className="hover:bg-white/[0.02]">
-      <td className="py-2.5 px-2 text-slate-400">{label}</td>
-      <td className="py-2.5 px-2 text-right font-semibold text-white tabular-nums">{value}</td>
+    <tr className="hover:bg-slate-50">
+      <td className="py-2.5 px-2 text-slate-500">{label}</td>
+      <td className="py-2.5 px-2 text-right font-semibold text-slate-900 tabular-nums">{value}</td>
     </tr>
   );
 }

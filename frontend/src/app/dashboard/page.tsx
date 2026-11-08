@@ -143,10 +143,10 @@ export default function DashboardPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
-        <h1 className="text-2xl font-bold text-white">
+        <h1 className="text-2xl font-bold text-slate-900">
           {greeting}, {doctor?.full_name?.split(" ")[0] || "Doctor"}
         </h1>
-        <p className="text-sm text-slate-500 mt-0.5">{dateStr}</p>
+        <p className="text-sm text-slate-600 mt-0.5">{dateStr}</p>
       </motion.div>
 
       {/* Launch CTA */}
@@ -155,24 +155,24 @@ export default function DashboardPage() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="relative rounded-xl border border-emerald-500/20 bg-gradient-to-r from-emerald-500/[0.08] to-cyan-500/[0.04] p-6 overflow-hidden group"
+          className="relative rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-500/[0.08] to-cyan-500/[0.04] p-6 overflow-hidden group"
           style={{ boxShadow: "0 0 40px rgba(16,185,129,0.06)" }}
         >
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_right,rgba(16,185,129,0.08),transparent_60%)]" />
-          <div className="absolute -top-20 -right-20 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/15 transition-colors duration-700" />
+          <div className="absolute -top-20 -right-20 w-40 h-40 bg-emerald-50 rounded-full blur-3xl group-hover:bg-emerald-500/15 transition-colors duration-700" />
           <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <Zap className="w-6 h-6 text-emerald-400" /> Ready to get patients?
+              <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                <Zap className="w-6 h-6 text-emerald-600" /> Ready to get patients?
               </h2>
-              <p className="text-slate-400 mt-1">
+              <p className="text-slate-500 mt-1">
                 Launch AI-powered campaigns on Google & Meta to start getting patient enquiries.
               </p>
             </div>
             <button
               onClick={handleLaunch}
               disabled={launching}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-[#0A0E1A] font-semibold text-sm transition-all whitespace-nowrap disabled:opacity-50 hover:shadow-lg hover:shadow-emerald-500/20"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-500 hover:bg-slate-800 text-[#0A0E1A] font-semibold text-sm transition-all whitespace-nowrap disabled:opacity-50 hover:shadow-lg hover:shadow-emerald-500/20"
             >
               {launching ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
               Launch Campaigns <ArrowRight className="w-4 h-4" />
@@ -206,19 +206,19 @@ export default function DashboardPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.5 }}
-          className="bg-[#0F172A] rounded-xl p-5 border border-white/5 hover:border-white/10 transition-colors duration-300"
+          className="bg-white rounded-xl p-5 border border-slate-200 hover:border-slate-200 transition-colors duration-300"
         >
-          <h3 className="font-semibold text-white flex items-center gap-2 mb-4">
-            <IndianRupee className="w-5 h-5 text-emerald-400" /> Ad spend (30 days)
+          <h3 className="font-semibold text-slate-900 flex items-center gap-2 mb-4">
+            <IndianRupee className="w-5 h-5 text-emerald-600" /> Ad spend (30 days)
           </h3>
-          <div className="text-3xl font-bold text-white tabular-nums">₹{fmt(campaignOverview?.total_spend || 0)}</div>
-          <div className="mt-2 text-sm text-slate-500">
+          <div className="text-3xl font-bold text-slate-900 tabular-nums">₹{fmt(campaignOverview?.total_spend || 0)}</div>
+          <div className="mt-2 text-sm text-slate-600">
             Cost per patient: ₹{appointmentStats?.attended
               ? Math.round((campaignOverview?.total_spend || 0) / appointmentStats.attended) : "—"}
           </div>
           <div className="mt-4">
             <Link href="/dashboard/campaigns"
-              className="group/link inline-flex items-center gap-1.5 text-sm text-emerald-400 hover:text-emerald-300 transition-colors">
+              className="group/link inline-flex items-center gap-1.5 text-sm text-emerald-600 hover:text-emerald-300 transition-colors">
               View campaigns <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-0.5 transition-transform" />
             </Link>
           </div>
@@ -228,10 +228,10 @@ export default function DashboardPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.55 }}
-          className="bg-[#0F172A] rounded-xl p-5 border border-white/5 hover:border-white/10 transition-colors duration-300"
+          className="bg-white rounded-xl p-5 border border-slate-200 hover:border-slate-200 transition-colors duration-300"
         >
-          <h3 className="font-semibold text-white flex items-center gap-2 mb-4">
-            <Activity className="w-5 h-5 text-cyan-400" /> Patient funnel (30 days)
+          <h3 className="font-semibold text-slate-900 flex items-center gap-2 mb-4">
+            <Activity className="w-5 h-5 text-cyan-600" /> Patient funnel (30 days)
           </h3>
           <div className="space-y-3">
             <FunnelRow label="Ad clicks" value={campaignOverview?.total_clicks || 0}
@@ -252,13 +252,13 @@ export default function DashboardPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.6 }}
-          className="lg:col-span-2 bg-[#0F172A] rounded-xl p-5 border border-white/5 hover:border-white/10 transition-colors duration-300"
+          className="lg:col-span-2 bg-white rounded-xl p-5 border border-slate-200 hover:border-slate-200 transition-colors duration-300"
         >
-          <h3 className="font-semibold text-white flex items-center gap-2 mb-4">
-            <Calendar className="w-5 h-5 text-cyan-400" /> Today{"'"}s appointments
+          <h3 className="font-semibold text-slate-900 flex items-center gap-2 mb-4">
+            <Calendar className="w-5 h-5 text-cyan-600" /> Today{"'"}s appointments
           </h3>
           {todayAppts.length === 0 ? (
-            <p className="text-slate-500 text-sm py-4">No appointments today.</p>
+            <p className="text-slate-600 text-sm py-4">No appointments today.</p>
           ) : (
             <div className="divide-y divide-white/5">
               {todayAppts.map((a) => (
@@ -266,12 +266,12 @@ export default function DashboardPage() {
                   <div className="flex items-center gap-3">
                     <div className={`w-0.5 h-8 rounded-full ${statusBarColor(a.status)}`} />
                     <div>
-                      <div className="font-medium text-sm text-slate-200">{a.patient_name}</div>
-                      <div className="text-xs text-slate-500">{a.treatment}</div>
+                      <div className="font-medium text-sm text-slate-800">{a.patient_name}</div>
+                      <div className="text-xs text-slate-600">{a.treatment}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-sm text-slate-400 tabular-nums">{a.time}</span>
+                    <span className="text-sm text-slate-500 tabular-nums">{a.time}</span>
                     <StatusBadge status={a.status} />
                   </div>
                 </div>
@@ -280,7 +280,7 @@ export default function DashboardPage() {
           )}
           <div className="mt-3">
             <Link href="/dashboard/appointments"
-              className="group/link inline-flex items-center gap-1.5 text-sm text-emerald-400 hover:text-emerald-300 transition-colors">
+              className="group/link inline-flex items-center gap-1.5 text-sm text-emerald-600 hover:text-emerald-300 transition-colors">
               View all <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-0.5 transition-transform" />
             </Link>
           </div>
@@ -290,9 +290,9 @@ export default function DashboardPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.65 }}
-          className="bg-[#0F172A] rounded-xl p-5 border border-white/5 hover:border-white/10 transition-colors duration-300"
+          className="bg-white rounded-xl p-5 border border-slate-200 hover:border-slate-200 transition-colors duration-300"
         >
-          <h3 className="font-semibold text-white mb-4">Quick actions</h3>
+          <h3 className="font-semibold text-slate-900 mb-4">Quick actions</h3>
           <div className="space-y-1">
             <Link href="/dashboard/campaigns" className="block"><QA icon={<BarChart3 className="w-4 h-4" />} label="Manage campaigns" /></Link>
             <Link href="/dashboard/conversations" className="block"><QA icon={<MessageCircle className="w-4 h-4" />} label="WhatsApp chats" /></Link>
@@ -301,12 +301,12 @@ export default function DashboardPage() {
           </div>
 
           {appointmentStats && Object.keys(appointmentStats.by_treatment || {}).length > 0 && (
-            <div className="mt-6 pt-4 border-t border-white/5">
-              <h4 className="text-sm font-medium text-slate-400 mb-3">By treatment</h4>
+            <div className="mt-6 pt-4 border-t border-slate-200">
+              <h4 className="text-sm font-medium text-slate-500 mb-3">By treatment</h4>
               {Object.entries(appointmentStats.by_treatment).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([t, c]) => (
                 <div key={t} className="flex justify-between text-sm py-1">
-                  <span className="text-slate-400">{t}</span>
-                  <span className="font-medium text-white tabular-nums">{c}</span>
+                  <span className="text-slate-500">{t}</span>
+                  <span className="font-medium text-slate-900 tabular-nums">{c}</span>
                 </div>
               ))}
             </div>
@@ -337,24 +337,24 @@ function MetricCard({ icon, label, value, sub, color, trend }: {
   icon: React.ReactNode; label: string; value: string; sub?: string; color: "cyan" | "emerald" | "violet" | "amber"; trend?: "up" | "down";
 }) {
   const cm: Record<string, string> = {
-    cyan: "bg-cyan-500/10 text-cyan-400",
-    emerald: "bg-emerald-500/10 text-emerald-400",
-    violet: "bg-violet-500/10 text-violet-400",
-    amber: "bg-amber-500/10 text-amber-400",
+    cyan: "bg-cyan-50 text-cyan-600",
+    emerald: "bg-emerald-50 text-emerald-600",
+    violet: "bg-violet-50 text-violet-600",
+    amber: "bg-amber-50 text-amber-600",
   };
   return (
-    <div className="relative bg-[#0F172A] rounded-xl p-4 border border-white/5 hover:border-white/10 hover:bg-white/[0.02] transition-all duration-300 overflow-hidden group/card">
+    <div className="relative bg-white rounded-xl p-4 border border-slate-200 hover:border-slate-200 hover:bg-slate-50 transition-all duration-300 overflow-hidden group/card">
       {/* Gradient left border */}
       <div className={`absolute left-0 top-0 bottom-0 w-0.5 bg-gradient-to-b ${borderColors[color]} opacity-40 group-hover/card:opacity-100 transition-opacity duration-300`} />
       <div className="flex items-center gap-2 mb-2">
         <div className={`p-1.5 rounded-lg ${cm[color]} shadow-sm ${glowShadows[color]}`}>{icon}</div>
-        <span className="text-sm text-slate-500">{label}</span>
+        <span className="text-sm text-slate-600">{label}</span>
       </div>
-      <div className="text-2xl font-bold text-white tabular-nums">{value}</div>
+      <div className="text-2xl font-bold text-slate-900 tabular-nums">{value}</div>
       {sub && (
-        <div className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-          {trend === "up" && <span className="text-emerald-400">↑</span>}
-          {trend === "down" && <span className="text-emerald-400">↓</span>}
+        <div className="text-xs text-slate-600 mt-1 flex items-center gap-1">
+          {trend === "up" && <span className="text-emerald-600">↑</span>}
+          {trend === "down" && <span className="text-emerald-600">↓</span>}
           {sub}
         </div>
       )}
@@ -372,8 +372,8 @@ function FunnelRow({ label, value, total, color }: {
   return (
     <div ref={ref}>
       <div className="flex justify-between text-sm mb-1">
-        <span className="text-slate-400">{label}</span>
-        <span className="font-medium text-white tabular-nums">{fmt(value)} ({pct}%)</span>
+        <span className="text-slate-500">{label}</span>
+        <span className="font-medium text-slate-900 tabular-nums">{fmt(value)} ({pct}%)</span>
       </div>
       <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
         <motion.div
@@ -389,10 +389,10 @@ function FunnelRow({ label, value, total, color }: {
 
 function QA({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
-    <div className="group/qa flex items-center gap-3 p-2.5 rounded-lg hover:bg-white/5 cursor-pointer transition-colors">
-      <div className="text-slate-500 group-hover/qa:text-emerald-400 transition-colors">{icon}</div>
-      <span className="text-sm text-slate-300">{label}</span>
-      <ArrowRight className="w-3.5 h-3.5 text-slate-600 ml-auto group-hover/qa:text-slate-400 group-hover/qa:translate-x-1 transition-all" />
+    <div className="group/qa flex items-center gap-3 p-2.5 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors">
+      <div className="text-slate-600 group-hover/qa:text-emerald-600 transition-colors">{icon}</div>
+      <span className="text-sm text-slate-700">{label}</span>
+      <ArrowRight className="w-3.5 h-3.5 text-slate-600 ml-auto group-hover/qa:text-slate-500 group-hover/qa:translate-x-1 transition-all" />
     </div>
   );
 }
@@ -410,11 +410,11 @@ function statusBarColor(status: string): string {
 
 function StatusBadge({ status }: { status: string }) {
   const c: Record<string, { icon: React.ReactNode; cls: string }> = {
-    CONFIRMED: { icon: <Clock className="w-3 h-3" />, cls: "bg-cyan-500/10 text-cyan-400" },
-    REMINDED: { icon: <Clock className="w-3 h-3" />, cls: "bg-amber-500/10 text-amber-400" },
-    ATTENDED: { icon: <CheckCircle2 className="w-3 h-3" />, cls: "bg-emerald-500/10 text-emerald-400" },
-    NO_SHOW: { icon: <XCircle className="w-3 h-3" />, cls: "bg-red-500/10 text-red-400" },
-    CANCELLED: { icon: <XCircle className="w-3 h-3" />, cls: "bg-slate-500/10 text-slate-400" },
+    CONFIRMED: { icon: <Clock className="w-3 h-3" />, cls: "bg-cyan-50 text-cyan-600" },
+    REMINDED: { icon: <Clock className="w-3 h-3" />, cls: "bg-amber-50 text-amber-600" },
+    ATTENDED: { icon: <CheckCircle2 className="w-3 h-3" />, cls: "bg-emerald-50 text-emerald-600" },
+    NO_SHOW: { icon: <XCircle className="w-3 h-3" />, cls: "bg-red-50 text-red-600" },
+    CANCELLED: { icon: <XCircle className="w-3 h-3" />, cls: "bg-slate-500/10 text-slate-500" },
   };
   const cfg = c[status] || c.CONFIRMED;
   return (

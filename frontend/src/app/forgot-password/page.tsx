@@ -32,32 +32,30 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0E1A] flex items-center justify-center px-4 py-12 relative">
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-emerald-500/8 rounded-full blur-[120px] pointer-events-none" />
-
+    <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center px-4 py-12 relative">
       <div className="w-full max-w-md relative">
         {/* Logo */}
         <Link href="/" className="flex items-center justify-center gap-2.5 mb-8">
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-400 to-cyan-400 flex items-center justify-center">
-            <span className="text-[#0A0E1A] font-bold text-sm">P</span>
+          <div className="w-9 h-9 rounded-lg bg-emerald-500 flex items-center justify-center">
+            <span className="text-white font-bold text-sm">P</span>
           </div>
-          <span className="text-white text-xl font-semibold tracking-tight">PatientPlex</span>
+          <span className="text-slate-900 text-xl font-black tracking-tight">PatientPlex</span>
         </Link>
 
         {/* Card */}
-        <div className="bg-[#0F172A] border border-white/10 rounded-xl p-8">
+        <div className="bg-white border border-slate-200 rounded-xl p-8 shadow-sm">
           {submitted ? (
             <div className="text-center py-4">
               <div className="w-12 h-12 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle2 className="w-6 h-6 text-emerald-400" />
               </div>
-              <h1 className="text-2xl font-bold text-white mb-2">Check your email</h1>
-              <p className="text-slate-400 text-sm mb-6">
-                If an account exists for <span className="text-white font-medium">{email}</span>, you&apos;ll receive a password reset link shortly.
+              <h1 className="text-2xl font-bold text-slate-900 mb-2">Check your email</h1>
+              <p className="text-slate-500 text-sm mb-6">
+                If an account exists for <span className="text-slate-900 font-medium">{email}</span>, you&apos;ll receive a password reset link shortly.
               </p>
               <Link
                 href="/login"
-                className="inline-flex items-center gap-2 text-emerald-400 hover:text-emerald-300 font-medium text-sm transition-colors"
+                className="inline-flex items-center gap-2 text-emerald-600 hover:text-emerald-700 font-medium text-sm transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Back to sign in
@@ -70,16 +68,16 @@ export default function ForgotPasswordPage() {
                   <Mail className="w-6 h-6 text-emerald-400" />
                 </div>
               </div>
-              <h1 className="text-2xl font-bold text-white text-center mb-1">
+              <h1 className="text-2xl font-bold text-slate-900 text-center mb-1">
                 Reset your password
               </h1>
-              <p className="text-slate-400 text-center mb-6 text-sm">
+              <p className="text-slate-500 text-center mb-6 text-sm">
                 Enter your email and we&apos;ll send you a reset link
               </p>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1.5">Email</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
                   <input
                     type="email"
                     placeholder="priya@clinic.com"
@@ -88,7 +86,7 @@ export default function ForgotPasswordPage() {
                       setEmail(e.target.value);
                       if (errors.email) setErrors((prev) => ({ ...prev, email: "" }));
                     }}
-                    className="w-full px-3 py-2.5 rounded-lg bg-white/[0.05] border border-white/10 text-white placeholder:text-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-colors"
+                    className="w-full px-3 py-2.5 rounded-lg bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-colors"
                   />
                   {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
                 </div>
@@ -96,7 +94,7 @@ export default function ForgotPasswordPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-[#0A0E1A] font-semibold text-sm transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full py-3 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                   Send reset link
@@ -106,7 +104,7 @@ export default function ForgotPasswordPage() {
               <p className="text-center text-sm text-slate-500 mt-6">
                 <Link
                   href="/login"
-                  className="inline-flex items-center gap-1 text-emerald-400 hover:text-emerald-300 font-medium transition-colors"
+                  className="inline-flex items-center gap-1 text-emerald-600 hover:text-emerald-700 font-medium transition-colors"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   Back to sign in

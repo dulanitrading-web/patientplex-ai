@@ -94,7 +94,7 @@ function Toast({ message, type, onClose }: { message: string; type: "error" | "s
 
   return (
     <div className={clsx(
-      "fixed top-4 right-4 z-50 px-4 py-3 rounded-lg text-sm text-white shadow-lg animate-slide-in",
+      "fixed top-4 right-4 z-50 px-4 py-3 rounded-lg text-sm text-slate-900 shadow-lg animate-slide-in",
       type === "error" ? "bg-red-500" : "bg-emerald-500"
     )}>
       <div className="flex items-center gap-2">
@@ -303,10 +303,10 @@ export default function OnboardingPage() {
     }
   }
 
-  const inputClass = "w-full px-3 py-2.5 rounded-lg bg-white/[0.05] border border-white/10 text-white placeholder:text-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-colors";
+  const inputClass = "w-full px-3 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-colors";
 
   return (
-    <div className="min-h-screen bg-[#0A0E1A] relative">
+    <div className="min-h-screen bg-[#FAFAF8] relative">
       {/* Gradient orb */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-emerald-500/[0.06] rounded-full blur-[120px] pointer-events-none" />
 
@@ -318,7 +318,7 @@ export default function OnboardingPage() {
           <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-400 to-cyan-400 flex items-center justify-center">
             <span className="text-[#0A0E1A] font-bold text-sm">P</span>
           </div>
-          <span className="text-white text-xl font-semibold tracking-tight">PatientPlex</span>
+          <span className="text-slate-900 text-xl font-semibold tracking-tight">PatientPlex</span>
         </Link>
       </div>
 
@@ -336,7 +336,7 @@ export default function OnboardingPage() {
                       "w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300",
                       done && "bg-emerald-500 text-white",
                       active && "bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 scale-110",
-                      !done && !active && "bg-white/10 text-slate-500"
+                      !done && !active && "bg-white/10 text-slate-600"
                     )}
                   >
                     {done ? <Check className="w-5 h-5" /> : step.num}
@@ -344,7 +344,7 @@ export default function OnboardingPage() {
                   <span
                     className={clsx(
                       "text-xs mt-1.5 font-medium hidden sm:block",
-                      active ? "text-emerald-400" : done ? "text-slate-400" : "text-slate-600"
+                      active ? "text-emerald-600" : done ? "text-slate-500" : "text-slate-600"
                     )}
                   >
                     {step.label}
@@ -368,12 +368,12 @@ export default function OnboardingPage() {
 
       {/* Step content card */}
       <div className="max-w-2xl mx-auto px-4 pb-12 relative">
-        <div className="bg-[#0F172A] border border-white/10 rounded-xl p-6 sm:p-8 animate-fade-in">
+        <div className="bg-white border border-slate-200 rounded-xl p-6 sm:p-8 animate-fade-in">
           {/* ---------- STEP 1: Specialty ---------- */}
           {currentStep === 1 && (
             <div>
-              <h2 className="text-2xl font-bold text-white mb-1">What&apos;s your specialty?</h2>
-              <p className="text-slate-400 mb-6">Select your medical specialty and the services you offer.</p>
+              <h2 className="text-2xl font-bold text-slate-900 mb-1">What&apos;s your specialty?</h2>
+              <p className="text-slate-500 mb-6">Select your medical specialty and the services you offer.</p>
 
               {/* Specialty grid */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
@@ -387,14 +387,14 @@ export default function OnboardingPage() {
                       className={clsx(
                         "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-200",
                         selected
-                          ? "border-emerald-500 bg-emerald-500/10"
-                          : "border-white/5 hover:border-white/10 bg-white/[0.02]"
+                          ? "border-emerald-500 bg-emerald-50"
+                          : "border-slate-200 hover:border-slate-200 bg-slate-50"
                       )}
                     >
                       <div className={clsx("w-10 h-10 rounded-lg flex items-center justify-center", selected ? "bg-emerald-500/20" : "bg-white/5")}>
-                        <Icon className={clsx("w-5 h-5", selected ? "text-emerald-400" : "text-slate-500")} />
+                        <Icon className={clsx("w-5 h-5", selected ? "text-emerald-600" : "text-slate-600")} />
                       </div>
-                      <span className={clsx("text-sm font-medium", selected ? "text-emerald-400" : "text-slate-400")}>
+                      <span className={clsx("text-sm font-medium", selected ? "text-emerald-600" : "text-slate-500")}>
                         {spec.name}
                       </span>
                     </button>
@@ -404,15 +404,15 @@ export default function OnboardingPage() {
 
               {/* Services checklist */}
               {selectedSpecialty && services.length > 0 && (
-                <div className="border border-white/5 rounded-xl p-4 animate-fade-in bg-white/[0.02]">
-                  <h3 className="text-sm font-semibold text-slate-300 mb-3">
+                <div className="border border-slate-200 rounded-xl p-4 animate-fade-in bg-slate-50">
+                  <h3 className="text-sm font-semibold text-slate-700 mb-3">
                     Services you offer
                   </h3>
                   <div className="space-y-2 mb-4">
                     {services.map((svc, i) => (
                       <label
                         key={svc.name}
-                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 cursor-pointer transition-colors"
+                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors"
                       >
                         <button
                           type="button"
@@ -424,9 +424,9 @@ export default function OnboardingPage() {
                               : "border-white/20 bg-transparent"
                           )}
                         >
-                          {svc.enabled && <Check className="w-3 h-3 text-white" />}
+                          {svc.enabled && <Check className="w-3 h-3 text-slate-900" />}
                         </button>
-                        <span className={clsx("text-sm", svc.enabled ? "text-slate-200" : "text-slate-500")}>
+                        <span className={clsx("text-sm", svc.enabled ? "text-slate-800" : "text-slate-600")}>
                           {svc.name}
                         </span>
                       </label>
@@ -448,7 +448,7 @@ export default function OnboardingPage() {
                       onClick={addCustomService}
                       className="p-2.5 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"
                     >
-                      <Plus className="w-4 h-4 text-slate-400" />
+                      <Plus className="w-4 h-4 text-slate-500" />
                     </button>
                   </div>
                 </div>
@@ -459,12 +459,12 @@ export default function OnboardingPage() {
           {/* ---------- STEP 2: Location ---------- */}
           {currentStep === 2 && (
             <div>
-              <h2 className="text-2xl font-bold text-white mb-1">Where&apos;s your clinic?</h2>
-              <p className="text-slate-400 mb-6">We&apos;ll target patients near your location.</p>
+              <h2 className="text-2xl font-bold text-slate-900 mb-1">Where&apos;s your clinic?</h2>
+              <p className="text-slate-500 mb-6">We&apos;ll target patients near your location.</p>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1.5">Clinic Name</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Clinic Name</label>
                   <input
                     placeholder="Sharma Dental Clinic"
                     value={clinicName}
@@ -474,7 +474,7 @@ export default function OnboardingPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1.5">Full Address</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Full Address</label>
                   <textarea
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
@@ -486,24 +486,24 @@ export default function OnboardingPage() {
 
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-1.5">City</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">City</label>
                     <input placeholder="Hyderabad" value={city} onChange={(e) => setCity(e.target.value)} className={inputClass} />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-1.5">State</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">State</label>
                     <input placeholder="Telangana" value={state} onChange={(e) => setState(e.target.value)} className={inputClass} />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-1.5">Pincode</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Pincode</label>
                     <input placeholder="500032" value={pincode} onChange={(e) => setPincode(e.target.value.replace(/\D/g, "").slice(0, 6))} className={inputClass} />
                   </div>
                 </div>
 
                 {/* Geo-radius slider */}
-                <div className="bg-white/[0.03] rounded-xl p-4 border border-white/5">
+                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
                   <div className="flex items-center justify-between mb-2">
-                    <label className="text-sm font-medium text-slate-300">Ad targeting radius</label>
-                    <span className="text-sm font-bold text-emerald-400">{geoRadius} km</span>
+                    <label className="text-sm font-medium text-slate-700">Ad targeting radius</label>
+                    <span className="text-sm font-bold text-emerald-600">{geoRadius} km</span>
                   </div>
                   <input
                     type="range"
@@ -517,8 +517,8 @@ export default function OnboardingPage() {
                     <span>1 km</span>
                     <span>20 km</span>
                   </div>
-                  <p className="text-xs text-slate-500 mt-2 flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+                  <p className="text-xs text-slate-600 mt-2 flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-emerald-600" />
                     Patients within {geoRadius} km will see your ads
                   </p>
                 </div>
@@ -529,13 +529,13 @@ export default function OnboardingPage() {
           {/* ---------- STEP 3: Budget ---------- */}
           {currentStep === 3 && (
             <div>
-              <h2 className="text-2xl font-bold text-white mb-1">Set your monthly budget</h2>
-              <p className="text-slate-400 mb-6">How much would you like to spend on patient acquisition?</p>
+              <h2 className="text-2xl font-bold text-slate-900 mb-1">Set your monthly budget</h2>
+              <p className="text-slate-500 mb-6">How much would you like to spend on patient acquisition?</p>
 
               {/* Budget display */}
               <div className="text-center mb-6">
-                <div className="text-4xl font-bold text-white tabular-nums">{formatINR(budget)}</div>
-                <div className="text-sm text-slate-500 mt-1">per month</div>
+                <div className="text-4xl font-bold text-slate-900 tabular-nums">{formatINR(budget)}</div>
+                <div className="text-sm text-slate-600 mt-1">per month</div>
               </div>
 
               {/* Slider */}
@@ -556,25 +556,25 @@ export default function OnboardingPage() {
               </div>
 
               {/* Estimates */}
-              <div className="rounded-xl p-5 border border-emerald-500/20 bg-emerald-500/[0.04]">
-                <h3 className="text-sm font-semibold text-slate-300 mb-4">
+              <div className="rounded-xl p-5 border border-emerald-200 bg-emerald-500/[0.04]">
+                <h3 className="text-sm font-semibold text-slate-700 mb-4">
                   At {formatINR(budget)}/month, you can expect approximately:
                 </h3>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-emerald-400 tabular-nums">~{estimatedClicks}</div>
-                    <div className="text-xs text-slate-500 mt-1">clicks/month</div>
+                    <div className="text-2xl font-bold text-emerald-600 tabular-nums">~{estimatedClicks}</div>
+                    <div className="text-xs text-slate-600 mt-1">clicks/month</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-cyan-400 tabular-nums">~{estimatedEnquiries}</div>
-                    <div className="text-xs text-slate-500 mt-1">enquiries</div>
+                    <div className="text-2xl font-bold text-cyan-600 tabular-nums">~{estimatedEnquiries}</div>
+                    <div className="text-xs text-slate-600 mt-1">enquiries</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-amber-400 tabular-nums">~{estimatedAppointments}</div>
-                    <div className="text-xs text-slate-500 mt-1">appointments</div>
+                    <div className="text-2xl font-bold text-amber-600 tabular-nums">~{estimatedAppointments}</div>
+                    <div className="text-xs text-slate-600 mt-1">appointments</div>
                   </div>
                 </div>
-                <p className="text-xs text-slate-600 mt-4 leading-relaxed border-t border-white/5 pt-3">
+                <p className="text-xs text-slate-600 mt-4 leading-relaxed border-t border-slate-200 pt-3">
                   Actual results vary. These are planning estimates based on market averages (avg. CPC of Rs. 90, 8% conversion to enquiry, 35% booking rate).
                 </p>
               </div>
@@ -584,26 +584,26 @@ export default function OnboardingPage() {
           {/* ---------- STEP 4: Connect ---------- */}
           {currentStep === 4 && (
             <div>
-              <h2 className="text-2xl font-bold text-white mb-1">Connect your channels</h2>
-              <p className="text-slate-400 mb-6">Link your WhatsApp and calendar for seamless patient booking.</p>
+              <h2 className="text-2xl font-bold text-slate-900 mb-1">Connect your channels</h2>
+              <p className="text-slate-500 mb-6">Link your WhatsApp and calendar for seamless patient booking.</p>
 
               <div className="space-y-5">
                 {/* WhatsApp */}
-                <div className="border border-white/5 rounded-xl p-5 bg-white/[0.02]">
+                <div className="border border-slate-200 rounded-xl p-5 bg-slate-50">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center">
-                      <MessageCircle className="w-5 h-5 text-emerald-400" />
+                    <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center">
+                      <MessageCircle className="w-5 h-5 text-emerald-600" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-white">WhatsApp Business</h3>
-                      <p className="text-xs text-slate-500">Patients will reach you here</p>
+                      <h3 className="font-semibold text-slate-900">WhatsApp Business</h3>
+                      <p className="text-xs text-slate-600">Patients will reach you here</p>
                     </div>
                     {whatsappNumber.replace(/\D/g, "").length >= 10 && (
-                      <CheckCircle2 className="w-5 h-5 text-emerald-400 ml-auto" />
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600 ml-auto" />
                     )}
                   </div>
                   <div className="flex gap-2">
-                    <div className="flex items-center bg-white/5 border border-white/10 rounded-lg px-3 text-sm text-slate-400 font-medium">
+                    <div className="flex items-center bg-white/5 border border-slate-200 rounded-lg px-3 text-sm text-slate-500 font-medium">
                       +91
                     </div>
                     <input
@@ -617,24 +617,24 @@ export default function OnboardingPage() {
                 </div>
 
                 {/* Google Calendar */}
-                <div className="border border-white/5 rounded-xl p-5 bg-white/[0.02]">
+                <div className="border border-slate-200 rounded-xl p-5 bg-slate-50">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className={clsx("w-10 h-10 rounded-lg flex items-center justify-center", calendarConnected ? "bg-emerald-500/10" : "bg-cyan-500/10")}>
-                      <Calendar className={clsx("w-5 h-5", calendarConnected ? "text-emerald-400" : "text-cyan-400")} />
+                    <div className={clsx("w-10 h-10 rounded-lg flex items-center justify-center", calendarConnected ? "bg-emerald-50" : "bg-cyan-50")}>
+                      <Calendar className={clsx("w-5 h-5", calendarConnected ? "text-emerald-600" : "text-cyan-600")} />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-white">Google Calendar</h3>
-                      <p className="text-xs text-slate-500">Auto-book appointments into your schedule</p>
+                      <h3 className="font-semibold text-slate-900">Google Calendar</h3>
+                      <p className="text-xs text-slate-600">Auto-book appointments into your schedule</p>
                     </div>
                     {calendarConnected ? (
-                      <CheckCircle2 className="w-5 h-5 text-emerald-400 ml-auto" />
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600 ml-auto" />
                     ) : (
                       <Circle className="w-5 h-5 text-slate-600 ml-auto" />
                     )}
                   </div>
 
                   {calendarConnected ? (
-                    <div className="bg-emerald-500/10 rounded-lg px-4 py-2.5 text-sm text-emerald-400 flex items-center gap-2">
+                    <div className="bg-emerald-50 rounded-lg px-4 py-2.5 text-sm text-emerald-600 flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4" />
                       Calendar connected
                     </div>
@@ -643,7 +643,7 @@ export default function OnboardingPage() {
                       <button
                         onClick={handleConnectCalendar}
                         disabled={connectingCalendar}
-                        className="w-full py-2.5 rounded-lg border border-white/10 hover:border-white/20 text-slate-300 hover:text-white text-sm font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                        className="w-full py-2.5 rounded-lg border border-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-900 text-sm font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                       >
                         {connectingCalendar ? <Loader2 className="w-4 h-4 animate-spin" /> : <Calendar className="w-4 h-4" />}
                         Connect Google Calendar
@@ -659,12 +659,12 @@ export default function OnboardingPage() {
           )}
 
           {/* ---------- Navigation buttons ---------- */}
-          <div className="flex items-center justify-between mt-8 pt-6 border-t border-white/5">
+          <div className="flex items-center justify-between mt-8 pt-6 border-t border-slate-200">
             {currentStep > 1 ? (
               <button
                 onClick={() => setCurrentStep((s) => s - 1)}
                 disabled={loading}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-white/10 hover:border-white/20 text-slate-300 hover:text-white text-sm font-medium transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-900 text-sm font-medium transition-colors disabled:opacity-50"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Back
@@ -676,7 +676,7 @@ export default function OnboardingPage() {
             <button
               onClick={handleNext}
               disabled={loading}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-[#0A0E1A] font-semibold text-sm transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-emerald-500 hover:bg-slate-800 text-[#0A0E1A] font-semibold text-sm transition-colors disabled:opacity-50"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               {currentStep === 4 ? (

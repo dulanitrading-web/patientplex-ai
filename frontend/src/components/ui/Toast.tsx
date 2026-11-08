@@ -33,7 +33,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
   const icons = {
     success: <CheckCircle2 className="w-4 h-4 text-emerald-400" />,
-    error: <AlertCircle className="w-4 h-4 text-red-400" />,
+    error: <AlertCircle className="w-4 h-4 text-red-600" />,
     warning: <AlertCircle className="w-4 h-4 text-amber-400" />,
     info: <Info className="w-4 h-4 text-cyan-400" />,
   };
@@ -50,10 +50,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       {children}
       <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm">
         {toasts.map((t) => (
-          <div key={t.id} className={clsx("flex items-start gap-2 p-3 rounded-lg border shadow-xl shadow-black/20 backdrop-blur-sm bg-[#0F172A] animate-slide-in", styles[t.type])}>
+          <div key={t.id} className={clsx("flex items-start gap-2 p-3 rounded-lg border shadow-xl shadow-lg backdrop-blur-sm bg-white animate-slide-in", styles[t.type])}>
             {icons[t.type]}
             <span className="text-sm text-slate-200 flex-1">{t.message}</span>
-            <button onClick={() => remove(t.id)} className="text-slate-500 hover:text-slate-300">
+            <button onClick={() => remove(t.id)} className="text-slate-500 hover:text-slate-700">
               <X className="w-3.5 h-3.5" />
             </button>
           </div>

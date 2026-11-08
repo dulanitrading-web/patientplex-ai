@@ -27,7 +27,7 @@ export default function Skeleton({ className, variant = "text", width, height }:
 
 export function StatSkeleton() {
   return (
-    <div className="bg-[#0F172A] border border-white/5 rounded-xl p-4">
+    <div className="bg-white border border-slate-200 rounded-xl p-4">
       <Skeleton width="60%" className="mb-2" />
       <Skeleton width="40%" height="28px" className="rounded-md" />
     </div>
@@ -38,7 +38,7 @@ export function ListSkeleton({ rows = 3 }: { rows?: number }) {
   return (
     <div className="space-y-3">
       {[...Array(rows)].map((_, i) => (
-        <div key={i} className="bg-[#0F172A] border border-white/5 rounded-xl p-4 flex items-center gap-3">
+        <div key={i} className="bg-white border border-slate-200 rounded-xl p-4 flex items-center gap-3">
           <Skeleton variant="circle" width="40px" />
           <div className="flex-1 space-y-2">
             <Skeleton width="50%" />

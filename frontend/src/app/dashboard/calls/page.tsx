@@ -78,44 +78,44 @@ export default function CallsPage() {
 
   const statusBadge = (s: string) => {
     const m: Record<string, string> = {
-      ANSWERED: "bg-emerald-500/10 text-emerald-400",
-      MISSED: "bg-red-500/10 text-red-400",
-      NO_ANSWER: "bg-amber-500/10 text-amber-400",
+      ANSWERED: "bg-emerald-50 text-emerald-600",
+      MISSED: "bg-red-50 text-red-600",
+      NO_ANSWER: "bg-amber-50 text-amber-600",
       BUSY: "bg-orange-500/10 text-orange-400",
-      COMPLETED: "bg-emerald-500/10 text-emerald-400",
-      FAILED: "bg-red-500/10 text-red-400",
+      COMPLETED: "bg-emerald-50 text-emerald-600",
+      FAILED: "bg-red-50 text-red-600",
     };
-    return m[s] || "bg-white/5 text-slate-400";
+    return m[s] || "bg-white/5 text-slate-500";
   };
 
   const DirectionIcon = ({ direction }: { direction: string }) => {
-    if (direction === "OUTBOUND") return <PhoneOutgoing className="w-4 h-4 text-cyan-400" />;
-    return <PhoneIncoming className="w-4 h-4 text-emerald-400" />;
+    if (direction === "OUTBOUND") return <PhoneOutgoing className="w-4 h-4 text-cyan-600" />;
+    return <PhoneIncoming className="w-4 h-4 text-emerald-600" />;
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <h1 className="text-lg font-bold text-white">Call Log</h1>
+        <h1 className="text-lg font-bold text-slate-900">Call Log</h1>
       </div>
 
       {/* Stats Row */}
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <StatCard label="Total Calls" value={stats.total_calls} icon={<Phone className="w-4 h-4 text-white" />} />
-          <StatCard label="Answered" value={stats.answered} color="text-emerald-400" icon={<PhoneIncoming className="w-4 h-4 text-emerald-400" />} />
-          <StatCard label="Missed" value={stats.missed} color="text-red-400" icon={<PhoneMissed className="w-4 h-4 text-red-400" />} />
-          <StatCard label="Recovered" value={stats.recovered_via_whatsapp} color="text-cyan-400" icon={<MessageCircle className="w-4 h-4 text-cyan-400" />} />
+          <StatCard label="Total Calls" value={stats.total_calls} icon={<Phone className="w-4 h-4 text-slate-900" />} />
+          <StatCard label="Answered" value={stats.answered} color="text-emerald-600" icon={<PhoneIncoming className="w-4 h-4 text-emerald-600" />} />
+          <StatCard label="Missed" value={stats.missed} color="text-red-600" icon={<PhoneMissed className="w-4 h-4 text-red-600" />} />
+          <StatCard label="Recovered" value={stats.recovered_via_whatsapp} color="text-cyan-600" icon={<MessageCircle className="w-4 h-4 text-cyan-600" />} />
         </div>
       )}
 
       {/* Filter */}
       <div className="flex items-center gap-2 flex-wrap">
-        <Filter className="w-4 h-4 text-slate-500" />
+        <Filter className="w-4 h-4 text-slate-600" />
         {STATUS_OPTIONS.map((s) => (
           <button key={s} onClick={() => setFilter(s)}
             className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-              filter === s ? "bg-emerald-500 text-[#0A0E1A]" : "bg-white/5 text-slate-400 border border-white/10 hover:border-white/20"
+              filter === s ? "bg-slate-900 text-white" : "bg-white/5 text-slate-500 border border-slate-200 hover:border-slate-300"
             }`}>
             {s === "ALL" ? "All" : s.replace("_", " ")}
           </button>
@@ -125,25 +125,25 @@ export default function CallsPage() {
       {/* Call Log List */}
       {loading ? (
         <div className="flex justify-center py-12">
-          <Loader2 className="w-6 h-6 animate-spin text-emerald-400" />
+          <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
         </div>
       ) : logs.length === 0 ? (
-        <div className="bg-[#0F172A] rounded-xl p-8 text-center border border-white/5">
+        <div className="bg-white rounded-xl p-8 text-center border border-slate-200">
           <Phone className="w-10 h-10 text-slate-600 mx-auto mb-2" />
-          <p className="text-slate-400">No calls found.</p>
+          <p className="text-slate-500">No calls found.</p>
         </div>
       ) : (
         <div className="space-y-3">
           {logs.map((cl) => (
-            <div key={cl.id} className="bg-[#0F172A] rounded-xl border border-white/5 p-4 hover:border-white/10 transition-colors">
+            <div key={cl.id} className="bg-white rounded-xl border border-slate-200 p-4 hover:border-slate-200 transition-colors">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-start gap-3">
                   <div className="p-2 bg-white/5 rounded-lg">
                     <DirectionIcon direction={cl.direction} />
                   </div>
                   <div>
-                    <div className="font-medium text-white">{maskPhone(cl.caller_phone)}</div>
-                    <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-2 flex-wrap">
+                    <div className="font-medium text-slate-900">{maskPhone(cl.caller_phone)}</div>
+                    <div className="text-xs text-slate-600 mt-0.5 flex items-center gap-2 flex-wrap">
                       <span className="capitalize">{cl.direction.toLowerCase()}</span>
                       <span>·</span>
                       <span className="flex items-center gap-1">
@@ -157,7 +157,7 @@ export default function CallsPage() {
                         {cl.status.replace("_", " ")}
                       </span>
                       {cl.whatsapp_followup_sent && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-cyan-500/10 text-cyan-400">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-cyan-50 text-cyan-600">
                           <MessageCircle className="w-3 h-3" /> WhatsApp sent
                         </span>
                       )}
@@ -175,10 +175,10 @@ export default function CallsPage() {
 
 function StatCard({ label, value, color, icon }: { label: string; value: number; color?: string; icon?: React.ReactNode }) {
   return (
-    <div className="bg-[#0F172A] rounded-xl p-3 border border-white/5 text-center">
+    <div className="bg-white rounded-xl p-3 border border-slate-200 text-center">
       {icon && <div className="flex justify-center mb-1">{icon}</div>}
-      <div className="text-xs text-slate-500">{label}</div>
-      <div className={`text-xl font-bold ${color || "text-white"}`}>{value}</div>
+      <div className="text-xs text-slate-600">{label}</div>
+      <div className={`text-xl font-bold ${color || "text-slate-900"}`}>{value}</div>
     </div>
   );
 }

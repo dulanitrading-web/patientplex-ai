@@ -91,32 +91,32 @@ export default function BillingPage() {
   return (
     <div className="space-y-6 max-w-4xl">
       <div>
-        <h1 className="text-2xl font-bold text-white">Billing & Subscription</h1>
-        <p className="text-slate-500 text-sm mt-1">Manage your plan, usage, and billing.</p>
+        <h1 className="text-2xl font-bold text-slate-900">Billing & Subscription</h1>
+        <p className="text-slate-600 text-sm mt-1">Manage your plan, usage, and billing.</p>
       </div>
 
       {/* No Subscription CTA */}
       {!subscription && (
-        <div className="rounded-2xl p-6 border border-emerald-500/20 bg-emerald-500/[0.06]">
+        <div className="rounded-2xl p-6 border border-emerald-200 bg-emerald-500/[0.06]">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-xl font-bold flex items-center gap-2 text-white">
-                <Zap className="w-6 h-6 text-emerald-400" /> Start Your Free Trial
+              <h2 className="text-xl font-bold flex items-center gap-2 text-slate-900">
+                <Zap className="w-6 h-6 text-emerald-600" /> Start Your Free Trial
               </h2>
-              <p className="text-slate-400 mt-1">
+              <p className="text-slate-500 mt-1">
                 Get 14 days free with access to AI WhatsApp receptionist, Google campaigns, and more.
               </p>
             </div>
             <button
               onClick={handleStartTrial}
               disabled={startingTrial}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-[#0A0E1A] font-semibold text-sm transition-colors whitespace-nowrap disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-500 hover:bg-slate-800 text-[#0A0E1A] font-semibold text-sm transition-colors whitespace-nowrap disabled:opacity-50"
             >
               {startingTrial ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
               Start Free Trial <ArrowRight className="w-5 h-5" />
             </button>
           </div>
-          {trialError && <p className="text-red-400 text-sm mt-2">{trialError}</p>}
+          {trialError && <p className="text-red-600 text-sm mt-2">{trialError}</p>}
         </div>
       )}
 
@@ -124,35 +124,35 @@ export default function BillingPage() {
       {subscription && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Current Plan */}
-          <div className="bg-[#0F172A] rounded-xl border border-white/5 p-5">
-            <h3 className="font-semibold text-white flex items-center gap-2 mb-4">
-              <CreditCard className="w-5 h-5 text-emerald-400" /> Current Plan
+          <div className="bg-white rounded-xl border border-slate-200 p-5">
+            <h3 className="font-semibold text-slate-900 flex items-center gap-2 mb-4">
+              <CreditCard className="w-5 h-5 text-emerald-600" /> Current Plan
             </h3>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-500">Plan</span>
-                <span className="font-semibold text-white">{formatPlanName(subscription.plan)}</span>
+                <span className="text-sm text-slate-600">Plan</span>
+                <span className="font-semibold text-slate-900">{formatPlanName(subscription.plan)}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-500">Status</span>
+                <span className="text-sm text-slate-600">Status</span>
                 <StatusBadge status={subscription.status} />
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-500">Price</span>
-                <span className="font-semibold text-white">
+                <span className="text-sm text-slate-600">Price</span>
+                <span className="font-semibold text-slate-900">
                   {subscription.price_inr === 0 ? "Free" : `₹${subscription.price_inr.toLocaleString("en-IN")}/mo`}
                 </span>
               </div>
               {trialDaysRemaining !== null && trialDaysRemaining > 0 && (
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-500">Trial Days Left</span>
-                  <span className="font-semibold text-amber-400">{trialDaysRemaining} days</span>
+                  <span className="text-sm text-slate-600">Trial Days Left</span>
+                  <span className="font-semibold text-amber-600">{trialDaysRemaining} days</span>
                 </div>
               )}
               {subscription.current_period_end && (
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-500">Next Billing</span>
-                  <span className="text-sm text-slate-300">
+                  <span className="text-sm text-slate-600">Next Billing</span>
+                  <span className="text-sm text-slate-700">
                     {new Date(subscription.current_period_end).toLocaleDateString("en-IN", {
                       year: "numeric", month: "short", day: "numeric",
                     })}
@@ -163,9 +163,9 @@ export default function BillingPage() {
           </div>
 
           {/* Usage */}
-          <div className="bg-[#0F172A] rounded-xl border border-white/5 p-5">
-            <h3 className="font-semibold text-white flex items-center gap-2 mb-4">
-              <BarChart3 className="w-5 h-5 text-cyan-400" /> Usage
+          <div className="bg-white rounded-xl border border-slate-200 p-5">
+            <h3 className="font-semibold text-slate-900 flex items-center gap-2 mb-4">
+              <BarChart3 className="w-5 h-5 text-cyan-600" /> Usage
             </h3>
             <div className="space-y-4">
               <UsageBar
@@ -185,7 +185,7 @@ export default function BillingPage() {
 
       {/* Available Plans */}
       <div>
-        <h2 className="text-lg font-bold text-white mb-4">Available Plans</h2>
+        <h2 className="text-lg font-bold text-slate-900 mb-4">Available Plans</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {plans.map((plan) => {
             const isCurrent = subscription?.plan === plan.id;
@@ -203,15 +203,15 @@ export default function BillingPage() {
       </div>
 
       {/* Plan Comparison */}
-      <div className="bg-[#0F172A] rounded-xl border border-white/5 p-5">
-        <h3 className="font-semibold text-white mb-4">Plan Comparison</h3>
+      <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <h3 className="font-semibold text-slate-900 mb-4">Plan Comparison</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/5">
-                <th className="text-left py-3 pr-4 font-medium text-slate-500">Feature</th>
+              <tr className="border-b border-slate-200">
+                <th className="text-left py-3 pr-4 font-medium text-slate-600">Feature</th>
                 {plans.map((p) => (
-                  <th key={p.id} className="text-center py-3 px-2 font-medium text-slate-500">
+                  <th key={p.id} className="text-center py-3 px-2 font-medium text-slate-600">
                     {p.name}
                   </th>
                 ))}
@@ -300,11 +300,11 @@ function PlanCard({ plan, isCurrent, isPopular }: {
   };
 
   return (
-    <div className={`relative bg-[#0F172A] rounded-xl border-2 p-5 flex flex-col ${
-      isCurrent ? "border-emerald-500/50" : isPopular ? "border-emerald-500/30" : "border-white/5"
+    <div className={`relative bg-white rounded-xl border-2 p-5 flex flex-col ${
+      isCurrent ? "border-emerald-500/50" : isPopular ? "border-emerald-300" : "border-slate-200"
     }`}>
       {isPopular && !isCurrent && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-500 text-[#0A0E1A] text-xs font-bold px-3 py-0.5 rounded-full">
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs font-bold px-3 py-0.5 rounded-full">
           Most Popular
         </div>
       )}
@@ -314,17 +314,17 @@ function PlanCard({ plan, isCurrent, isPopular }: {
         </div>
       )}
 
-      <div className="flex items-center gap-2 mb-3 text-white">
+      <div className="flex items-center gap-2 mb-3 text-slate-900">
         {planIcons[plan.id] || <Zap className="w-5 h-5" />}
         <h3 className="text-lg font-bold">{plan.name}</h3>
       </div>
 
       <div className="mb-4">
-        <span className="text-3xl font-bold text-white">{"₹"}{plan.price_inr.toLocaleString("en-IN")}</span>
-        <span className="text-slate-500 text-sm">/month</span>
+        <span className="text-3xl font-bold text-slate-900">{"₹"}{plan.price_inr.toLocaleString("en-IN")}</span>
+        <span className="text-slate-600 text-sm">/month</span>
       </div>
 
-      <div className="text-sm text-slate-400 mb-3">
+      <div className="text-sm text-slate-500 mb-3">
         <div>{plan.max_conversations === -1 ? "Unlimited" : plan.max_conversations} conversations</div>
         <div>{plan.max_campaigns === -1 ? "Unlimited" : plan.max_campaigns} campaigns</div>
         <div>{plan.platforms.join(" + ")} Ads</div>
@@ -332,7 +332,7 @@ function PlanCard({ plan, isCurrent, isPopular }: {
 
       <div className="flex-1 space-y-1.5 mb-4">
         {plan.features.slice(0, 6).map((f) => (
-          <div key={f} className="flex items-center gap-2 text-sm text-slate-400">
+          <div key={f} className="flex items-center gap-2 text-sm text-slate-500">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
             {featureLabels[f] || f.replace(/_/g, " ")}
           </div>
@@ -346,10 +346,10 @@ function PlanCard({ plan, isCurrent, isPopular }: {
         disabled={isCurrent}
         className={`w-full py-2.5 rounded-lg text-sm font-medium transition-colors ${
           isCurrent
-            ? "bg-white/5 text-slate-500 cursor-not-allowed"
+            ? "bg-white/5 text-slate-600 cursor-not-allowed"
             : isPopular
-              ? "bg-emerald-500 hover:bg-emerald-400 text-[#0A0E1A]"
-              : "border border-white/10 hover:border-white/20 text-slate-300 hover:text-white"
+              ? "bg-emerald-500 hover:bg-slate-800 text-[#0A0E1A]"
+              : "border border-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-900"
         }`}
       >
         {isCurrent ? "Current Plan" : "Upgrade"}
@@ -366,8 +366,8 @@ function UsageBar({ label, used, limit }: { label: string; used: number; limit: 
   return (
     <div>
       <div className="flex justify-between text-sm mb-1">
-        <span className="text-slate-400">{label}</span>
-        <span className="font-medium text-white tabular-nums">
+        <span className="text-slate-500">{label}</span>
+        <span className="font-medium text-slate-900 tabular-nums">
           {used} / {isUnlimited ? "Unlimited" : limit}
         </span>
       </div>
@@ -390,13 +390,13 @@ function UsageBar({ label, used, limit }: { label: string; used: number; limit: 
 
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { cls: string; label: string }> = {
-    TRIAL: { cls: "bg-cyan-500/10 text-cyan-400", label: "Trial" },
-    ACTIVE: { cls: "bg-emerald-500/10 text-emerald-400", label: "Active" },
-    PAST_DUE: { cls: "bg-amber-500/10 text-amber-400", label: "Past Due" },
-    CANCELLED: { cls: "bg-red-500/10 text-red-400", label: "Cancelled" },
-    EXPIRED: { cls: "bg-white/5 text-slate-500", label: "Expired" },
+    TRIAL: { cls: "bg-cyan-50 text-cyan-600", label: "Trial" },
+    ACTIVE: { cls: "bg-emerald-50 text-emerald-600", label: "Active" },
+    PAST_DUE: { cls: "bg-amber-50 text-amber-600", label: "Past Due" },
+    CANCELLED: { cls: "bg-red-50 text-red-600", label: "Cancelled" },
+    EXPIRED: { cls: "bg-white/5 text-slate-600", label: "Expired" },
   };
-  const cfg = config[status] || { cls: "bg-white/5 text-slate-500", label: status };
+  const cfg = config[status] || { cls: "bg-white/5 text-slate-600", label: status };
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${cfg.cls}`}>
       {cfg.label}
@@ -411,9 +411,9 @@ function ComparisonRow({ label, values, highlight }: {
 }) {
   return (
     <tr>
-      <td className={`py-2.5 pr-4 text-slate-400 ${highlight ? "font-medium text-white" : ""}`}>{label}</td>
+      <td className={`py-2.5 pr-4 text-slate-500 ${highlight ? "font-medium text-slate-900" : ""}`}>{label}</td>
       {values.map((v, i) => (
-        <td key={i} className={`py-2.5 px-2 text-center ${v === "✓" ? "text-emerald-400 font-bold" : v === "—" ? "text-slate-600" : "text-slate-300"}`}>
+        <td key={i} className={`py-2.5 px-2 text-center ${v === "✓" ? "text-emerald-600 font-bold" : v === "—" ? "text-slate-600" : "text-slate-700"}`}>
           {v}
         </td>
       ))}

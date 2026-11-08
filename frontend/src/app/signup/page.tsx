@@ -75,22 +75,19 @@ export default function SignupPage() {
     "w-full px-4 py-3 rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 transition-colors";
 
   return (
-    <div className="min-h-screen bg-[#0A0E1A] flex items-center justify-center px-4 py-12 relative overflow-hidden">
-      {/* Gradient orb */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-500/[0.07] rounded-full blur-[120px] pointer-events-none" />
-
+    <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center px-4 py-12 relative overflow-hidden">
       <div className="w-full max-w-md relative">
         {/* Logo */}
         <Link href="/" className="flex items-center justify-center gap-2.5 mb-10">
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-400 to-cyan-400 flex items-center justify-center">
-            <span className="text-[#0A0E1A] font-bold text-sm">P</span>
+          <div className="w-9 h-9 rounded-lg bg-emerald-500 flex items-center justify-center">
+            <span className="text-white font-bold text-sm">P</span>
           </div>
-          <span className="font-semibold text-xl tracking-tight text-white">PatientPlex</span>
+          <span className="font-black text-xl tracking-tight text-slate-900">PatientPlex</span>
         </Link>
 
         {/* Card */}
-        <div className="rounded-xl border border-white/10 bg-[#0F172A] p-8">
-          <h1 className="text-2xl font-bold text-white text-center mb-1">
+        <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
+          <h1 className="text-2xl font-bold text-slate-900 text-center mb-1">
             Start your free trial
           </h1>
           <p className="text-slate-500 text-center mb-2 text-sm">
@@ -115,7 +112,7 @@ export default function SignupPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-400 mb-1.5">Full name</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Full name</label>
               <input
                 type="text"
                 placeholder="Dr. Priya Sharma"
@@ -128,7 +125,7 @@ export default function SignupPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1.5">Email</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
                 <input
                   type="email"
                   placeholder="priya@clinic.com"
@@ -139,7 +136,7 @@ export default function SignupPage() {
                 {errors.email && <p className="text-red-400 text-xs mt-1.5">{errors.email}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1.5">Phone</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Phone</label>
                 <input
                   type="tel"
                   placeholder="9876543210"
@@ -152,7 +149,7 @@ export default function SignupPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-400 mb-1.5">Password</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
               <input
                 type="password"
                 placeholder="At least 8 characters"
@@ -164,7 +161,7 @@ export default function SignupPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-400 mb-1.5">Confirm password</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Confirm password</label>
               <input
                 type="password"
                 placeholder="Repeat your password"
@@ -178,7 +175,7 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed text-[#0A0E1A] font-semibold text-sm transition-colors flex items-center justify-center gap-2 mt-2"
+              className="w-full py-3 rounded-lg bg-slate-900 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm transition-colors flex items-center justify-center gap-2 mt-2"
             >
               {loading ? (
                 <>
@@ -193,7 +190,7 @@ export default function SignupPage() {
 
           <p className="text-center text-sm text-slate-500 mt-6">
             Already have an account?{" "}
-            <Link href="/login" className="text-emerald-400 font-medium hover:text-emerald-300 transition-colors">
+            <Link href="/login" className="text-emerald-600 font-medium hover:text-emerald-700 transition-colors">
               Sign in
             </Link>
           </p>

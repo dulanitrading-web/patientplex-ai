@@ -86,11 +86,11 @@ export default function CampaignsPage() {
   };
 
   const statusConfig: Record<string, { cls: string; icon: React.ReactNode }> = {
-    ACTIVE: { cls: "bg-emerald-500/10 text-emerald-400", icon: <CheckCircle2 className="w-3 h-3" /> },
-    PAUSED: { cls: "bg-amber-500/10 text-amber-400", icon: <Pause className="w-3 h-3" /> },
-    DRAFT: { cls: "bg-white/5 text-slate-400", icon: <Clock className="w-3 h-3" /> },
-    PENDING_REVIEW: { cls: "bg-cyan-500/10 text-cyan-400", icon: <Clock className="w-3 h-3" /> },
-    ERROR: { cls: "bg-red-500/10 text-red-400", icon: <XCircle className="w-3 h-3" /> },
+    ACTIVE: { cls: "bg-emerald-50 text-emerald-600", icon: <CheckCircle2 className="w-3 h-3" /> },
+    PAUSED: { cls: "bg-amber-50 text-amber-600", icon: <Pause className="w-3 h-3" /> },
+    DRAFT: { cls: "bg-white/5 text-slate-500", icon: <Clock className="w-3 h-3" /> },
+    PENDING_REVIEW: { cls: "bg-cyan-50 text-cyan-600", icon: <Clock className="w-3 h-3" /> },
+    ERROR: { cls: "bg-red-50 text-red-600", icon: <XCircle className="w-3 h-3" /> },
   };
 
   if (loading) {
@@ -104,23 +104,23 @@ export default function CampaignsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-white">Campaigns</h1>
+        <h1 className="text-xl font-bold text-slate-900">Campaigns</h1>
         <button
           onClick={handleLaunch}
-          className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-[#0A0E1A] text-sm font-medium transition-colors"
+          className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-slate-800 text-[#0A0E1A] text-sm font-medium transition-colors"
         >
           + Launch New
         </button>
       </div>
 
       {campaigns.length === 0 ? (
-        <div className="bg-[#0F172A] rounded-xl p-8 border border-white/5 text-center">
+        <div className="bg-white rounded-xl p-8 border border-slate-200 text-center">
           <AlertCircle className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-          <h2 className="text-lg font-semibold text-white mb-1">No campaigns yet</h2>
-          <p className="text-slate-400 text-sm mb-4">Launch your first AI-powered campaigns on Google and Meta.</p>
+          <h2 className="text-lg font-semibold text-slate-900 mb-1">No campaigns yet</h2>
+          <p className="text-slate-500 text-sm mb-4">Launch your first AI-powered campaigns on Google and Meta.</p>
           <button
             onClick={handleLaunch}
-            className="px-5 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-[#0A0E1A] text-sm font-medium transition-colors"
+            className="px-5 py-2.5 rounded-lg bg-emerald-500 hover:bg-slate-800 text-[#0A0E1A] text-sm font-medium transition-colors"
           >
             Launch Campaigns
           </button>
@@ -130,18 +130,18 @@ export default function CampaignsPage() {
           {campaigns.map((c) => {
             const sc = statusConfig[c.status] || statusConfig.DRAFT;
             return (
-              <div key={c.id} className="bg-[#0F172A] rounded-xl border border-white/5 p-5">
+              <div key={c.id} className="bg-white rounded-xl border border-slate-200 p-5">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-lg">{platformIcon(c.platform)}</span>
-                      <h3 className="font-semibold text-white">{c.name}</h3>
+                      <h3 className="font-semibold text-slate-900">{c.name}</h3>
                     </div>
                     <div className="flex items-center gap-2 mt-1">
                       <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${sc.cls}`}>
                         {sc.icon} {c.status}
                       </span>
-                      <span className="text-xs text-slate-500">{c.platform} · {c.campaign_type}</span>
+                      <span className="text-xs text-slate-600">{c.platform} · {c.campaign_type}</span>
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -149,7 +149,7 @@ export default function CampaignsPage() {
                       <button
                         onClick={() => handlePause(c.id)}
                         disabled={actionLoading === c.id}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm text-slate-300 hover:text-white hover:bg-white/5 transition-colors disabled:opacity-50"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors disabled:opacity-50"
                       >
                         {actionLoading === c.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Pause className="w-4 h-4" />} Pause
                       </button>
@@ -158,7 +158,7 @@ export default function CampaignsPage() {
                       <button
                         onClick={() => handleResume(c.id)}
                         disabled={actionLoading === c.id}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm border border-white/10 hover:border-white/20 text-slate-300 hover:text-white transition-colors disabled:opacity-50"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm border border-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-900 transition-colors disabled:opacity-50"
                       >
                         {actionLoading === c.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />} Resume
                       </button>
@@ -184,9 +184,9 @@ export default function CampaignsPage() {
 
 function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="bg-white/[0.03] rounded-lg p-2.5 border border-white/5">
-      <div className="flex items-center gap-1 text-slate-500 text-xs mb-0.5">{icon} {label}</div>
-      <div className="font-semibold text-sm text-white tabular-nums">{value}</div>
+    <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-200">
+      <div className="flex items-center gap-1 text-slate-600 text-xs mb-0.5">{icon} {label}</div>
+      <div className="font-semibold text-sm text-slate-900 tabular-nums">{value}</div>
     </div>
   );
 }

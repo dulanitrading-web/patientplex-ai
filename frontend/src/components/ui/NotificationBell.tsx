@@ -29,7 +29,7 @@ const ICON_MAP = {
 
 const ICON_COLOR_MAP = {
   new_booking: "text-cyan-400 bg-cyan-500/10",
-  missed_call: "text-red-400 bg-red-500/10",
+  missed_call: "text-red-600 bg-red-500/10",
   campaign_update: "text-violet-400 bg-violet-500/10",
   system: "text-slate-400 bg-white/5",
 };
@@ -57,7 +57,7 @@ export default function NotificationBell() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className="relative p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+        className="relative p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-100 transition-colors"
         aria-label="Notifications"
       >
         <Bell className="w-5 h-5" />
@@ -69,8 +69,8 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-[#0F172A] border border-white/10 rounded-xl shadow-2xl shadow-black/40 z-50 overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
+        <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white border border-slate-200 rounded-xl shadow-2xl shadow-lg z-50 overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200">
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-semibold text-white">Notifications</h3>
               <span className="text-[10px] font-medium text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">Demo</span>
@@ -79,7 +79,7 @@ export default function NotificationBell() {
               {unreadCount > 0 && (
                 <button onClick={markAllRead} className="text-xs text-emerald-400 hover:text-emerald-300 font-medium">Mark all read</button>
               )}
-              <button onClick={() => setOpen(false)} className="p-1 rounded text-slate-500 hover:text-slate-300">
+              <button onClick={() => setOpen(false)} className="p-1 rounded text-slate-500 hover:text-slate-700">
                 <X className="w-4 h-4" />
               </button>
             </div>

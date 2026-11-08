@@ -13,9 +13,9 @@ export default function Card({ children, className, padding = "md", hover }: Car
   const pads = { none: "", sm: "p-3", md: "p-5", lg: "p-6" };
   return (
     <div className={clsx(
-      "bg-[#0F172A] border border-white/5 rounded-xl",
+      "bg-white border border-slate-200 rounded-xl",
       pads[padding],
-      hover && "hover:border-white/10 hover:bg-white/[0.04] transition-all cursor-pointer",
+      hover && "hover:border-slate-300 hover:shadow-md transition-all cursor-pointer",
       className,
     )}>
       {children}
@@ -29,7 +29,7 @@ export function CardHeader({ children, className }: { children: React.ReactNode;
 
 export function CardTitle({ children, icon }: { children: React.ReactNode; icon?: React.ReactNode }) {
   return (
-    <h3 className="font-semibold text-white flex items-center gap-2">
+    <h3 className="font-semibold text-slate-900 flex items-center gap-2">
       {icon && <span className="text-slate-500">{icon}</span>}
       {children}
     </h3>

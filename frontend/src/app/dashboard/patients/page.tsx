@@ -93,11 +93,11 @@ function maskPhone(phone: string): string {
 }
 
 const STATUS_CONFIG: Record<PatientStatus, { cls: string; icon: React.ReactNode }> = {
-  New: { cls: "bg-cyan-500/10 text-cyan-400", icon: <User className="w-3 h-3" /> },
-  Active: { cls: "bg-amber-500/10 text-amber-400", icon: <MessageCircle className="w-3 h-3" /> },
-  Booked: { cls: "bg-violet-500/10 text-violet-400", icon: <Calendar className="w-3 h-3" /> },
-  Attended: { cls: "bg-emerald-500/10 text-emerald-400", icon: <CheckCircle2 className="w-3 h-3" /> },
-  Lost: { cls: "bg-red-500/10 text-red-400", icon: <XCircle className="w-3 h-3" /> },
+  New: { cls: "bg-cyan-50 text-cyan-600", icon: <User className="w-3 h-3" /> },
+  Active: { cls: "bg-amber-50 text-amber-600", icon: <MessageCircle className="w-3 h-3" /> },
+  Booked: { cls: "bg-violet-50 text-violet-600", icon: <Calendar className="w-3 h-3" /> },
+  Attended: { cls: "bg-emerald-50 text-emerald-600", icon: <CheckCircle2 className="w-3 h-3" /> },
+  Lost: { cls: "bg-red-50 text-red-600", icon: <XCircle className="w-3 h-3" /> },
 };
 
 export default function PatientsPage() {
@@ -189,8 +189,8 @@ export default function PatientsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-white">Patient CRM</h1>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <h1 className="text-xl font-bold text-slate-900">Patient CRM</h1>
+          <p className="text-sm text-slate-600 mt-0.5">
             {patients.length} patients from WhatsApp conversations
           </p>
         </div>
@@ -199,24 +199,24 @@ export default function PatientsPage() {
       {/* Search + Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-slate-600 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search by name or phone..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 text-sm border border-white/10 rounded-lg bg-white/5 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/40"
+            className="w-full pl-10 pr-4 py-2.5 text-sm border border-slate-200 rounded-lg bg-white/5 text-slate-900 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/40"
           />
         </div>
-        <div className="flex bg-[#0F172A] border border-white/5 rounded-lg overflow-hidden">
+        <div className="flex bg-white border border-slate-200 rounded-lg overflow-hidden">
           {(["All", "New", "Active", "Booked", "Attended", "Lost"] as const).map((s) => (
             <button
               key={s}
               onClick={() => setStatusFilter(s)}
               className={`px-3 py-2 text-xs font-medium transition-colors ${
                 statusFilter === s
-                  ? "bg-emerald-500 text-[#0A0E1A]"
-                  : "text-slate-400 hover:bg-white/5 hover:text-white"
+                  ? "bg-slate-900 text-white"
+                  : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
               }`}
             >
               {s}
@@ -228,15 +228,15 @@ export default function PatientsPage() {
       {/* Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Patient List */}
-        <div className="bg-[#0F172A] rounded-xl border border-white/5 overflow-hidden">
-          <div className="px-4 py-3 border-b border-white/5">
-            <span className="text-sm font-medium text-slate-500">{filtered.length} patients</span>
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-200">
+            <span className="text-sm font-medium text-slate-600">{filtered.length} patients</span>
           </div>
           <div className="max-h-[calc(100vh-320px)] overflow-y-auto divide-y divide-white/[0.03]">
             {filtered.length === 0 ? (
               <div className="p-8 text-center">
                 <User className="w-10 h-10 text-slate-700 mx-auto mb-2" />
-                <p className="text-slate-500 text-sm">No patients found.</p>
+                <p className="text-slate-600 text-sm">No patients found.</p>
               </div>
             ) : (
               filtered.map((p) => {
@@ -245,20 +245,20 @@ export default function PatientsPage() {
                   <button
                     key={p.phone}
                     onClick={() => openPatient(p)}
-                    className={`w-full text-left p-4 hover:bg-white/5 transition-colors ${
+                    className={`w-full text-left p-4 hover:bg-slate-100 transition-colors ${
                       selectedPatient?.phone === p.phone ? "bg-emerald-500/5 border-l-2 border-emerald-400" : ""
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center shrink-0">
-                          <User className="w-5 h-5 text-slate-500" />
+                          <User className="w-5 h-5 text-slate-600" />
                         </div>
                         <div className="min-w-0">
-                          <div className="font-medium text-sm text-white truncate">
+                          <div className="font-medium text-sm text-slate-900 truncate">
                             {p.name}
                           </div>
-                          <div className="text-xs text-slate-500 flex items-center gap-1">
+                          <div className="text-xs text-slate-600 flex items-center gap-1">
                             <Phone className="w-3 h-3" /> {maskPhone(p.phone)}
                           </div>
                           <div className="flex items-center gap-2 mt-1">
@@ -281,7 +281,7 @@ export default function PatientsPage() {
         </div>
 
         {/* Patient Detail */}
-        <div className="lg:col-span-2 bg-[#0F172A] rounded-xl border border-white/5 flex flex-col">
+        <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 flex flex-col">
           {detailLoading ? (
             <div className="flex-1 flex items-center justify-center py-20">
               <Loader2 className="w-6 h-6 animate-spin text-emerald-500" />
@@ -290,19 +290,19 @@ export default function PatientsPage() {
             <div className="flex-1 flex items-center justify-center py-20">
               <div className="text-center">
                 <User className="w-12 h-12 text-slate-700 mx-auto mb-2" />
-                <p className="text-slate-500">Select a patient to view details</p>
+                <p className="text-slate-600">Select a patient to view details</p>
               </div>
             </div>
           ) : (
             <div className="flex flex-col h-full">
               {/* Patient Header */}
-              <div className="p-4 border-b border-white/5">
+              <div className="p-4 border-b border-slate-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-semibold text-white text-lg">
+                    <h3 className="font-semibold text-slate-900 text-lg">
                       {selectedPatient.name}
                     </h3>
-                    <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
+                    <div className="flex items-center gap-3 text-xs text-slate-600 mt-1">
                       <span className="flex items-center gap-1">
                         <Phone className="w-3 h-3" /> {selectedPatient.phone}
                       </span>
@@ -323,24 +323,24 @@ export default function PatientsPage() {
 
               <div className="flex-1 overflow-y-auto">
                 {/* Appointments Section */}
-                <div className="p-4 border-b border-white/5">
-                  <h4 className="font-medium text-sm text-white flex items-center gap-2 mb-3">
-                    <Calendar className="w-4 h-4 text-emerald-400" /> Appointments
+                <div className="p-4 border-b border-slate-200">
+                  <h4 className="font-medium text-sm text-slate-900 flex items-center gap-2 mb-3">
+                    <Calendar className="w-4 h-4 text-emerald-600" /> Appointments
                   </h4>
                   {patientAppointments.length === 0 ? (
-                    <p className="text-sm text-slate-500">No appointments recorded.</p>
+                    <p className="text-sm text-slate-600">No appointments recorded.</p>
                   ) : (
                     <div className="space-y-2">
                       {patientAppointments.map((appt) => (
                         <div
                           key={appt.id}
-                          className="flex items-center justify-between p-3 bg-white/[0.03] rounded-lg border border-white/5"
+                          className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200"
                         >
                           <div>
-                            <div className="text-sm font-medium text-slate-300">
+                            <div className="text-sm font-medium text-slate-700">
                               {appt.treatment}
                             </div>
-                            <div className="text-xs text-slate-500 flex items-center gap-1">
+                            <div className="text-xs text-slate-600 flex items-center gap-1">
                               <Clock className="w-3 h-3" /> {appt.date} at {appt.time}
                             </div>
                           </div>
@@ -353,16 +353,16 @@ export default function PatientsPage() {
 
                 {/* Conversation History */}
                 <div className="p-4">
-                  <h4 className="font-medium text-sm text-white flex items-center gap-2 mb-3">
-                    <MessageCircle className="w-4 h-4 text-cyan-400" /> Conversation History
+                  <h4 className="font-medium text-sm text-slate-900 flex items-center gap-2 mb-3">
+                    <MessageCircle className="w-4 h-4 text-cyan-600" /> Conversation History
                     {conversation && (
-                      <span className="text-xs text-slate-500 font-normal">
+                      <span className="text-xs text-slate-600 font-normal">
                         ({(conversation.messages || []).length} messages)
                       </span>
                     )}
                   </h4>
                   {!conversation || (conversation.messages || []).length === 0 ? (
-                    <p className="text-sm text-slate-500">No messages yet.</p>
+                    <p className="text-sm text-slate-600">No messages yet.</p>
                   ) : (
                     <div className="space-y-2 max-h-80 overflow-y-auto">
                       {(conversation.messages || []).map((msg, i) => (
@@ -373,8 +373,8 @@ export default function PatientsPage() {
                           <div
                             className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${
                               msg.role === "assistant"
-                                ? "bg-white/5 text-slate-300"
-                                : "bg-emerald-500 text-[#0A0E1A]"
+                                ? "bg-white/5 text-slate-700"
+                                : "bg-slate-900 text-white"
                             }`}
                           >
                             <div className="whitespace-pre-wrap">{msg.content}</div>
@@ -411,11 +411,11 @@ export default function PatientsPage() {
 
 function ApptStatusBadge({ status }: { status: string }) {
   const config: Record<string, { cls: string; icon: React.ReactNode }> = {
-    CONFIRMED: { cls: "bg-cyan-500/10 text-cyan-400", icon: <Clock className="w-3 h-3" /> },
-    REMINDED: { cls: "bg-amber-500/10 text-amber-400", icon: <Clock className="w-3 h-3" /> },
-    ATTENDED: { cls: "bg-emerald-500/10 text-emerald-400", icon: <CheckCircle2 className="w-3 h-3" /> },
-    NO_SHOW: { cls: "bg-red-500/10 text-red-400", icon: <XCircle className="w-3 h-3" /> },
-    CANCELLED: { cls: "bg-slate-500/10 text-slate-400", icon: <XCircle className="w-3 h-3" /> },
+    CONFIRMED: { cls: "bg-cyan-50 text-cyan-600", icon: <Clock className="w-3 h-3" /> },
+    REMINDED: { cls: "bg-amber-50 text-amber-600", icon: <Clock className="w-3 h-3" /> },
+    ATTENDED: { cls: "bg-emerald-50 text-emerald-600", icon: <CheckCircle2 className="w-3 h-3" /> },
+    NO_SHOW: { cls: "bg-red-50 text-red-600", icon: <XCircle className="w-3 h-3" /> },
+    CANCELLED: { cls: "bg-slate-500/10 text-slate-500", icon: <XCircle className="w-3 h-3" /> },
   };
   const cfg = config[status] || config.CONFIRMED;
   return (
