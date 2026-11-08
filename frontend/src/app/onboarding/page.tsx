@@ -41,6 +41,7 @@ import {
   getOnboardingStatus,
   ApiError,
 } from "@/lib/api";
+import Logo from "@/components/Logo";
 
 // ---------- Types ----------
 
@@ -315,9 +316,7 @@ export default function OnboardingPage() {
       {/* Header */}
       <div className="pt-8 pb-4 px-4 relative">
         <Link href="/" className="flex items-center justify-center gap-2.5">
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-400 to-cyan-400 flex items-center justify-center">
-            <span className="text-slate-900 font-bold text-sm">P</span>
-          </div>
+          <Logo size={36} />
           <span className="text-slate-900 text-xl font-semibold tracking-tight">PatientPlex</span>
         </Link>
       </div>

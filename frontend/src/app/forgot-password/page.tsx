@@ -4,6 +4,7 @@ import { useState, FormEvent } from "react";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2, Loader2, Mail } from "lucide-react";
 import { requestPasswordReset } from "@/lib/api";
+import Logo from "@/components/Logo";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -36,9 +37,7 @@ export default function ForgotPasswordPage() {
       <div className="w-full max-w-md relative">
         {/* Logo */}
         <Link href="/" className="flex items-center justify-center gap-2.5 mb-8">
-          <div className="w-9 h-9 rounded-lg bg-emerald-500 flex items-center justify-center">
-            <span className="text-white font-bold text-sm">P</span>
-          </div>
+          <Logo size={40} />
           <span className="text-slate-900 text-xl font-black tracking-tight">PatientPlex</span>
         </Link>
 

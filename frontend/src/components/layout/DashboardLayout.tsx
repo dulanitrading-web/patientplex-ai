@@ -11,6 +11,7 @@ import { useState } from "react";
 import { useAuth } from "@/context/auth";
 import Avatar from "@/components/ui/Avatar";
 import NotificationBell from "@/components/ui/NotificationBell";
+import Logo from "@/components/Logo";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
@@ -41,9 +42,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       )}>
         {/* Logo */}
         <div className="h-16 flex items-center gap-2.5 px-4 border-b border-slate-200 shrink-0">
-          <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center">
-            <span className="text-white font-bold text-sm">P</span>
-          </div>
+          <Logo size={28} />
           <span className="font-semibold text-slate-900 tracking-tight">PatientPlex</span>
           <button onClick={() => setSidebarOpen(false)} className="ml-auto lg:hidden text-slate-500 hover:text-slate-900">
             <X className="w-5 h-5" />

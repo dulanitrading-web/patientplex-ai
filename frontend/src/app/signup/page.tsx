@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { signup, ApiError } from "@/lib/api";
+import Logo from "@/components/Logo";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -79,9 +80,7 @@ export default function SignupPage() {
       <div className="w-full max-w-md relative">
         {/* Logo */}
         <Link href="/" className="flex items-center justify-center gap-2.5 mb-10">
-          <div className="w-9 h-9 rounded-lg bg-emerald-500 flex items-center justify-center">
-            <span className="text-white font-bold text-sm">P</span>
-          </div>
+          <Logo size={40} />
           <span className="font-black text-xl tracking-tight text-slate-900">PatientPlex</span>
         </Link>
 

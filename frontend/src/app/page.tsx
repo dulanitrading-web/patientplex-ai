@@ -10,22 +10,7 @@ import {
   Instagram, Facebook, Search, BadgeCheck, Mail,
 } from "lucide-react";
 
-/* ─── SVG Logo ─── */
-function Logo({ size = 36 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="logoGrad" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#10B981" />
-          <stop offset="1" stopColor="#14B8A6" />
-        </linearGradient>
-      </defs>
-      <rect width="36" height="36" rx="10" fill="url(#logoGrad)" />
-      <path d="M12 10h6a6 6 0 0 1 0 12h-2v4h-4V10zm4 3.5v5h2a2.5 2.5 0 0 0 0-5h-2z" fill="white" />
-      <path d="M10 23h3l2-3 2 4 2-5 2 4h3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.7" />
-    </svg>
-  );
-}
+import Logo from "@/components/Logo";
 
 /* ─── Animated counter ─── */
 function Counter({ target, suffix = "", prefix = "" }: { target: number; suffix?: string; prefix?: string }) {
