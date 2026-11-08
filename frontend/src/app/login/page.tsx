@@ -51,22 +51,19 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0E1A] flex items-center justify-center px-4 py-12 relative overflow-hidden">
-      {/* Gradient orb */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-500/[0.07] rounded-full blur-[120px] pointer-events-none" />
-
+    <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center px-4 py-12 relative overflow-hidden">
       <div className="w-full max-w-md relative">
         {/* Logo */}
         <Link href="/" className="flex items-center justify-center gap-2.5 mb-10">
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-400 to-cyan-400 flex items-center justify-center">
-            <span className="text-[#0A0E1A] font-bold text-sm">P</span>
+          <div className="w-9 h-9 rounded-lg bg-emerald-500 flex items-center justify-center">
+            <span className="text-white font-bold text-sm">P</span>
           </div>
-          <span className="font-semibold text-xl tracking-tight text-white">PatientPlex</span>
+          <span className="font-black text-xl tracking-tight text-slate-900">PatientPlex</span>
         </Link>
 
         {/* Card */}
-        <div className="rounded-xl border border-white/10 bg-[#0F172A] p-8">
-          <h1 className="text-2xl font-bold text-white text-center mb-1">
+        <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
+          <h1 className="text-2xl font-bold text-slate-900 text-center mb-1">
             Welcome back
           </h1>
           <p className="text-slate-500 text-center mb-8 text-sm">
@@ -81,7 +78,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-slate-400 mb-1.5">Email</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
               <input
                 type="email"
                 placeholder="priya@clinic.com"
@@ -90,15 +87,15 @@ export default function LoginPage() {
                   setEmail(e.target.value);
                   if (errors.email) setErrors((prev) => ({ ...prev, email: "" }));
                 }}
-                className="w-full px-4 py-3 rounded-lg bg-white/[0.05] border border-white/10 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/30 transition-colors"
+                className="w-full px-4 py-3 rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 transition-colors"
               />
               {errors.email && <p className="text-red-400 text-xs mt-1.5">{errors.email}</p>}
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-sm font-medium text-slate-400">Password</label>
-                <Link href="/forgot-password" className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors">
+                <label className="block text-sm font-medium text-slate-700">Password</label>
+                <Link href="/forgot-password" className="text-xs text-emerald-600 hover:text-emerald-700 transition-colors">
                   Forgot password?
                 </Link>
               </div>
@@ -110,7 +107,7 @@ export default function LoginPage() {
                   setPassword(e.target.value);
                   if (errors.password) setErrors((prev) => ({ ...prev, password: "" }));
                 }}
-                className="w-full px-4 py-3 rounded-lg bg-white/[0.05] border border-white/10 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/30 transition-colors"
+                className="w-full px-4 py-3 rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 transition-colors"
               />
               {errors.password && <p className="text-red-400 text-xs mt-1.5">{errors.password}</p>}
             </div>
@@ -118,7 +115,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed text-[#0A0E1A] font-semibold text-sm transition-colors flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-lg bg-slate-900 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm transition-colors flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
@@ -133,7 +130,7 @@ export default function LoginPage() {
 
           <p className="text-center text-sm text-slate-500 mt-6">
             Don&apos;t have an account?{" "}
-            <Link href="/signup" className="text-emerald-400 font-medium hover:text-emerald-300 transition-colors">
+            <Link href="/signup" className="text-emerald-600 font-medium hover:text-emerald-700 transition-colors">
               Create one
             </Link>
           </p>

@@ -32,20 +32,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#0A0E1A] flex">
+    <div className="min-h-screen bg-[#FAFAF8] flex">
       {/* Sidebar */}
       <aside className={clsx(
-        "fixed inset-y-0 left-0 z-30 w-60 bg-[#0F172A] border-r border-white/5 flex flex-col transition-transform duration-200",
+        "fixed inset-y-0 left-0 z-30 w-60 bg-white border-r border-slate-200 flex flex-col transition-transform duration-200",
         "lg:translate-x-0 lg:static",
         sidebarOpen ? "translate-x-0" : "-translate-x-full",
       )}>
         {/* Logo */}
-        <div className="h-16 flex items-center gap-2.5 px-4 border-b border-white/5 shrink-0">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-cyan-400 flex items-center justify-center">
-            <span className="text-[#0A0E1A] font-bold text-sm">P</span>
+        <div className="h-16 flex items-center gap-2.5 px-4 border-b border-slate-200 shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center">
+            <span className="text-white font-bold text-sm">P</span>
           </div>
-          <span className="font-semibold text-white tracking-tight">PatientPlex</span>
-          <button onClick={() => setSidebarOpen(false)} className="ml-auto lg:hidden text-slate-400 hover:text-white">
+          <span className="font-semibold text-slate-900 tracking-tight">PatientPlex</span>
+          <button onClick={() => setSidebarOpen(false)} className="ml-auto lg:hidden text-slate-500 hover:text-slate-900">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -59,8 +59,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <div className={clsx(
                   "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150",
                   active
-                    ? "bg-emerald-500/10 text-emerald-400 border-l-2 border-emerald-400"
-                    : "text-slate-400 hover:text-white hover:bg-white/5 border-l-2 border-transparent",
+                    ? "bg-emerald-50 text-emerald-700 border-l-2 border-emerald-500"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-100 border-l-2 border-transparent",
                 )}>
                   <item.icon className="w-4 h-4 shrink-0" />
                   {item.label}
