@@ -1,5 +1,7 @@
 """WhatsApp webhook and conversation management endpoints."""
 
+import hashlib
+import hmac
 import logging
 from uuid import UUID
 
@@ -7,7 +9,13 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy import and_, select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
 from app.api.v1.auth import get_current_doctor
+from app.core.config import settings
+
+limiter = Limiter(key_func=get_remote_address)
 from app.db.session import get_db
 from app.models.conversation import Appointment, Conversation, ConversationStatus
 from app.models.doctor import Doctor
@@ -20,6 +28,7 @@ router = APIRouter(prefix="/whatsapp", tags=["whatsapp"])
 
 
 @router.get("/webhook")
+@limiter.limit("30/minute")
 async def verify_webhook(request: Request):
     """Webhook verification endpoint for WhatsApp/Meta webhook setup.
 
@@ -30,15 +39,37 @@ async def verify_webhook(request: Request):
     token = params.get("hub.verify_token")
     challenge = params.get("hub.challenge")
 
-    # In production, verify the token matches your configured verify_token
-    if mode == "subscribe" and challenge:
+    if mode == "subscribe" and token == settings.WHATSAPP_VERIFY_TOKEN and challenge:
         logger.info("Webhook verified")
         return int(challenge)
 
     raise HTTPException(status_code=403, detail="Verification failed")
 
 
-@router.post("/webhook")
+async def verify_meta_signature(request: Request) -> None:
+    """Validate the X-Hub-Signature-256 header against META_APP_SECRET."""
+    app_secret = settings.META_APP_SECRET
+    if not app_secret:
+        logger.warning(
+            "META_APP_SECRET is empty — skipping webhook signature verification (dev mode)"
+        )
+        return
+
+    signature_header = request.headers.get("X-Hub-Signature-256", "")
+    if not signature_header.startswith("sha256="):
+        raise HTTPException(status_code=403, detail="Invalid signature format")
+
+    raw_body = await request.body()
+    expected = hmac.new(
+        app_secret.encode(), raw_body, hashlib.sha256
+    ).hexdigest()
+
+    if not hmac.compare_digest(signature_header[7:], expected):
+        raise HTTPException(status_code=403, detail="Invalid webhook signature")
+
+
+@router.post("/webhook", dependencies=[Depends(verify_meta_signature)])
+@limiter.limit("30/minute")
 async def receive_message(request: Request, db: AsyncSession = Depends(get_db)):
     """Receive incoming WhatsApp messages and process through AI receptionist.
 
@@ -93,7 +124,7 @@ async def _find_doctor_by_whatsapp(db: AsyncSession, webhook_value: dict) -> Doc
     phone_number_id = webhook_value.get("metadata", {}).get("phone_number_id", "")
     display_phone = webhook_value.get("metadata", {}).get("display_phone_number", "")
 
-    # Try to match by WhatsApp number (strip formatting)
+    # Match by WhatsApp number (strip formatting)
     if display_phone:
         clean = display_phone.replace("+", "").replace(" ", "").replace("-", "")
         result = await db.execute(
@@ -103,11 +134,13 @@ async def _find_doctor_by_whatsapp(db: AsyncSession, webhook_value: dict) -> Doc
         if doctor:
             return doctor
 
-    # Fallback: return the first active doctor (for single-tenant dev setup)
-    result = await db.execute(
-        select(Doctor).where(Doctor.is_active == True).limit(1)
+    logger.warning(
+        "No doctor matched WhatsApp business number phone_number_id=%s display=%s — "
+        "message will not be processed",
+        phone_number_id,
+        display_phone,
     )
-    return result.scalar_one_or_none()
+    return None
 
 
 # ---- Protected endpoints for doctor dashboard ----

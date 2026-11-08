@@ -1,7 +1,11 @@
 """Authentication endpoints: signup, login, and current-user retrieval."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
+limiter = Limiter(key_func=get_remote_address)
 from jose import JWTError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -42,7 +46,8 @@ async def get_current_doctor(
 
 
 @router.post("/signup", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
-async def signup(body: DoctorCreate, db: AsyncSession = Depends(get_db)) -> TokenResponse:
+@limiter.limit("3/minute")
+async def signup(request: Request, body: DoctorCreate, db: AsyncSession = Depends(get_db)) -> TokenResponse:
     """Register a new doctor account and return a JWT.
 
     Raises 409 if the email is already registered.
@@ -69,7 +74,8 @@ async def signup(body: DoctorCreate, db: AsyncSession = Depends(get_db)) -> Toke
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(body: DoctorLogin, db: AsyncSession = Depends(get_db)) -> TokenResponse:
+@limiter.limit("5/minute")
+async def login(request: Request, body: DoctorLogin, db: AsyncSession = Depends(get_db)) -> TokenResponse:
     """Authenticate a doctor by email/password and return a JWT.
 
     Raises 401 on invalid credentials.

@@ -12,8 +12,15 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, Response
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from twilio.request_validator import RequestValidator
+
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from app.api.v1.auth import get_current_doctor
+from app.core.config import settings
+
+limiter = Limiter(key_func=get_remote_address)
 from app.db.session import get_db
 from app.models.call_log import CallLog, CallStatus
 from app.models.doctor import Doctor
@@ -24,7 +31,27 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/calls", tags=["calls"])
 
 
-@router.post("/incoming")
+async def verify_twilio_signature(request: Request) -> None:
+    """Validate that the request genuinely came from Twilio."""
+    auth_token = settings.TWILIO_AUTH_TOKEN
+    if not auth_token:
+        logger.warning(
+            "TWILIO_AUTH_TOKEN is empty — skipping webhook signature verification (dev mode)"
+        )
+        return
+
+    validator = RequestValidator(auth_token)
+    signature = request.headers.get("X-Twilio-Signature", "")
+    url = str(request.url)
+    form = await request.form()
+    params = {k: v for k, v in form.items()}
+
+    if not validator.validate(url, params, signature):
+        raise HTTPException(status_code=403, detail="Invalid Twilio signature")
+
+
+@router.post("/incoming", dependencies=[Depends(verify_twilio_signature)])
+@limiter.limit("30/minute")
 async def handle_incoming_call(
     request: Request,
     db: AsyncSession = Depends(get_db),
@@ -68,7 +95,8 @@ async def handle_incoming_call(
     return Response(content=twiml, media_type="application/xml")
 
 
-@router.post("/status")
+@router.post("/status", dependencies=[Depends(verify_twilio_signature)])
+@limiter.limit("30/minute")
 async def handle_call_status(
     request: Request,
     db: AsyncSession = Depends(get_db),

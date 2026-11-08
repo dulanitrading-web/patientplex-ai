@@ -1,5 +1,6 @@
 """Application configuration loaded from environment variables."""
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings
 
 
@@ -12,6 +13,7 @@ class Settings(BaseSettings):
 
     PROJECT_NAME: str = "PatientPlex AI"
     API_V1_PREFIX: str = "/api/v1"
+    ENVIRONMENT: str = "development"
 
     # Database
     DATABASE_URL: str = "postgresql+asyncpg://cliniccare:cliniccare@localhost:5432/cliniccare"
@@ -33,6 +35,7 @@ class Settings(BaseSettings):
     # WhatsApp Business API
     WHATSAPP_API_URL: str = "https://graph.facebook.com/v18.0"
     WHATSAPP_API_TOKEN: str = ""
+    WHATSAPP_VERIFY_TOKEN: str = ""
 
     # Twilio (Voice calls + SMS + WhatsApp)
     TWILIO_ACCOUNT_SID: str = ""
@@ -70,6 +73,18 @@ class Settings(BaseSettings):
         "env_file_encoding": "utf-8",
         "case_sensitive": True,
     }
+
+    @model_validator(mode="after")
+    def _block_default_secret_key(self) -> "Settings":
+        if (
+            self.ENVIRONMENT != "development"
+            and self.SECRET_KEY == "change-this-to-a-random-secret-key-in-production"
+        ):
+            raise ValueError(
+                "SECRET_KEY must be changed from the default value in non-development environments. "
+                "Generate one with: python -c \"import secrets; print(secrets.token_hex(32))\""
+            )
+        return self
 
 
 settings = Settings()
