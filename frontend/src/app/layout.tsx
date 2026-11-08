@@ -3,13 +3,24 @@ import "@/styles/globals.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "PatientPlex AI — Stop Paying Agencies. Start Getting Patients.",
+  title: "PatientPlex AI — AI-Powered Patient Acquisition for Indian Clinics",
   description:
-    "AI-powered Google & Meta ads, a WhatsApp receptionist that never sleeps, and appointment booking that fills your calendar. Built for Indian dental and dermatology clinics.",
+    "Stop paying agencies. PatientPlex AI runs your Google & Meta ads, WhatsApp receptionist, and appointment booking — all on autopilot. Used by 200+ Indian dental and dermatology clinics.",
+  keywords: ["patient acquisition", "dental marketing", "dermatology marketing", "WhatsApp AI", "clinic marketing India", "healthcare SaaS"],
   openGraph: {
-    title: "PatientPlex AI — Healthcare Patient Acquisition Platform",
-    description: "AI-powered patient acquisition for Indian clinics. From ₹12 per booking.",
+    title: "PatientPlex AI — Stop Paying Agencies. Start Getting Patients.",
+    description: "AI-powered Google & Meta ads, WhatsApp receptionist, and appointment booking for Indian clinics. ₹12 avg cost per booking.",
     type: "website",
+    url: "https://patientplex-ai.vercel.app",
+    siteName: "PatientPlex AI",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "PatientPlex AI — AI Runs Your Patient Acquisition",
+    description: "Stop paying agencies. AI-powered ads, WhatsApp AI receptionist, and smart booking for Indian clinics.",
+  },
+  icons: {
+    icon: "/favicon.svg",
   },
 };
 
