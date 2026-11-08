@@ -399,7 +399,7 @@ export default function LandingPage() {
                     <p className="text-sm text-slate-700 leading-relaxed mb-4">{t.text}</p>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-0.5">
-                        {[...Array(t.rating)].map((_, j) => <Star key={j} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />)}
+                        {[...Array(t.rating)].map((_, j) => <Star key={j} className="w-3.5 h-3.5 text-amber-400" fill="currentColor" />)}
                       </div>
                       <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">{t.metric}</span>
                     </div>
