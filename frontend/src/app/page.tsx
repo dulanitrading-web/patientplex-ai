@@ -88,6 +88,15 @@ const MOCK_QUEUE = [
 
 const PRESS = ["Economic Times", "YourStory", "Inc42", "Mint", "Business Standard"];
 
+const CHANNELS = [
+  { name: "WhatsApp", icon: MessageCircle, color: "text-green-600", bg: "bg-green-50", border: "hover:border-green-300" },
+  { name: "Google Ads", icon: Search, color: "text-blue-600", bg: "bg-blue-50", border: "hover:border-blue-300" },
+  { name: "Instagram", icon: Instagram, color: "text-pink-600", bg: "bg-pink-50", border: "hover:border-pink-300" },
+  { name: "Facebook", icon: Facebook, color: "text-blue-700", bg: "bg-blue-50", border: "hover:border-blue-300" },
+  { name: "Phone", icon: Phone, color: "text-violet-600", bg: "bg-violet-50", border: "hover:border-violet-300" },
+  { name: "Website", icon: Globe, color: "text-emerald-600", bg: "bg-emerald-50", border: "hover:border-emerald-300" },
+];
+
 /* ═══════════════════════════════════════════════════════════════ */
 export default function LandingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -105,39 +114,50 @@ export default function LandingPage() {
   const pricing = annual ? PRICING_DATA.annual : PRICING_DATA.monthly;
 
   return (
-    <div className="min-h-screen bg-white text-[#11181C] overflow-x-hidden">
+    <div className="min-h-screen bg-[#FAFAF8] text-slate-900 overflow-x-hidden relative">
+      {/* Noise overlay */}
+      <div className="fixed inset-0 pointer-events-none z-[1] opacity-[0.015]" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")" }} />
+
+      <style>{`
+        @keyframes gradient-shift { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+        @keyframes float-up { 0%{transform:translateY(0) scale(1);opacity:0.5} 50%{opacity:0.8} 100%{transform:translateY(-60px) scale(0.5);opacity:0} }
+        .animate-gradient{animation:gradient-shift 12s ease infinite;background-size:300% 300%}
+        .text-gradient-hero{background:linear-gradient(135deg,#10B981,#14B8A6,#06B6D4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .grid-overlay{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.06) 0px,rgba(255,255,255,0.06) 1px,transparent 1px,transparent 40px),repeating-linear-gradient(90deg,rgba(255,255,255,0.06) 0px,rgba(255,255,255,0.06) 1px,transparent 1px,transparent 40px)}
+      `}</style>
 
       {/* ─── Nav ─── */}
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-white/90 backdrop-blur-xl border-b border-slate-200/60 shadow-sm" : "bg-transparent"}`}>
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5">
+          <Link href="/" className="flex items-center gap-2.5 group">
             <Logo size={32} />
-            <span className="font-black text-xl tracking-tight">PatientPlex</span>
+            <span className="font-black text-xl tracking-tight text-slate-900">PatientPlex</span>
           </Link>
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-500">
-            <a href="#features" className="hover:text-black transition-colors">Features</a>
-            <a href="#pricing" className="hover:text-black transition-colors">Pricing</a>
-            <a href="#faq" className="hover:text-black transition-colors">FAQ</a>
+          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
+            <a href="#features" className="hover:text-slate-900 transition-colors">Features</a>
+            <a href="#pricing" className="hover:text-slate-900 transition-colors">Pricing</a>
+            <a href="#faq" className="hover:text-slate-900 transition-colors">FAQ</a>
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/login" className="text-sm font-medium text-slate-500 hover:text-black transition-colors hidden sm:block">Sign in</Link>
-            <Link href="/signup" className="text-sm font-semibold px-5 py-2.5 rounded-xl bg-black hover:bg-black/80 text-white transition-all hover:scale-[1.03] active:scale-[0.97] hidden sm:inline-flex">Get started</Link>
+            <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors hidden sm:block">Sign in</Link>
+            <Link href="/signup" className="text-sm font-semibold px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white transition-all hover:scale-[1.03] active:scale-[0.97] hidden sm:inline-flex">Get started</Link>
             <button onClick={() => setMobileMenu(!mobileMenu)} className="md:hidden p-2 rounded-lg hover:bg-slate-100 transition-colors">
               {mobileMenu ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
+        {/* Mobile menu */}
         <AnimatePresence>
           {mobileMenu && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
               className="md:hidden bg-white border-t border-slate-200 shadow-lg overflow-hidden">
               <div className="px-6 py-4 space-y-3">
-                <a href="#features" onClick={() => setMobileMenu(false)} className="block text-sm font-medium text-slate-500 hover:text-black py-2">Features</a>
-                <a href="#pricing" onClick={() => setMobileMenu(false)} className="block text-sm font-medium text-slate-500 hover:text-black py-2">Pricing</a>
-                <a href="#faq" onClick={() => setMobileMenu(false)} className="block text-sm font-medium text-slate-500 hover:text-black py-2">FAQ</a>
+                <a href="#features" onClick={() => setMobileMenu(false)} className="block text-sm font-medium text-slate-600 hover:text-slate-900 py-2">Features</a>
+                <a href="#pricing" onClick={() => setMobileMenu(false)} className="block text-sm font-medium text-slate-600 hover:text-slate-900 py-2">Pricing</a>
+                <a href="#faq" onClick={() => setMobileMenu(false)} className="block text-sm font-medium text-slate-600 hover:text-slate-900 py-2">FAQ</a>
                 <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
-                  <Link href="/login" className="text-sm font-medium text-slate-500 py-2">Sign in</Link>
-                  <Link href="/signup" className="text-sm font-semibold px-5 py-2.5 rounded-xl bg-black text-white text-center">Get started</Link>
+                  <Link href="/login" className="text-sm font-medium text-slate-600 py-2">Sign in</Link>
+                  <Link href="/signup" className="text-sm font-semibold px-5 py-2.5 rounded-xl bg-slate-900 text-white text-center">Get started</Link>
                 </div>
               </div>
             </motion.div>
@@ -147,13 +167,27 @@ export default function LandingPage() {
 
       {/* ═══ HERO ═══ */}
       <section className="pt-28 pb-20 px-6 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-50 to-white" />
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-100/90 via-teal-50/60 to-cyan-100/80" />
+          <div className="absolute top-0 right-0 w-[60%] h-full bg-gradient-to-l from-amber-50/40 to-transparent" />
+          <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-[#FAFAF8] to-transparent" />
+        </div>
+        <div className="absolute inset-0 opacity-40 pointer-events-none" style={{ backgroundImage: "radial-gradient(circle, #cbd5e1 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
+        {/* Floating particles */}
+        {[1,2,3,4].map(i => (
+          <div key={i} className="absolute rounded-full bg-emerald-400/30 pointer-events-none" style={{
+            width: `${4+i*2}px`, height: `${4+i*2}px`,
+            left: `${15+i*20}%`, bottom: `${10+i*5}%`,
+            animation: `float-up ${4+i}s ease-in-out infinite ${i*1.2}s`
+          }} />
+        ))}
+
         <div className="max-w-7xl mx-auto relative">
           <div className="grid lg:grid-cols-2 gap-14 items-center">
             <div>
               <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
-                className="text-5xl sm:text-6xl lg:text-[5rem] font-black tracking-tight leading-[1.05] mb-6">
-                AI runs your<br />patient<br />acquisition
+                className="text-5xl sm:text-6xl lg:text-[5rem] font-black tracking-tight leading-[1.05] text-slate-900 mb-6">
+                AI runs your<br /><span className="text-gradient-hero">patient acquisition</span>
               </motion.h1>
 
               <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.12 }}
@@ -162,36 +196,39 @@ export default function LandingPage() {
                 receptionist and your appointment booking for a flat monthly fee. More patients on autopilot.
               </motion.p>
 
+              {/* Email CTA */}
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.22 }}
                 className="flex flex-col sm:flex-row gap-3 mb-6">
-                <input type="email" placeholder="Enter your email" className="flex-1 px-5 py-3.5 rounded-xl border border-slate-300 bg-white text-[#11181C] text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black transition-all shadow-sm" />
-                <Link href="/signup" className="group inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-black hover:bg-black/80 text-white font-semibold text-sm transition-all hover:scale-[1.03] active:scale-[0.97] shadow-lg shadow-black/10 whitespace-nowrap">
+                <input type="email" placeholder="Enter your email" className="flex-1 px-5 py-3.5 rounded-xl border border-slate-300 bg-white text-slate-900 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all shadow-sm" />
+                <Link href="/signup" className="group inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm transition-all hover:scale-[1.03] active:scale-[0.97] shadow-lg shadow-slate-900/20 whitespace-nowrap">
                   Get started <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
               </motion.div>
 
+              {/* Trusted by */}
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.35 }}
                 className="flex items-center gap-3 mb-6">
                 <div className="flex -space-x-2">
-                  {["bg-black","bg-slate-700","bg-slate-500","bg-slate-600","bg-slate-800"].map((bg,i) => (
-                    <div key={i} className={`w-7 h-7 rounded-full ${bg} border-2 border-white flex items-center justify-center text-[9px] font-bold text-white`}>
+                  {["bg-emerald-500","bg-teal-500","bg-cyan-500","bg-blue-500","bg-violet-500"].map((bg,i) => (
+                    <div key={i} className={`w-7 h-7 rounded-full ${bg} border-2 border-[#FAFAF8] flex items-center justify-center text-[9px] font-bold text-white`}>
                       {["PS","RM","AR","KN","AP"][i]}
                     </div>
                   ))}
                 </div>
-                <p className="text-sm text-slate-500"><span className="font-semibold text-black">200+</span> Indian clinics trust PatientPlex</p>
+                <p className="text-sm text-slate-500"><span className="font-semibold text-slate-700">200+</span> Indian clinics trust PatientPlex</p>
               </motion.div>
 
+              {/* Platform icons */}
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.45 }}
                 className="flex items-center gap-3">
                 {[
-                  { children: <span className="font-black text-sm" style={{background:"linear-gradient(135deg,#4285F4,#EA4335,#FBBC05,#34A853)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>G</span> },
-                  { children: <span className="font-black text-sm text-blue-600">M</span> },
-                  { children: <MessageCircle className="w-4 h-4 text-slate-600" /> },
-                  { children: <Instagram className="w-4 h-4 text-slate-600" /> },
-                  { children: <Calendar className="w-4 h-4 text-slate-600" /> },
+                  { bg: "bg-white", children: <span className="font-black text-sm" style={{background:"linear-gradient(135deg,#4285F4,#EA4335,#FBBC05,#34A853)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>G</span> },
+                  { bg: "bg-white", children: <span className="font-black text-sm text-blue-600">M</span> },
+                  { bg: "bg-white", children: <MessageCircle className="w-4 h-4 text-green-500" /> },
+                  { bg: "bg-white", children: <Instagram className="w-4 h-4 text-pink-500" /> },
+                  { bg: "bg-white", children: <Calendar className="w-4 h-4 text-red-500" /> },
                 ].map((p, i) => (
-                  <div key={i} className="w-10 h-10 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-center hover:shadow-md hover:scale-105 transition-all">
+                  <div key={i} className={`w-10 h-10 rounded-xl ${p.bg} border border-slate-200 shadow-sm flex items-center justify-center hover:shadow-md hover:scale-105 transition-all`}>
                     {p.children}
                   </div>
                 ))}
@@ -201,20 +238,21 @@ export default function LandingPage() {
             {/* Dashboard mockup */}
             <motion.div initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.3 }}
               className="hidden lg:block">
+              {/* Stacked product layers like Ryze */}
               <div className="relative pt-14">
                 <div className="absolute top-0 left-4 right-4 z-0">
-                  <div className="bg-slate-100 rounded-t-xl px-5 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest border border-slate-200 border-b-0">{"●"} Patient CRM</div>
+                  <div className="bg-emerald-100/60 rounded-t-xl px-5 py-2 text-[10px] font-bold text-emerald-700 uppercase tracking-widest border border-emerald-200/60 border-b-0">{"●"} Patient CRM</div>
                 </div>
                 <div className="absolute top-7 left-2 right-2 z-0">
-                  <div className="bg-slate-50 rounded-t-xl px-5 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest border border-slate-200 border-b-0">{"●"} Analytics Dashboard</div>
+                  <div className="bg-teal-100/60 rounded-t-xl px-5 py-2 text-[10px] font-bold text-teal-700 uppercase tracking-widest border border-teal-200/60 border-b-0">{"●"} Analytics Dashboard</div>
                 </div>
                 <div className="relative z-10">
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden">
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl shadow-slate-200/50 overflow-hidden hover:shadow-3xl transition-shadow duration-500">
                 <div className="border-b border-slate-100">
                   <div className="flex">
                     {["AI RECEPTIONIST", "AD CAMPAIGNS", "BOOKINGS"].map((tab, i) => (
-                      <button key={i} onClick={() => setHeroTab(i)} className={`px-5 py-3.5 text-xs font-bold tracking-wider transition-colors ${heroTab === i ? "text-black border-b-2 border-black" : "text-slate-400 hover:text-slate-600"}`}>
-                        {heroTab === i && <span className="inline-block w-1.5 h-1.5 rounded-full bg-black mr-1.5 align-middle" />}
+                      <button key={i} onClick={() => setHeroTab(i)} className={`px-5 py-3.5 text-xs font-bold tracking-wider transition-colors ${heroTab === i ? "text-emerald-600 border-b-2 border-emerald-500 bg-emerald-50/40" : "text-slate-400 hover:text-slate-600"}`}>
+                        {heroTab === i && <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 align-middle animate-pulse" />}
                         {tab}
                       </button>
                     ))}
@@ -222,70 +260,75 @@ export default function LandingPage() {
                 </div>
                 <div className="p-6">
                   <div className="flex gap-4">
+                    {/* Mini sidebar */}
                     <div className="flex flex-col items-center gap-3 py-2 border-r border-slate-100 pr-4">
                       {[Brain, BarChart3, Star, MessageCircle, Calendar, Globe].map((Icon, idx) => (
-                        <div key={idx} className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${idx === heroTab ? "bg-black/5 text-black" : "text-slate-300 hover:bg-slate-50 hover:text-slate-500"}`}>
+                        <div key={idx} className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${idx === 0 ? "bg-emerald-50 text-emerald-600" : "text-slate-300 hover:bg-slate-50 hover:text-slate-500"}`}>
                           <Icon className="w-4 h-4" />
                         </div>
                       ))}
                     </div>
+                    {/* Main content */}
                     <div className="flex-1 min-w-0">
+                  {/* Tab 0: AI Receptionist */}
                   {heroTab === 0 && (
                     <div>
                       <div className="flex items-start gap-3 mb-6">
-                        <div className="w-9 h-9 rounded-full bg-black flex items-center justify-center shrink-0"><Brain className="w-4 h-4 text-white" /></div>
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shrink-0 shadow-sm"><Brain className="w-4 h-4 text-white" /></div>
                         <div>
-                          <p className="text-xs font-bold mb-1">PatientPlex AI</p>
+                          <p className="text-xs font-bold text-slate-900 mb-1">PatientPlex AI</p>
                           <div className="bg-slate-50 rounded-xl rounded-tl-sm p-4 text-sm text-slate-700 leading-relaxed border border-slate-100">Got it. I have built a campaign for <strong>SmileCraft Dental</strong> to maximize bookings in Mumbai this month.</div>
                         </div>
                       </div>
-                      <div className="bg-slate-50 rounded-xl p-5 border border-slate-100">
-                        <p className="text-[10px] font-bold text-black/50 uppercase tracking-widest mb-1">Campaign Setup</p>
-                        <p className="font-black mb-4">SmileCraft Dental &mdash; Nov bookings</p>
+                      <div className="bg-gradient-to-br from-slate-50 to-emerald-50/30 rounded-xl p-5 border border-slate-100">
+                        <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1">Campaign Setup</p>
+                        <p className="font-black text-slate-900 mb-4">SmileCraft Dental &mdash; Nov bookings</p>
                         <div className="grid grid-cols-3 gap-4 mb-4">
                           {[["Daily budget","₹2,500","₹75,000/mo"],["Est. clicks/mo","1,240","Based on local CPCs"],["Est. bookings","62—85","5—7% conv. rate"]].map(([l,v,s],j) => (
-                            <div key={j}><p className="text-[10px] text-slate-400 mb-0.5">{l}</p><p className="text-lg font-black">{v}</p><p className="text-[10px] text-slate-400">{s}</p></div>
+                            <div key={j}><p className="text-[10px] text-slate-400 mb-0.5">{l}</p><p className="text-lg font-black text-slate-900">{v}</p><p className="text-[10px] text-slate-400">{s}</p></div>
                           ))}
                         </div>
                         <div className="space-y-2 text-sm">
                           {[["Platforms","Google Search + Meta"],["Radius","5 km from clinic"],["Schedule","Mon—Sat, 7am—9pm"],["Bidding","Maximize conversions"]].map(([k,v],j) => (
-                            <div key={j} className="flex justify-between items-center"><span className="text-slate-500">{k}</span><span className="font-semibold">{v}</span></div>
+                            <div key={j} className="flex justify-between items-center"><span className="text-slate-500">{k}</span><span className="font-semibold text-slate-900">{v}</span></div>
                           ))}
                         </div>
                       </div>
                     </div>
                   )}
+                  {/* Tab 1: Ad Campaigns */}
                   {heroTab === 1 && (
                     <div className="space-y-3">
                       <div className="flex items-center justify-between mb-2">
-                        <p className="text-sm font-bold">Active Campaigns</p>
-                        <span className="text-[10px] font-bold text-black bg-black/5 px-2 py-0.5 rounded-full">4 running</span>
+                        <p className="text-sm font-bold text-slate-900">Active Campaigns</p>
+                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">4 running</span>
                       </div>
                       {[{t:"Teeth whitening",budget:"₹1,200/day",clicks:"342",conv:"28",status:"Active"},{t:"Dental implants",budget:"₹2,000/day",clicks:"189",conv:"15",status:"Active"},{t:"Root canal",budget:"₹800/day",clicks:"256",conv:"22",status:"Optimizing"},{t:"Braces consultation",budget:"₹600/day",clicks:"412",conv:"31",status:"Active"}].map((c,j) => (
                         <div key={j} className="flex items-center justify-between text-xs bg-slate-50 rounded-xl p-3 border border-slate-100">
-                          <div className="w-32"><p className="font-semibold">{c.t}</p><p className="text-[10px] text-slate-400">{c.budget}</p></div>
-                          <div className="text-center"><p className="font-bold">{c.clicks}</p><p className="text-[10px] text-slate-400">clicks</p></div>
-                          <div className="text-center"><p className="font-bold">{c.conv}</p><p className="text-[10px] text-slate-400">bookings</p></div>
-                          <span className={`font-semibold px-2 py-0.5 rounded text-[10px] ${c.status === "Active" ? "bg-black/5 text-black" : "bg-amber-50 text-amber-600 border border-amber-100"}`}>{c.status}</span>
+                          <div className="w-32"><p className="font-semibold text-slate-800">{c.t}</p><p className="text-[10px] text-slate-400">{c.budget}</p></div>
+                          <div className="text-center"><p className="font-bold text-slate-800">{c.clicks}</p><p className="text-[10px] text-slate-400">clicks</p></div>
+                          <div className="text-center"><p className="font-bold text-emerald-600">{c.conv}</p><p className="text-[10px] text-slate-400">bookings</p></div>
+                          <span className={`font-semibold px-2 py-0.5 rounded text-[10px] ${c.status === "Active" ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : "bg-amber-50 text-amber-600 border border-amber-100"}`}>{c.status}</span>
                         </div>
                       ))}
                     </div>
                   )}
+                  {/* Tab 2: Bookings */}
                   {heroTab === 2 && (
                     <div className="space-y-3">
                       <div className="flex items-center justify-between mb-2">
-                        <p className="text-sm font-bold">Recent Bookings</p>
-                        <span className="text-[10px] font-bold text-black bg-black/5 px-2 py-0.5 rounded-full flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" /> Live</span>
+                        <p className="text-sm font-bold text-slate-900">Recent Bookings</p>
+                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live</span>
                       </div>
                       {[{n:"Priya S.",t:"Laser hair removal",time:"Just now",amt:"₹12,500",s:"Confirmed"},{n:"Rajesh K.",t:"Root canal & crown",time:"2m ago",amt:"₹8,500",s:"Confirmed"},{n:"Ananya R.",t:"Acne scar treatment",time:"5m ago",amt:"₹16,000",s:"Pending"},{n:"Vikram P.",t:"Teeth whitening",time:"8m ago",amt:"₹5,500",s:"Confirmed"}].map((b,j) => (
                         <div key={j} className="flex items-center justify-between text-xs bg-slate-50 rounded-xl p-3 border border-slate-100">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-full bg-black flex items-center justify-center text-[10px] font-bold text-white">{b.n[0]}</div>
-                            <div><p className="font-semibold">{b.t}</p><p className="text-[10px] text-slate-400">{b.n} &middot; {b.time}</p></div>
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-[10px] font-bold text-white">{b.n[0]}</div>
+                            <div><p className="font-semibold text-slate-800">{b.t}</p><p className="text-[10px] text-slate-400">{b.n} &middot; {b.time}</p></div>
                           </div>
                           <div className="text-right">
-                            <p className="font-bold">{b.amt}</p>
-                            <p className={`text-[9px] font-medium ${b.s === "Confirmed" ? "text-black/50" : "text-amber-500"}`}>{b.s === "Confirmed" ? "✓ " : "● "}{b.s}</p>
+                            <p className="font-bold text-emerald-600">{b.amt}</p>
+                            <p className={`text-[9px] font-medium ${b.s === "Confirmed" ? "text-emerald-500" : "text-amber-500"}`}>{b.s === "Confirmed" ? "✓ " : "● "}{b.s}</p>
                           </div>
                         </div>
                       ))}
@@ -293,11 +336,13 @@ export default function LandingPage() {
                   )}
                     </div>
                   </div>
+                  {/* Action buttons */}
                   <div className="flex items-center justify-end gap-2 mt-4 pt-4 border-t border-slate-100">
                     <button className="text-xs font-medium text-slate-500 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-colors">Edit first</button>
-                    <button className="text-xs font-semibold text-white bg-black px-4 py-1.5 rounded-lg hover:bg-black/80 transition-colors">Launch campaign</button>
+                    <button className="text-xs font-semibold text-white bg-emerald-500 px-4 py-1.5 rounded-lg hover:bg-emerald-600 transition-colors">Launch campaign</button>
                   </div>
                 </div>
+                {/* Chat input */}
                 <div className="px-6 pb-5">
                   <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200">
                     <Brain className="w-4 h-4 text-slate-300 shrink-0" />
@@ -314,7 +359,7 @@ export default function LandingPage() {
       </section>
 
       {/* ═══ PRESS BAR ═══ */}
-      <section className="py-8 border-y border-slate-200/60">
+      <section className="py-8 border-y border-slate-200/60 bg-white/60 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-0 justify-between">
             <p className="text-xs font-medium text-slate-400 uppercase tracking-widest whitespace-nowrap">Featured by</p>
@@ -331,26 +376,20 @@ export default function LandingPage() {
       </section>
 
       {/* ═══ CHANNELS ═══ */}
-      <section className="py-24 px-6">
+      <section className="py-24 px-6 relative">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <Reveal>
-              <h2 className="text-4xl sm:text-5xl font-black tracking-tight leading-tight mb-6">Works with every platform</h2>
+              <h2 className="text-4xl sm:text-5xl font-black tracking-tight leading-tight mb-6">AI to manage patients across every channel</h2>
               <p className="text-lg text-slate-500 leading-relaxed">WhatsApp, Google, Instagram, phone calls &mdash; PatientPlex captures patients from every touchpoint and funnels them into your calendar.</p>
             </Reveal>
             <Reveal delay={0.15}>
-              <div className="grid grid-cols-3 gap-4">
-                {[
-                  { name: "WhatsApp", icon: MessageCircle },
-                  { name: "Google Ads", icon: Search },
-                  { name: "Instagram", icon: Instagram },
-                  { name: "Facebook", icon: Facebook },
-                  { name: "Phone", icon: Phone },
-                  { name: "Website", icon: Globe },
-                ].map((ch, i) => (
+              <div className="grid grid-cols-3 gap-4 relative">
+                <div className="absolute -inset-6 bg-gradient-to-br from-emerald-50 via-transparent to-cyan-50 rounded-3xl -z-10" />
+                {CHANNELS.map((ch, i) => (
                   <motion.div key={i} whileHover={{ y: -4, scale: 1.02 }}
-                    className="bg-white rounded-2xl border border-slate-200 hover:border-slate-300 p-6 flex flex-col items-center gap-3 shadow-sm hover:shadow-lg transition-all duration-300 cursor-default">
-                    <div className="w-12 h-12 rounded-xl bg-slate-50 text-slate-600 flex items-center justify-center">
+                    className={`bg-white rounded-2xl border border-slate-200 ${ch.border} p-6 flex flex-col items-center gap-3 shadow-sm hover:shadow-lg transition-all duration-300 cursor-default`}>
+                    <div className={`w-12 h-12 rounded-xl ${ch.bg} ${ch.color} flex items-center justify-center`}>
                       <ch.icon className="w-6 h-6" />
                     </div>
                     <span className="text-sm font-semibold text-slate-700">{ch.name}</span>
@@ -362,174 +401,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ═══ STATS ═══ */}
-      <section className="py-24 px-6 bg-slate-50">
-        <div className="max-w-7xl mx-auto">
-          <Reveal><h2 className="text-4xl sm:text-5xl font-black tracking-tight text-center mb-16">Used by 200+ clinics</h2></Reveal>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            {STATS.map((s, i) => (
-              <Reveal key={i} delay={i * 0.1}>
-                <div className="relative text-center p-8 bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden">
-                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-black/10 rounded-r" />
-                  <div className="inline-flex p-2.5 rounded-xl bg-slate-100 mb-3">
-                    <s.icon className="w-5 h-5 text-slate-600" />
-                  </div>
-                  <div className="text-4xl sm:text-5xl font-black mb-2 tabular-nums">
-                    <Counter target={s.value} suffix={s.suffix} prefix={s.prefix} />
-                  </div>
-                  <p className="text-sm text-slate-500 font-medium">{s.label}</p>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ FEATURES ═══ */}
-      <section id="features" className="py-24 px-6">
-        <div className="max-w-7xl mx-auto">
-          <Reveal>
-            <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-center mb-4">See what PatientPlex does inside your account</h2>
-            <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">Three autonomous AI agents working 24/7 to grow your clinic.</p>
-          </Reveal>
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              { title: "Autonomous\nAI receptionist", bullets: ["24/7 WhatsApp responses", "Multi-language support", "Smart lead qualification", "Instant appointment booking"], icon: Brain,
-                mockup: (
-                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 mt-6 space-y-3">
-                    <div className="flex items-start gap-2"><div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center shrink-0 mt-0.5"><MessageCircle className="w-3 h-3 text-slate-600" /></div><div className="bg-slate-100 rounded-lg rounded-tl-sm p-2.5 text-xs text-slate-700">Hi! I want to book a teeth whitening appointment.</div></div>
-                    <div className="flex items-start gap-2 justify-end"><div className="bg-black/5 rounded-lg rounded-tr-sm p-2.5 text-xs text-slate-700">Great choice! Dr. Sharma has slots on Tuesday at 10am and Thursday at 3pm.</div><div className="w-6 h-6 rounded-full bg-black flex items-center justify-center shrink-0 mt-0.5"><Brain className="w-3 h-3 text-white" /></div></div>
-                    <div className="flex items-start gap-2"><div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center shrink-0 mt-0.5"><MessageCircle className="w-3 h-3 text-slate-600" /></div><div className="bg-slate-100 rounded-lg rounded-tl-sm p-2.5 text-xs text-slate-700">Tuesday 10am please!</div></div>
-                    <div className="flex items-start gap-2 justify-end"><div className="bg-black/5 rounded-lg rounded-tr-sm p-2.5 text-xs text-slate-700 flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-black/40" /> Booked! Confirmation sent.</div><div className="w-6 h-6 rounded-full bg-black flex items-center justify-center shrink-0 mt-0.5"><Brain className="w-3 h-3 text-white" /></div></div>
-                  </div>
-                )},
-              { title: "Autonomous\nad campaigns", bullets: ["Google + Meta on autopilot", "Geo-targeted within 5km", "A/B tested creatives", "Auto-optimized bids"], icon: BarChart3,
-                mockup: (
-                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 mt-6 space-y-2">
-                    {[{l:"Teeth whitening",cpc:"₹8.20",clicks:"342",ctr:"4.2%",s:"Active"},{l:"Dental implants",cpc:"₹12.50",clicks:"189",ctr:"3.8%",s:"Active"},{l:"Root canal",cpc:"₹10.80",clicks:"256",ctr:"5.1%",s:"Optimizing"},{l:"Braces",cpc:"₹6.40",clicks:"412",ctr:"6.3%",s:"Active"}].map((ad,j) => (
-                      <div key={j} className="flex items-center justify-between text-xs bg-white rounded-lg p-2.5 border border-slate-100">
-                        <span className="font-medium w-24 truncate">{ad.l}</span>
-                        <span className="text-slate-400 tabular-nums">{ad.cpc}</span>
-                        <span className="text-slate-400 tabular-nums">{ad.clicks}</span>
-                        <span className="text-slate-400 tabular-nums">{ad.ctr}</span>
-                        <span className={`font-semibold px-2 py-0.5 rounded text-[10px] ${ad.s === "Active" ? "bg-black/5 text-black" : "bg-amber-50 text-amber-600"}`}>{ad.s}</span>
-                      </div>
-                    ))}
-                  </div>
-                )},
-              { title: "Autonomous\npatient booking", bullets: ["Google Calendar sync", "WhatsApp reminders", "60% fewer no-shows", "Smart rescheduling"], icon: Calendar,
-                mockup: (
-                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 mt-6 space-y-2">
-                    {MOCK_QUEUE.map((p,j) => (
-                      <div key={j} className="flex items-center justify-between text-xs bg-white rounded-lg p-3 border border-slate-100">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-7 h-7 rounded-full bg-black flex items-center justify-center text-[9px] font-bold text-white">{p.name[0]}</div>
-                          <div><p className="font-medium">{p.treatment}</p><p className="text-[10px] text-slate-400">{p.name} &middot; {p.time}</p></div>
-                        </div>
-                        <span className="font-bold">{p.amount}</span>
-                      </div>
-                    ))}
-                  </div>
-                )},
-            ].map((feat, i) => (
-              <Reveal key={i} delay={i * 0.12}>
-                <motion.div whileHover={{ y: -6 }} className="h-full bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-xl transition-all duration-300">
-                  <div className="h-1 bg-black/10" />
-                  <div className="p-7">
-                    <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center mb-5">
-                      <feat.icon className="w-5 h-5 text-slate-800" />
-                    </div>
-                    <h3 className="text-2xl font-black mb-4 whitespace-pre-line leading-tight">{feat.title}</h3>
-                    <ul className="space-y-2.5">
-                      {feat.bullets.map((b,j) => <li key={j} className="flex items-center gap-2.5 text-sm text-slate-600"><span className="w-1.5 h-1.5 rounded-full bg-black shrink-0" />{b}</li>)}
-                    </ul>
-                    {feat.mockup}
-                    <a href="#" className="inline-flex items-center gap-1 text-sm font-semibold text-black mt-5 hover:text-black/60 transition-colors group">
-                      Learn more <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-                    </a>
-                  </div>
-                </motion.div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ BEFORE / AFTER ═══ */}
-      <section className="py-24 px-6 bg-slate-50">
-        <div className="max-w-5xl mx-auto">
-          <Reveal>
-            <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-center mb-4">The PatientPlex difference</h2>
-            <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">See what changes when AI runs your patient acquisition.</p>
-          </Reveal>
-          <div className="grid md:grid-cols-2 gap-6">
-            <Reveal>
-              <div className="p-8 rounded-2xl border border-slate-200 bg-white h-full">
-                <div className="flex items-center gap-2.5 mb-6">
-                  <Clock className="w-5 h-5 text-red-500" />
-                  <h3 className="text-xl font-black">Before PatientPlex</h3>
-                </div>
-                <ul className="space-y-4">
-                  {["Missed calls after clinic hours", "₹800+ cost per new patient", "No idea which ads actually work", "28% patient no-show rate", "Manual everything — reminders, follow-ups, booking"].map((item, i) => (
-                    <li key={i} className="flex items-start gap-3 text-sm text-slate-600">
-                      <span className="w-2 h-2 rounded-full bg-red-400 mt-1.5 shrink-0" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </Reveal>
-            <Reveal delay={0.15}>
-              <div className="p-8 rounded-2xl border border-slate-200 bg-white h-full">
-                <div className="flex items-center gap-2.5 mb-6">
-                  <Zap className="w-5 h-5 text-black" />
-                  <h3 className="text-xl font-black">After PatientPlex</h3>
-                </div>
-                <ul className="space-y-4">
-                  {["24/7 AI WhatsApp receptionist", "₹12 average cost per booking", "Full-funnel attribution on every rupee", "4% no-show rate with auto reminders", "Everything automated — ads, booking, follow-ups"].map((item, i) => (
-                    <li key={i} className="flex items-start gap-3 text-sm text-slate-600">
-                      <CheckCircle2 className="w-4 h-4 text-black/40 mt-0.5 shrink-0" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </Reveal>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ HOW IT WORKS ═══ */}
-      <section className="py-24 px-6">
-        <div className="max-w-5xl mx-auto">
-          <Reveal>
-            <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-center mb-4">Live in 10 minutes, not 10 weeks</h2>
-            <p className="text-center text-lg text-slate-500 mb-16">No agencies, no contracts, no technical setup.</p>
-          </Reveal>
-          <div className="grid md:grid-cols-3 gap-8 relative">
-            <div className="hidden md:block absolute top-10 left-[18%] right-[18%] h-px bg-slate-200" />
-            {[
-              { step: "01", title: "Tell us about your clinic", desc: "Specialty, location, treatments, budget. Takes about 3 minutes. We generate your landing pages and ad creatives automatically.", icon: Users },
-              { step: "02", title: "Connect WhatsApp & Calendar", desc: "Link your clinic WhatsApp Business number and Google Calendar. The AI receptionist starts handling enquiries immediately.", icon: MessageCircle },
-              { step: "03", title: "Patients start booking", desc: "Campaigns go live within hours. The AI qualifies leads, books appointments, and sends reminders. You focus on patient care.", icon: Calendar },
-            ].map((s, i) => (
-              <Reveal key={i} delay={i * 0.15}>
-                <div className="text-center relative">
-                  <div className="w-20 h-20 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-6 relative z-10">
-                    <s.icon className="w-8 h-8 text-slate-700" />
-                  </div>
-                  <div className="text-xs font-black text-black/40 uppercase tracking-widest mb-2">Step {s.step}</div>
-                  <h3 className="text-lg font-black mb-3">{s.title}</h3>
-                  <p className="text-sm text-slate-500 leading-relaxed">{s.desc}</p>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ═══ WALL OF LOVE ═══ */}
-      <section className="py-24 px-6 bg-slate-50">
+      <section className="py-24 px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <Reveal>
             <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-center mb-3">Wall of Love <span className="inline-block">{"❤️"}</span></h2>
@@ -538,17 +411,18 @@ export default function LandingPage() {
           <div className="columns-1 md:columns-2 lg:columns-3 gap-5 space-y-5">
             {TESTIMONIALS.map((t, i) => (
               <Reveal key={i} delay={i * 0.07}>
-                <div className="break-inside-avoid bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                  <div className="h-[2px] bg-black/10" />
+                <div className="break-inside-avoid bg-[#FAFAF8] rounded-2xl border border-slate-200 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                  {/* Gradient top accent */}
+                  <div className="h-1 bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400" />
                   <div className="p-6">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-black flex items-center justify-center text-sm font-black text-white">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-sm font-black text-white shadow-sm">
                           {t.avatar}
                         </div>
                         <div>
-                          <p className="font-bold text-sm flex items-center gap-1.5">
-                            {t.name} <BadgeCheck className="w-4 h-4 text-black/30" />
+                          <p className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                            {t.name} <BadgeCheck className="w-4 h-4 text-emerald-500" />
                           </p>
                           <p className="text-xs text-slate-500">{t.role}</p>
                         </div>
@@ -568,7 +442,7 @@ export default function LandingPage() {
                       <div className="flex items-center gap-0.5">
                         {[...Array(t.rating)].map((_, j) => <Star key={j} className="w-3.5 h-3.5 text-amber-400" fill="currentColor" />)}
                       </div>
-                      <span className="text-xs font-bold text-black bg-black/5 px-3 py-1 rounded-full">{t.metric}</span>
+                      <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">{t.metric}</span>
                     </div>
                   </div>
                 </div>
@@ -576,19 +450,190 @@ export default function LandingPage() {
             ))}
           </div>
           <Reveal delay={0.3}>
-            <p className="text-center mt-12 text-slate-500 text-sm">Join <span className="font-bold text-black">200+ happy doctors</span> already using PatientPlex</p>
+            <p className="text-center mt-12 text-slate-500 text-sm">Join <span className="font-bold text-emerald-600">200+ happy doctors</span> already using PatientPlex</p>
           </Reveal>
+        </div>
+      </section>
+
+      {/* ═══ STATS ═══ */}
+      <section className="py-24 px-6">
+        <div className="max-w-7xl mx-auto">
+          <Reveal><h2 className="text-4xl sm:text-5xl font-black tracking-tight text-center mb-16">Used by 200+ clinics</h2></Reveal>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            {STATS.map((s, i) => (
+              <Reveal key={i} delay={i * 0.1}>
+                <div className="relative text-center p-8 bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden">
+                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-emerald-400 to-teal-500 rounded-r" />
+                  <div className="inline-flex p-2.5 rounded-xl bg-emerald-50 mb-3">
+                    <s.icon className="w-5 h-5 text-emerald-600" />
+                  </div>
+                  <div className="text-4xl sm:text-5xl font-black text-slate-900 mb-2 tabular-nums">
+                    <Counter target={s.value} suffix={s.suffix} prefix={s.prefix} />
+                  </div>
+                  <p className="text-sm text-slate-500 font-medium">{s.label}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ BEFORE / AFTER ═══ */}
+      <section className="py-24 px-6 bg-white">
+        <div className="max-w-5xl mx-auto">
+          <Reveal>
+            <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-center mb-4">The PatientPlex difference</h2>
+            <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">See what changes when AI runs your patient acquisition.</p>
+          </Reveal>
+          <div className="grid md:grid-cols-2 gap-6">
+            <Reveal>
+              <div className="p-8 rounded-2xl border border-red-200 bg-red-50/30 h-full">
+                <div className="flex items-center gap-2.5 mb-6">
+                  <Clock className="w-5 h-5 text-red-500" />
+                  <h3 className="text-xl font-black text-slate-900">Before PatientPlex</h3>
+                </div>
+                <ul className="space-y-4">
+                  {["Missed calls after clinic hours", "₹800+ cost per new patient", "No idea which ads actually work", "28% patient no-show rate", "Manual everything — reminders, follow-ups, booking"].map((item, i) => (
+                    <li key={i} className="flex items-start gap-3 text-sm text-slate-700">
+                      <span className="w-2 h-2 rounded-full bg-red-400 mt-1.5 shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </Reveal>
+            <Reveal delay={0.15}>
+              <div className="p-8 rounded-2xl border border-emerald-200 bg-emerald-50/30 h-full">
+                <div className="flex items-center gap-2.5 mb-6">
+                  <Zap className="w-5 h-5 text-emerald-500" />
+                  <h3 className="text-xl font-black text-slate-900">After PatientPlex</h3>
+                </div>
+                <ul className="space-y-4">
+                  {["24/7 AI WhatsApp receptionist", "₹12 average cost per booking", "Full-funnel attribution on every rupee", "4% no-show rate with auto reminders", "Everything automated — ads, booking, follow-ups"].map((item, i) => (
+                    <li key={i} className="flex items-start gap-3 text-sm text-slate-700">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ HOW IT WORKS ═══ */}
+      <section className="py-24 px-6">
+        <div className="max-w-5xl mx-auto">
+          <Reveal>
+            <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-center mb-4">Live in 10 minutes, not 10 weeks</h2>
+            <p className="text-center text-lg text-slate-500 mb-16">No agencies, no contracts, no technical setup.</p>
+          </Reveal>
+          <div className="grid md:grid-cols-3 gap-8 relative">
+            {/* Connecting line */}
+            <div className="hidden md:block absolute top-10 left-[18%] right-[18%] h-px bg-gradient-to-r from-emerald-300 via-teal-300 to-cyan-300" />
+            {[
+              { step: "01", title: "Tell us about your clinic", desc: "Specialty, location, treatments, budget. Takes about 3 minutes. We generate your landing pages and ad creatives automatically.", icon: Users, color: "bg-emerald-50 text-emerald-600" },
+              { step: "02", title: "Connect WhatsApp & Calendar", desc: "Link your clinic WhatsApp Business number and Google Calendar. The AI receptionist starts handling enquiries immediately.", icon: MessageCircle, color: "bg-teal-50 text-teal-600" },
+              { step: "03", title: "Patients start booking", desc: "Campaigns go live within hours. The AI qualifies leads, books appointments, and sends reminders. You focus on patient care.", icon: Calendar, color: "bg-cyan-50 text-cyan-600" },
+            ].map((s, i) => (
+              <Reveal key={i} delay={i * 0.15}>
+                <div className="text-center relative">
+                  <div className={`w-20 h-20 rounded-2xl ${s.color} flex items-center justify-center mx-auto mb-6 relative z-10 shadow-sm`}>
+                    <s.icon className="w-8 h-8" />
+                  </div>
+                  <div className="text-xs font-black text-emerald-500 uppercase tracking-widest mb-2">Step {s.step}</div>
+                  <h3 className="text-lg font-black text-slate-900 mb-3">{s.title}</h3>
+                  <p className="text-sm text-slate-500 leading-relaxed">{s.desc}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ FEATURES ═══ */}
+      <section id="features" className="py-24 px-6 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <Reveal>
+            <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-center mb-4">See what PatientPlex does inside your account</h2>
+            <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">Three autonomous AI agents working 24/7 to grow your clinic.</p>
+          </Reveal>
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              { title: "Autonomous\nAI receptionist", gradient: "from-emerald-400 to-teal-400", bullets: ["24/7 WhatsApp responses", "Multi-language support", "Smart lead qualification", "Instant appointment booking"], icon: Brain,
+                mockup: (
+                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 mt-6 space-y-3">
+                    <div className="flex items-start gap-2"><div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center shrink-0 mt-0.5"><MessageCircle className="w-3 h-3 text-green-600" /></div><div className="bg-green-50 rounded-lg rounded-tl-sm p-2.5 text-xs text-slate-700 border border-green-100">Hi! I want to book a teeth whitening appointment.</div></div>
+                    <div className="flex items-start gap-2 justify-end"><div className="bg-emerald-50 rounded-lg rounded-tr-sm p-2.5 text-xs text-slate-700 border border-emerald-100">Great choice! Dr. Sharma has slots on Tuesday at 10am and Thursday at 3pm. Which works better?</div><div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shrink-0 mt-0.5"><Brain className="w-3 h-3 text-white" /></div></div>
+                    <div className="flex items-start gap-2"><div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center shrink-0 mt-0.5"><MessageCircle className="w-3 h-3 text-green-600" /></div><div className="bg-green-50 rounded-lg rounded-tl-sm p-2.5 text-xs text-slate-700 border border-green-100">Tuesday 10am please!</div></div>
+                    <div className="flex items-start gap-2 justify-end"><div className="bg-emerald-50 rounded-lg rounded-tr-sm p-2.5 text-xs text-slate-700 border border-emerald-100"><span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-emerald-500" /> Booked! Confirmation sent to your WhatsApp.</span></div><div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shrink-0 mt-0.5"><Brain className="w-3 h-3 text-white" /></div></div>
+                  </div>
+                )},
+              { title: "Autonomous\nad campaigns", gradient: "from-blue-400 to-cyan-400", bullets: ["Google + Meta on autopilot", "Geo-targeted within 5km", "A/B tested creatives", "Auto-optimized bids"], icon: BarChart3,
+                mockup: (
+                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 mt-6 space-y-2">
+                    {[{l:"Teeth whitening",cpc:"₹8.20",clicks:"342",ctr:"4.2%",s:"Active"},{l:"Dental implants",cpc:"₹12.50",clicks:"189",ctr:"3.8%",s:"Active"},{l:"Root canal",cpc:"₹10.80",clicks:"256",ctr:"5.1%",s:"Optimizing"},{l:"Braces consultation",cpc:"₹6.40",clicks:"412",ctr:"6.3%",s:"Active"}].map((ad,j) => (
+                      <div key={j} className="flex items-center justify-between text-xs bg-white rounded-lg p-2.5 border border-slate-100 hover:border-slate-200 transition-colors">
+                        <span className="font-medium text-slate-700 w-28 truncate">{ad.l}</span>
+                        <span className="text-slate-400 tabular-nums">{ad.cpc}</span>
+                        <span className="text-slate-400 tabular-nums">{ad.clicks}</span>
+                        <span className="text-slate-400 tabular-nums">{ad.ctr}</span>
+                        <span className={`font-semibold px-2 py-0.5 rounded text-[10px] ${ad.s === "Active" ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : "bg-amber-50 text-amber-600 border border-amber-100"}`}>{ad.s}</span>
+                      </div>
+                    ))}
+                  </div>
+                )},
+              { title: "Autonomous\npatient booking", gradient: "from-violet-400 to-purple-400", bullets: ["Google Calendar sync", "WhatsApp reminders", "60% fewer no-shows", "Smart rescheduling"], icon: Calendar,
+                mockup: (
+                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 mt-6 space-y-2">
+                    {MOCK_QUEUE.map((p,j) => (
+                      <div key={j} className="flex items-center justify-between text-xs bg-white rounded-lg p-3 border border-slate-100 hover:border-slate-200 transition-colors">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-[9px] font-bold text-white">{p.name[0]}</div>
+                          <div><p className="font-medium text-slate-700">{p.treatment}</p><p className="text-[10px] text-slate-400">{p.name} &middot; {p.time}</p></div>
+                        </div>
+                        <div className="text-right">
+                          <span className="font-bold text-emerald-600">{p.amount}</span>
+                          <p className="text-[9px] text-emerald-500 flex items-center gap-0.5 justify-end"><CheckCircle2 className="w-2.5 h-2.5" /> Confirmed</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )},
+            ].map((feat, i) => (
+              <Reveal key={i} delay={i * 0.12}>
+                <motion.div whileHover={{ y: -6 }} className="h-full bg-[#FAFAF8] rounded-2xl border border-slate-200 overflow-hidden hover:shadow-xl transition-all duration-300">
+                  <div className={`h-1.5 bg-gradient-to-r ${feat.gradient}`} />
+                  <div className="p-7">
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center mb-5">
+                      <feat.icon className="w-5 h-5 text-slate-800" />
+                    </div>
+                    <h3 className="text-2xl font-black text-slate-900 mb-4 whitespace-pre-line leading-tight">{feat.title}</h3>
+                    <ul className="space-y-2.5">
+                      {feat.bullets.map((b,j) => <li key={j} className="flex items-center gap-2.5 text-sm text-slate-600"><span className="w-1.5 h-1.5 rounded-full bg-slate-800 shrink-0" />{b}</li>)}
+                    </ul>
+                    {feat.mockup}
+                    <a href="#" className="inline-flex items-center gap-1 text-sm font-semibold text-emerald-600 mt-5 hover:text-emerald-700 transition-colors group">
+                      Learn more <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                    </a>
+                  </div>
+                </motion.div>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* ═══ LIVE RESULTS + CTA ═══ */}
       <section className="py-24 px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-0 rounded-3xl overflow-hidden border border-slate-200 shadow-2xl">
-            <div className="bg-gradient-to-br from-slate-900 to-black p-10 sm:p-14 text-white relative overflow-hidden">
+          <div className="grid lg:grid-cols-2 gap-0 rounded-3xl overflow-hidden border border-slate-200 shadow-2xl shadow-emerald-500/5">
+            <div className="bg-gradient-to-br from-emerald-500 via-teal-400 to-cyan-400 p-10 sm:p-14 text-white relative overflow-hidden">
+              <div className="absolute inset-0 grid-overlay" />
               <div className="relative">
                 <Reveal>
-                  <h3 className="text-sm font-bold uppercase tracking-widest opacity-60 mb-6">Live results across</h3>
+                  <h3 className="text-sm font-bold uppercase tracking-widest opacity-80 mb-6">Live results across</h3>
                   <p className="text-4xl sm:text-5xl font-black mb-10">200+ clinics</p>
                   <div className="space-y-8">
                     {[
@@ -597,28 +642,28 @@ export default function LandingPage() {
                       { category: "BOOKINGS", items: [["Patients booked", "4,200+"], ["No-show reduction", "-60%"]] },
                     ].map((g, i) => (
                       <div key={i}>
-                        <p className="text-xs font-bold uppercase tracking-widest opacity-40 mb-3"><span className="inline-block w-1.5 h-1.5 rounded-full bg-white mr-1.5 align-middle opacity-60" />{g.category}</p>
+                        <p className="text-xs font-bold uppercase tracking-widest opacity-60 mb-3"><span className="inline-block w-1.5 h-1.5 rounded-full bg-white mr-1.5 align-middle opacity-80" />{g.category}</p>
                         {g.items.map(([l,v],j) => (
-                          <div key={j} className="flex items-center justify-between py-1.5"><span className="text-sm opacity-60">{l}</span><span className="font-mono font-black text-xl">{v}</span></div>
+                          <div key={j} className="flex items-center justify-between py-1.5"><span className="text-sm opacity-80">{l}</span><span className="font-mono font-black text-xl">{v}</span></div>
                         ))}
                       </div>
                     ))}
                   </div>
                   <div className="mt-8 flex items-center gap-3">
-                    <p className="text-xs opacity-40 font-mono">Last updated: Nov 2026</p>
-                    <span className="w-1 h-1 rounded-full bg-white/30" />
-                    <p className="text-xs opacity-60 font-mono flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-white/60 animate-pulse" /> All systems ok</p>
+                    <p className="text-xs opacity-60 font-mono">Last updated: Nov 2026</p>
+                    <span className="w-1 h-1 rounded-full bg-white/40" />
+                    <p className="text-xs opacity-80 font-mono flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-green-300 animate-pulse" /> All systems ok</p>
                   </div>
                 </Reveal>
               </div>
             </div>
             <div className="bg-white p-10 sm:p-14 flex flex-col justify-center">
               <Reveal delay={0.15}>
-                <h3 className="text-4xl sm:text-5xl font-black mb-4 leading-tight">Let AI Run<br />Your Clinic</h3>
+                <h3 className="text-4xl sm:text-5xl font-black text-slate-900 mb-4 leading-tight">Let AI Run<br />Your Clinic</h3>
                 <p className="text-slate-500 mb-8 text-lg">Autonomous agents that acquire patients, book appointments and optimize your ads &mdash; around the clock.</p>
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <input type="email" placeholder="work@email.com" className="flex-1 px-5 py-3.5 rounded-xl border border-slate-300 bg-white text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black transition-all" />
-                  <Link href="/signup" className="group inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-black hover:bg-black/80 text-white font-semibold text-sm transition-all hover:scale-[1.03] active:scale-[0.97] shadow-lg shadow-black/10 whitespace-nowrap">
+                  <input type="email" placeholder="work@email.com" className="flex-1 px-5 py-3.5 rounded-xl border border-slate-300 bg-white text-slate-900 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all" />
+                  <Link href="/signup" className="group inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm transition-all hover:scale-[1.03] active:scale-[0.97] shadow-lg shadow-slate-900/20 whitespace-nowrap">
                     Get started <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                   </Link>
                 </div>
@@ -629,39 +674,40 @@ export default function LandingPage() {
       </section>
 
       {/* ═══ PRICING ═══ */}
-      <section id="pricing" className="py-24 px-6 bg-slate-50">
+      <section id="pricing" className="py-24 px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <Reveal>
             <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-center mb-4">Simple pricing, real results</h2>
             <p className="text-center text-lg text-slate-500 mb-8 max-w-2xl mx-auto">Every plan includes a 14-day free trial. No credit card required.</p>
+            {/* Toggle */}
             <div className="flex items-center justify-center gap-3 mb-16">
-              <span className={`text-sm font-medium ${!annual ? "text-black" : "text-slate-400"}`}>Monthly</span>
-              <button onClick={() => setAnnual(!annual)} className={`relative w-14 h-7 rounded-full transition-colors ${annual ? "bg-black" : "bg-slate-300"}`}>
-                <div className="absolute top-0.5 w-6 h-6 rounded-full bg-white shadow transition-transform" style={{ transform: annual ? "translateX(30px)" : "translateX(2px)" }} />
+              <span className={`text-sm font-medium ${!annual ? "text-slate-900" : "text-slate-400"}`}>Monthly</span>
+              <button onClick={() => setAnnual(!annual)} className={`relative w-14 h-7 rounded-full transition-colors ${annual ? "bg-emerald-500" : "bg-slate-300"}`}>
+                <div className={`absolute top-0.5 w-6 h-6 rounded-full bg-white shadow transition-transform ${annual ? "translate-x-7.5 left-0" : "left-0.5"}`} style={{ transform: annual ? "translateX(30px)" : "translateX(0)" }} />
               </button>
-              <span className={`text-sm font-medium ${annual ? "text-black" : "text-slate-400"}`}>Annual</span>
-              {annual && <span className="text-xs font-bold text-black bg-black/5 px-2.5 py-1 rounded-full">Save 20%</span>}
+              <span className={`text-sm font-medium ${annual ? "text-slate-900" : "text-slate-400"}`}>Annual</span>
+              {annual && <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">Save 20%</span>}
             </div>
           </Reveal>
           <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {pricing.map((p, i) => (
               <Reveal key={`${annual}-${i}`} delay={i * 0.1}>
-                <motion.div whileHover={{ y: -4 }} className={`relative p-7 rounded-2xl border h-full flex flex-col transition-all duration-300 ${p.highlight ? "border-black bg-white shadow-xl ring-1 ring-black/10" : "border-slate-200 bg-white hover:shadow-lg"}`}>
-                  {p.badge && <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-black text-white text-xs font-bold shadow-lg shadow-black/20">{p.badge}</div>}
+                <motion.div whileHover={{ y: -4 }} className={`relative p-7 rounded-2xl border h-full flex flex-col transition-all duration-300 ${p.highlight ? "border-emerald-500 bg-emerald-50/20 shadow-xl shadow-emerald-500/10 ring-1 ring-emerald-500/20" : "border-slate-200 bg-[#FAFAF8] hover:shadow-lg"}`}>
+                  {p.badge && <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-500/30">{p.badge}</div>}
                   <div className="mb-6">
-                    <h3 className="font-black text-xl mb-1">{p.name}</h3>
+                    <h3 className="font-black text-xl text-slate-900 mb-1">{p.name}</h3>
                     <p className="text-xs text-slate-500 mb-5">{p.desc}</p>
                     <div className="flex items-baseline gap-1">
                       <span className="text-lg text-slate-400">{"₹"}</span>
-                      <span className="text-5xl font-black tabular-nums">{p.price}</span>
+                      <span className="text-5xl font-black text-slate-900 tabular-nums">{p.price}</span>
                       <span className="text-sm text-slate-400">{p.period}</span>
                     </div>
-                    <p className="text-[11px] text-black/40 font-medium mt-2 flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Includes 14-day free trial</p>
+                    <p className="text-[11px] text-emerald-600 font-medium mt-2 flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Includes 14-day free trial</p>
                   </div>
                   <ul className="space-y-3 mb-8 flex-1">
-                    {p.features.map((f,j) => <li key={j} className="flex items-start gap-2.5 text-sm text-slate-600"><CheckCircle2 className="w-4 h-4 text-black/30 mt-0.5 shrink-0" />{f}</li>)}
+                    {p.features.map((f,j) => <li key={j} className="flex items-start gap-2.5 text-sm text-slate-600"><CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />{f}</li>)}
                   </ul>
-                  <Link href="/signup" className={`group block text-center py-3.5 rounded-xl font-semibold text-sm transition-all ${p.highlight ? "bg-black hover:bg-black/80 text-white shadow-lg shadow-black/10 hover:scale-[1.02]" : "bg-white border border-slate-300 hover:border-slate-400 text-slate-700 hover:text-black hover:shadow-md"}`}>
+                  <Link href="/signup" className={`group block text-center py-3.5 rounded-xl font-semibold text-sm transition-all ${p.highlight ? "bg-slate-900 hover:bg-slate-800 text-white shadow-lg shadow-slate-900/20 hover:scale-[1.02]" : "bg-white border border-slate-300 hover:border-slate-400 text-slate-700 hover:text-slate-900 hover:shadow-md"}`}>
                     {p.cta} <ArrowRight className="w-4 h-4 inline ml-1 group-hover:translate-x-0.5 transition-transform" />
                   </Link>
                 </motion.div>
@@ -675,7 +721,7 @@ export default function LandingPage() {
       <section className="py-12 px-6">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-10 text-sm text-slate-400">
           {[{ icon: Shield, text: "End-to-end encryption" },{ icon: Lock, text: "HMAC-SHA256 webhooks" },{ icon: Award, text: "Healthcare-grade audit logs" },{ icon: Shield, text: "SOC 2 aligned" }].map((b,i) => (
-            <div key={i} className="flex items-center gap-2"><b.icon className="w-4 h-4 text-black/20" /><span className="font-medium">{b.text}</span></div>
+            <div key={i} className="flex items-center gap-2"><b.icon className="w-4 h-4 text-emerald-500/60" /><span className="font-medium">{b.text}</span></div>
           ))}
         </div>
       </section>
@@ -691,10 +737,10 @@ export default function LandingPage() {
             {FAQS.map((faq, i) => (
               <Reveal key={i} delay={i * 0.05}>
                 <button onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className={`w-full text-left p-6 rounded-2xl bg-white border transition-all ${openFaq === i ? "border-black/20 shadow-md border-l-4 border-l-black" : "border-slate-200 hover:border-slate-300"}`}>
+                  className={`w-full text-left p-6 rounded-2xl bg-white border transition-all ${openFaq === i ? "border-emerald-300 shadow-md border-l-4 border-l-emerald-500" : "border-slate-200 hover:border-slate-300"}`}>
                   <div className="flex items-center gap-4">
-                    <span className="text-xs font-bold text-white bg-black w-7 h-7 rounded-lg flex items-center justify-center shrink-0">{i + 1}</span>
-                    <span className="font-bold flex-1">{faq.q}</span>
+                    <span className="text-xs font-bold text-emerald-500 bg-emerald-50 w-7 h-7 rounded-lg flex items-center justify-center shrink-0">{i + 1}</span>
+                    <span className="font-bold text-slate-900 flex-1">{faq.q}</span>
                     <ChevronDown className={`w-5 h-5 text-slate-400 shrink-0 transition-transform duration-200 ${openFaq === i ? "rotate-180" : ""}`} />
                   </div>
                   <AnimatePresence>
@@ -712,25 +758,28 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ═══ FOOTER ═══ */}
-      <footer className="border-t border-slate-200">
-        <div className="py-12 px-6 border-b border-slate-100 bg-slate-50">
+      {/* ═══ NEWSLETTER + FOOTER ═══ */}
+      <footer className="border-t border-slate-200 relative">
+        <div className="h-px bg-gradient-to-r from-transparent via-emerald-400 to-transparent absolute top-0 left-0 right-0" />
+        {/* Newsletter */}
+        <div className="py-12 px-6 border-b border-slate-100 bg-gradient-to-r from-emerald-50/40 to-teal-50/40">
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
             <div>
-              <h4 className="font-black text-lg">Stay updated on AI marketing for clinics</h4>
+              <h4 className="font-black text-lg text-slate-900">Stay updated on AI marketing for clinics</h4>
               <p className="text-sm text-slate-500">Weekly tips, product updates, and growth strategies.</p>
             </div>
             <div className="flex gap-3 w-full sm:w-auto">
-              <input type="email" placeholder="your@email.com" className="flex-1 sm:w-64 px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black" />
-              <button className="px-5 py-2.5 rounded-xl bg-black text-white text-sm font-semibold hover:bg-black/80 transition-colors whitespace-nowrap">Subscribe</button>
+              <input type="email" placeholder="your@email.com" className="flex-1 sm:w-64 px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500" />
+              <button className="px-5 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition-colors whitespace-nowrap">Subscribe</button>
             </div>
           </div>
         </div>
+        {/* Footer columns */}
         <div className="py-16 px-6">
           <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-2 md:grid-cols-5 gap-10 mb-12">
               <div className="col-span-2 md:col-span-1">
-                <Link href="/" className="flex items-center gap-2 mb-4"><Logo size={28} /><span className="font-black text-lg">PatientPlex</span></Link>
+                <Link href="/" className="flex items-center gap-2 mb-4"><Logo size={28} /><span className="font-black text-lg text-slate-900">PatientPlex</span></Link>
                 <p className="text-sm text-slate-500 leading-relaxed mb-4">AI-powered patient acquisition for Indian clinics.</p>
                 <div className="inline-flex items-center gap-1.5 text-xs text-slate-400">{"🇮🇳"} Made in India</div>
               </div>
@@ -739,20 +788,20 @@ export default function LandingPage() {
                 { title: "Company", links: ["About", "Blog", "Careers", "Contact"] },
                 { title: "Legal", links: ["Privacy Policy", "Terms of Service", "Security", "HIPAA"] },
               ].map((col, i) => (
-                <div key={i}><h4 className="text-sm font-bold mb-4">{col.title}</h4><ul className="space-y-2.5">{col.links.map((l,j) => <li key={j}><a href="#" className="text-sm text-slate-500 hover:text-black transition-colors">{l}</a></li>)}</ul></div>
+                <div key={i}><h4 className="text-sm font-bold text-slate-900 mb-4">{col.title}</h4><ul className="space-y-2.5">{col.links.map((l,j) => <li key={j}><a href="#" className="text-sm text-slate-500 hover:text-slate-700 transition-colors">{l}</a></li>)}</ul></div>
               ))}
               <div>
-                <h4 className="text-sm font-bold mb-4">Connect</h4>
+                <h4 className="text-sm font-bold text-slate-900 mb-4">Connect</h4>
                 <div className="flex gap-3 mb-4">
                   {[
                     <svg key="tw" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>,
                     <svg key="li" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"/></svg>,
                     <svg key="yt" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>,
                   ].map((icon, j) => (
-                    <a key={j} href="#" className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 hover:text-black transition-all">{icon}</a>
+                    <a key={j} href="#" className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-700 transition-all">{icon}</a>
                   ))}
                 </div>
-                <a href="#" className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-black transition-colors"><Mail className="w-3.5 h-3.5" /> hello@patientplex.ai</a>
+                <a href="#" className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 transition-colors"><Mail className="w-3.5 h-3.5" /> hello@patientplex.ai</a>
               </div>
             </div>
             <div className="pt-8 border-t border-slate-200 text-center">

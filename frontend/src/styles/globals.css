@@ -10,11 +10,11 @@
   }
 
   body {
-    @apply bg-white text-[#11181C];
+    @apply bg-[#FAFAF8] text-slate-800;
   }
 
   ::selection {
-    @apply bg-black/10 text-black;
+    @apply bg-emerald-500/20 text-emerald-900;
   }
 }
 
@@ -30,7 +30,7 @@
   .input-base {
     @apply block w-full rounded-lg border-slate-300
       bg-white text-slate-900
-      focus:border-black focus:ring-black/10 focus:ring-2
+      focus:border-emerald-500 focus:ring-emerald-500/30 focus:ring-2
       text-sm py-2.5 px-3 transition-colors
       placeholder:text-slate-400;
   }
