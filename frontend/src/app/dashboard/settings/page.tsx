@@ -15,8 +15,6 @@ import {
   XCircle,
   Clock,
 } from "lucide-react";
-import Card from "@/components/ui/Card";
-import Button from "@/components/ui/Button";
 import { getMe, getSubscription } from "@/lib/api";
 
 interface DoctorProfile {
@@ -79,7 +77,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
       </div>
     );
   }
@@ -87,25 +85,25 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6 max-w-3xl">
       <div>
-        <h1 className="text-2xl font-bold text-[#0B2545]">Settings</h1>
-        <p className="text-gray-500 text-sm mt-1">Manage your clinic profile, integrations, and subscription.</p>
+        <h1 className="text-2xl font-bold text-white">Settings</h1>
+        <p className="text-slate-500 text-sm mt-1">Manage your clinic profile, integrations, and subscription.</p>
       </div>
 
       {/* Profile Section */}
-      <Card>
-        <SectionHeader icon={<User className="w-5 h-5" />} title="Profile" />
+      <div className="bg-[#0F172A] rounded-xl border border-white/5 p-5">
+        <SectionHeader icon={<User className="w-5 h-5 text-emerald-400" />} title="Profile" />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
           <InfoField label="Full Name" value={doctor?.full_name} />
           <InfoField label="Email" value={doctor?.email} />
           <InfoField label="Phone" value={doctor?.phone} />
           <InfoField label="Member Since" value={doctor?.created_at ? new Date(doctor.created_at).toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" }) : undefined} />
         </div>
-        <p className="text-xs text-gray-400 mt-4">Profile editing is not available yet. Contact support to update your details.</p>
-      </Card>
+        <p className="text-xs text-slate-600 mt-4">Profile editing is not available yet. Contact support to update your details.</p>
+      </div>
 
       {/* Clinic Details */}
-      <Card>
-        <SectionHeader icon={<Building2 className="w-5 h-5" />} title="Clinic Details" />
+      <div className="bg-[#0F172A] rounded-xl border border-white/5 p-5">
+        <SectionHeader icon={<Building2 className="w-5 h-5 text-cyan-400" />} title="Clinic Details" />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
           <InfoField label="Clinic Name" value={doctor?.clinic_name} />
           <InfoField label="Specialty" value={doctor?.specialty ? formatSpecialty(doctor.specialty) : undefined} />
@@ -115,21 +113,21 @@ export default function SettingsPage() {
         </div>
         {doctor?.services && doctor.services.length > 0 && (
           <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-500 mb-2">Services</label>
+            <label className="block text-sm font-medium text-slate-500 mb-2">Services</label>
             <div className="flex flex-wrap gap-2">
               {doctor.services.map((s) => (
-                <span key={s} className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                <span key={s} className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400">
                   {s}
                 </span>
               ))}
             </div>
           </div>
         )}
-      </Card>
+      </div>
 
       {/* Integration Status */}
-      <Card>
-        <SectionHeader icon={<Link2 className="w-5 h-5" />} title="Integration Status" />
+      <div className="bg-[#0F172A] rounded-xl border border-white/5 p-5">
+        <SectionHeader icon={<Link2 className="w-5 h-5 text-violet-400" />} title="Integration Status" />
         <div className="space-y-3 mt-4">
           <IntegrationRow
             icon={<Calendar className="w-4 h-4" />}
@@ -156,11 +154,11 @@ export default function SettingsPage() {
             detail="Direct account linking coming soon"
           />
         </div>
-      </Card>
+      </div>
 
       {/* Subscription */}
-      <Card>
-        <SectionHeader icon={<CreditCard className="w-5 h-5" />} title="Subscription" />
+      <div className="bg-[#0F172A] rounded-xl border border-white/5 p-5">
+        <SectionHeader icon={<CreditCard className="w-5 h-5 text-amber-400" />} title="Subscription" />
         {subscription ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
             <InfoField label="Plan" value={formatPlanName(subscription.plan)} />
@@ -172,22 +170,22 @@ export default function SettingsPage() {
           </div>
         ) : (
           <div className="mt-4">
-            <p className="text-sm text-gray-500">No active subscription. Start a free trial from the <a href="/dashboard/billing" className="text-blue-600 hover:underline">Billing</a> page.</p>
+            <p className="text-sm text-slate-500">No active subscription. Start a free trial from the <a href="/dashboard/billing" className="text-emerald-400 hover:text-emerald-300">Billing</a> page.</p>
           </div>
         )}
-      </Card>
+      </div>
 
       {/* Danger Zone */}
-      <Card className="!border-red-200">
-        <SectionHeader icon={<AlertTriangle className="w-5 h-5 text-red-500" />} title="Danger Zone" className="text-red-600" />
-        <p className="text-sm text-gray-500 mt-2">Once you delete your account, there is no going back. All data will be permanently removed.</p>
+      <div className="bg-[#0F172A] rounded-xl border border-red-500/20 p-5">
+        <SectionHeader icon={<AlertTriangle className="w-5 h-5 text-red-400" />} title="Danger Zone" className="text-red-400" />
+        <p className="text-sm text-slate-500 mt-2">Once you delete your account, there is no going back. All data will be permanently removed.</p>
         <div className="mt-4">
-          <Button variant="danger" size="sm" disabled>
+          <button disabled className="px-4 py-2 rounded-lg text-sm font-medium bg-red-500/10 text-red-400 cursor-not-allowed opacity-50">
             Delete Account
-          </Button>
-          <p className="text-xs text-gray-400 mt-2">Account deletion is currently disabled. Contact support at support@patientplex.ai.</p>
+          </button>
+          <p className="text-xs text-slate-600 mt-2">Account deletion is currently disabled. Contact support at support@patientplex.ai.</p>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }
@@ -196,7 +194,7 @@ export default function SettingsPage() {
 
 function SectionHeader({ icon, title, className }: { icon: React.ReactNode; title: string; className?: string }) {
   return (
-    <h3 className={`font-semibold text-[#0B2545] flex items-center gap-2 ${className || ""}`}>
+    <h3 className={`font-semibold text-white flex items-center gap-2 ${className || ""}`}>
       {icon} {title}
     </h3>
   );
@@ -205,8 +203,8 @@ function SectionHeader({ icon, title, className }: { icon: React.ReactNode; titl
 function InfoField({ label, value, className }: { label: string; value?: string | null; className?: string }) {
   return (
     <div className={className}>
-      <label className="block text-sm font-medium text-gray-500">{label}</label>
-      <p className="mt-0.5 text-sm text-gray-900">{value || <span className="text-gray-300">Not set</span>}</p>
+      <label className="block text-sm font-medium text-slate-500">{label}</label>
+      <p className="mt-0.5 text-sm text-slate-200">{value || <span className="text-slate-600">Not set</span>}</p>
     </div>
   );
 }
@@ -218,20 +216,20 @@ function IntegrationRow({ icon, name, status, detail }: {
   detail: string;
 }) {
   const statusConfig = {
-    connected: { icon: <CheckCircle2 className="w-4 h-4 text-green-500" />, label: "Connected", cls: "bg-green-50 text-green-700" },
-    pending: { icon: <Clock className="w-4 h-4 text-yellow-500" />, label: "Pending", cls: "bg-yellow-50 text-yellow-700" },
-    not_connected: { icon: <XCircle className="w-4 h-4 text-gray-400" />, label: "Not Connected", cls: "bg-gray-100 text-gray-500" },
-    coming_soon: { icon: <Clock className="w-4 h-4 text-blue-400" />, label: "Coming Soon", cls: "bg-blue-50 text-blue-600" },
+    connected: { icon: <CheckCircle2 className="w-4 h-4 text-emerald-400" />, label: "Connected", cls: "bg-emerald-500/10 text-emerald-400" },
+    pending: { icon: <Clock className="w-4 h-4 text-amber-400" />, label: "Pending", cls: "bg-amber-500/10 text-amber-400" },
+    not_connected: { icon: <XCircle className="w-4 h-4 text-slate-500" />, label: "Not Connected", cls: "bg-white/5 text-slate-500" },
+    coming_soon: { icon: <Clock className="w-4 h-4 text-cyan-400" />, label: "Coming Soon", cls: "bg-cyan-500/10 text-cyan-400" },
   };
   const cfg = statusConfig[status];
 
   return (
-    <div className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+    <div className="flex items-center justify-between py-3 border-b border-white/5 last:border-0">
       <div className="flex items-center gap-3">
-        <div className="text-gray-400">{icon}</div>
+        <div className="text-slate-500">{icon}</div>
         <div>
-          <div className="text-sm font-medium text-gray-900">{name}</div>
-          <div className="text-xs text-gray-500">{detail}</div>
+          <div className="text-sm font-medium text-slate-200">{name}</div>
+          <div className="text-xs text-slate-500">{detail}</div>
         </div>
       </div>
       <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${cfg.cls}`}>

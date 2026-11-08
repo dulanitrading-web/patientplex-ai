@@ -6,7 +6,6 @@ import {
   ArrowLeft, Calendar, CheckCircle2, Clock, XCircle, User,
   Loader2, Filter,
 } from "lucide-react";
-import Button from "@/components/ui/Button";
 import { getAppointments, updateAppointmentStatus, getAppointmentStats } from "@/lib/api";
 
 interface Appointment {
@@ -72,113 +71,118 @@ export default function AppointmentsPage() {
 
   const statusBadge = (s: string) => {
     const m: Record<string, string> = {
-      CONFIRMED: "bg-blue-50 text-blue-700",
-      REMINDED: "bg-yellow-50 text-yellow-700",
-      ATTENDED: "bg-green-50 text-green-700",
-      NO_SHOW: "bg-red-50 text-red-700",
-      CANCELLED: "bg-gray-100 text-gray-500",
+      CONFIRMED: "bg-cyan-500/10 text-cyan-400",
+      REMINDED: "bg-amber-500/10 text-amber-400",
+      ATTENDED: "bg-emerald-500/10 text-emerald-400",
+      NO_SHOW: "bg-red-500/10 text-red-400",
+      CANCELLED: "bg-white/5 text-slate-500",
     };
     return m[s] || m.CONFIRMED;
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center gap-3">
-          <Link href="/dashboard" className="text-gray-400 hover:text-gray-600">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <h1 className="text-lg font-bold text-[#0B2545]">Appointments</h1>
+    <div className="space-y-6">
+      <div className="flex items-center gap-3">
+        <Link href="/dashboard" className="text-slate-500 hover:text-slate-300">
+          <ArrowLeft className="w-5 h-5" />
+        </Link>
+        <h1 className="text-lg font-bold text-white">Appointments</h1>
+      </div>
+
+      {/* Stats Row */}
+      {stats && (
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <StatCard label="Total" value={stats.total_booked} />
+          <StatCard label="Attended" value={stats.attended} color="text-emerald-400" />
+          <StatCard label="No-Show" value={stats.no_show} color="text-red-400" />
+          <StatCard label="Cancelled" value={stats.cancelled} color="text-slate-500" />
+          <StatCard label="Rate" value={`${stats.attendance_rate}%`} color="text-cyan-400" />
         </div>
-      </header>
+      )}
 
-      <main className="max-w-5xl mx-auto px-4 py-6 space-y-6">
-        {/* Stats Row */}
-        {stats && (
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-            <StatCard label="Total" value={stats.total_booked} />
-            <StatCard label="Attended" value={stats.attended} color="text-green-600" />
-            <StatCard label="No-Show" value={stats.no_show} color="text-red-600" />
-            <StatCard label="Cancelled" value={stats.cancelled} color="text-gray-500" />
-            <StatCard label="Rate" value={`${stats.attendance_rate}%`} color="text-blue-600" />
-          </div>
-        )}
+      {/* Filter */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <Filter className="w-4 h-4 text-slate-500" />
+        {STATUS_OPTIONS.map((s) => (
+          <button key={s} onClick={() => setFilter(s)}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+              filter === s
+                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+                : "text-slate-400 border border-white/10 hover:border-white/20 hover:text-slate-300"
+            }`}>
+            {s === "ALL" ? "All" : s.replace("_", " ")}
+          </button>
+        ))}
+      </div>
 
-        {/* Filter */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <Filter className="w-4 h-4 text-gray-400" />
-          {STATUS_OPTIONS.map((s) => (
-            <button key={s} onClick={() => setFilter(s)}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                filter === s ? "bg-[#0B2545] text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
-              }`}>
-              {s === "ALL" ? "All" : s.replace("_", " ")}
-            </button>
-          ))}
+      {/* Appointments List */}
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <Loader2 className="w-6 h-6 animate-spin text-emerald-400" />
         </div>
-
-        {/* Appointments List */}
-        {loading ? (
-          <div className="flex justify-center py-12">
-            <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
-          </div>
-        ) : appointments.length === 0 ? (
-          <div className="bg-white rounded-xl p-8 text-center border border-gray-200">
-            <Calendar className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-            <p className="text-gray-500">No appointments found.</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {appointments.map((a) => (
-              <div key={a.id} className="bg-white rounded-xl border border-gray-200 p-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 bg-gray-50 rounded-lg">
-                      <User className="w-5 h-5 text-gray-400" />
+      ) : appointments.length === 0 ? (
+        <div className="bg-[#0F172A] rounded-xl p-8 text-center border border-white/5">
+          <Calendar className="w-10 h-10 text-slate-600 mx-auto mb-2" />
+          <p className="text-slate-500">No appointments found.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {appointments.map((a) => (
+            <div key={a.id} className="bg-[#0F172A] rounded-xl border border-white/5 p-4 hover:border-white/10 transition-colors">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-white/5 rounded-lg">
+                    <User className="w-5 h-5 text-slate-400" />
+                  </div>
+                  <div>
+                    <div className="font-medium text-white">{a.patient_name}</div>
+                    <div className="text-sm text-slate-400">{a.treatment}</div>
+                    <div className="text-xs text-slate-500 mt-1">
+                      {a.date} · {a.time} · {a.patient_phone}
                     </div>
-                    <div>
-                      <div className="font-medium text-[#0B2545]">{a.patient_name}</div>
-                      <div className="text-sm text-gray-500">{a.treatment}</div>
-                      <div className="text-xs text-gray-400 mt-1">
-                        📅 {a.date} · 🕐 {a.time} · 📞 {a.patient_phone}
-                      </div>
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusBadge(a.status)}`}>
-                          {a.status}
-                        </span>
-                        {a.reminder_24h_sent && <span className="text-xs text-gray-400">24h ✓</span>}
-                        {a.reminder_2h_sent && <span className="text-xs text-gray-400">2h ✓</span>}
-                      </div>
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusBadge(a.status)}`}>
+                        {a.status}
+                      </span>
+                      {a.reminder_24h_sent && <span className="text-xs text-slate-500">24h ✓</span>}
+                      {a.reminder_2h_sent && <span className="text-xs text-slate-500">2h ✓</span>}
                     </div>
                   </div>
-
-                  {/* Actions */}
-                  {(a.status === "CONFIRMED" || a.status === "REMINDED") && (
-                    <div className="flex gap-2 shrink-0">
-                      <Button variant="primary" size="sm" onClick={() => markStatus(a.id, "ATTENDED")}
-                        loading={updating === a.id}>
-                        <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Attended
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => markStatus(a.id, "NO_SHOW")}>
-                        <XCircle className="w-3.5 h-3.5 mr-1" /> No-Show
-                      </Button>
-                    </div>
-                  )}
                 </div>
+
+                {/* Actions */}
+                {(a.status === "CONFIRMED" || a.status === "REMINDED") && (
+                  <div className="flex gap-2 shrink-0">
+                    <button
+                      onClick={() => markStatus(a.id, "ATTENDED")}
+                      disabled={updating === a.id}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-emerald-500 hover:bg-emerald-400 text-[#0A0E1A] transition-colors disabled:opacity-50"
+                    >
+                      {updating === a.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                      Attended
+                    </button>
+                    <button
+                      onClick={() => markStatus(a.id, "NO_SHOW")}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg border border-white/10 hover:border-red-500/30 text-slate-400 hover:text-red-400 transition-colors"
+                    >
+                      <XCircle className="w-3.5 h-3.5" /> No-Show
+                    </button>
+                  </div>
+                )}
               </div>
-            ))}
-          </div>
-        )}
-      </main>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
 function StatCard({ label, value, color }: { label: string; value: number | string; color?: string }) {
   return (
-    <div className="bg-white rounded-xl p-3 border border-gray-200 text-center">
-      <div className="text-xs text-gray-500">{label}</div>
-      <div className={`text-xl font-bold ${color || "text-[#0B2545]"}`}>{value}</div>
+    <div className="bg-[#0F172A] rounded-xl p-3 border border-white/5 text-center">
+      <div className="text-xs text-slate-500">{label}</div>
+      <div className={`text-xl font-bold ${color || "text-white"}`}>{value}</div>
     </div>
   );
 }

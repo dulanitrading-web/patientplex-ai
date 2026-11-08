@@ -9,37 +9,29 @@
   }
 
   body {
-    @apply bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100;
+    @apply bg-[#0A0E1A] text-slate-100;
   }
 
   ::selection {
-    @apply bg-blue-600/20 text-blue-900 dark:text-blue-100;
+    @apply bg-emerald-500/20 text-emerald-100;
   }
 }
 
 @layer components {
   .card {
-    @apply bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-5;
+    @apply bg-[#0F172A] rounded-xl border border-white/5 p-5;
   }
 
   .card-elevated {
-    @apply bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 p-6;
-  }
-
-  .gradient-bg {
-    background: linear-gradient(135deg, #0B2545 0%, #13838C 50%, #0B2545 100%);
-  }
-
-  .gradient-hero {
-    background: linear-gradient(160deg, #0B2545 0%, #13838C 100%);
+    @apply bg-[#0F172A] rounded-xl border border-white/10 p-6 shadow-lg shadow-black/20;
   }
 
   .input-base {
-    @apply block w-full rounded-lg border-gray-300 dark:border-gray-600
-      bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100
-      shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:ring-1
+    @apply block w-full rounded-lg border-white/10
+      bg-white/[0.05] text-white
+      focus:border-emerald-500/50 focus:ring-emerald-500/50 focus:ring-1
       text-sm py-2.5 px-3 transition-colors
-      placeholder:text-gray-400 dark:placeholder:text-gray-500;
+      placeholder:text-slate-500;
   }
 }
 

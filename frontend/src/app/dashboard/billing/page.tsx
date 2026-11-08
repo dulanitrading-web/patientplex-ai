@@ -11,8 +11,6 @@ import {
   CheckCircle2,
   ArrowRight,
 } from "lucide-react";
-import Card from "@/components/ui/Card";
-import Button from "@/components/ui/Button";
 import { getSubscription, getBillingPlans, startTrial } from "@/lib/api";
 
 interface SubscriptionData {
@@ -81,7 +79,7 @@ export default function BillingPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
       </div>
     );
   }
@@ -93,33 +91,32 @@ export default function BillingPage() {
   return (
     <div className="space-y-6 max-w-4xl">
       <div>
-        <h1 className="text-2xl font-bold text-[#0B2545]">Billing & Subscription</h1>
-        <p className="text-gray-500 text-sm mt-1">Manage your plan, usage, and billing.</p>
+        <h1 className="text-2xl font-bold text-white">Billing & Subscription</h1>
+        <p className="text-slate-500 text-sm mt-1">Manage your plan, usage, and billing.</p>
       </div>
 
       {/* No Subscription CTA */}
       {!subscription && (
-        <div className="bg-gradient-to-r from-[#0B2545] to-[#13838C] rounded-2xl p-6 text-white">
+        <div className="rounded-2xl p-6 border border-emerald-500/20 bg-emerald-500/[0.06]">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-xl font-bold flex items-center gap-2">
-                <Zap className="w-6 h-6" /> Start Your Free Trial
+              <h2 className="text-xl font-bold flex items-center gap-2 text-white">
+                <Zap className="w-6 h-6 text-emerald-400" /> Start Your Free Trial
               </h2>
-              <p className="text-white/80 mt-1">
+              <p className="text-slate-400 mt-1">
                 Get 14 days free with access to AI WhatsApp receptionist, Google campaigns, and more.
               </p>
             </div>
-            <Button
-              variant="primary"
-              size="lg"
+            <button
               onClick={handleStartTrial}
-              loading={startingTrial}
-              className="!bg-white !text-[#0B2545] hover:!bg-gray-100 whitespace-nowrap"
+              disabled={startingTrial}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-[#0A0E1A] font-semibold text-sm transition-colors whitespace-nowrap disabled:opacity-50"
             >
+              {startingTrial ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
               Start Free Trial <ArrowRight className="w-5 h-5" />
-            </Button>
+            </button>
           </div>
-          {trialError && <p className="text-red-200 text-sm mt-2">{trialError}</p>}
+          {trialError && <p className="text-red-400 text-sm mt-2">{trialError}</p>}
         </div>
       )}
 
@@ -127,35 +124,35 @@ export default function BillingPage() {
       {subscription && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Current Plan */}
-          <Card>
-            <h3 className="font-semibold text-[#0B2545] flex items-center gap-2 mb-4">
-              <CreditCard className="w-5 h-5" /> Current Plan
+          <div className="bg-[#0F172A] rounded-xl border border-white/5 p-5">
+            <h3 className="font-semibold text-white flex items-center gap-2 mb-4">
+              <CreditCard className="w-5 h-5 text-emerald-400" /> Current Plan
             </h3>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">Plan</span>
-                <span className="font-semibold text-[#0B2545]">{formatPlanName(subscription.plan)}</span>
+                <span className="text-sm text-slate-500">Plan</span>
+                <span className="font-semibold text-white">{formatPlanName(subscription.plan)}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">Status</span>
+                <span className="text-sm text-slate-500">Status</span>
                 <StatusBadge status={subscription.status} />
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">Price</span>
-                <span className="font-semibold text-[#0B2545]">
+                <span className="text-sm text-slate-500">Price</span>
+                <span className="font-semibold text-white">
                   {subscription.price_inr === 0 ? "Free" : `₹${subscription.price_inr.toLocaleString("en-IN")}/mo`}
                 </span>
               </div>
               {trialDaysRemaining !== null && trialDaysRemaining > 0 && (
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">Trial Days Left</span>
-                  <span className="font-semibold text-orange-600">{trialDaysRemaining} days</span>
+                  <span className="text-sm text-slate-500">Trial Days Left</span>
+                  <span className="font-semibold text-amber-400">{trialDaysRemaining} days</span>
                 </div>
               )}
               {subscription.current_period_end && (
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">Next Billing</span>
-                  <span className="text-sm text-gray-700">
+                  <span className="text-sm text-slate-500">Next Billing</span>
+                  <span className="text-sm text-slate-300">
                     {new Date(subscription.current_period_end).toLocaleDateString("en-IN", {
                       year: "numeric", month: "short", day: "numeric",
                     })}
@@ -163,12 +160,12 @@ export default function BillingPage() {
                 </div>
               )}
             </div>
-          </Card>
+          </div>
 
           {/* Usage */}
-          <Card>
-            <h3 className="font-semibold text-[#0B2545] flex items-center gap-2 mb-4">
-              <BarChart3 className="w-5 h-5" /> Usage
+          <div className="bg-[#0F172A] rounded-xl border border-white/5 p-5">
+            <h3 className="font-semibold text-white flex items-center gap-2 mb-4">
+              <BarChart3 className="w-5 h-5 text-cyan-400" /> Usage
             </h3>
             <div className="space-y-4">
               <UsageBar
@@ -182,13 +179,13 @@ export default function BillingPage() {
                 limit={subscription.campaigns_limit}
               />
             </div>
-          </Card>
+          </div>
         </div>
       )}
 
       {/* Available Plans */}
       <div>
-        <h2 className="text-lg font-bold text-[#0B2545] mb-4">Available Plans</h2>
+        <h2 className="text-lg font-bold text-white mb-4">Available Plans</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {plans.map((plan) => {
             const isCurrent = subscription?.plan === plan.id;
@@ -206,21 +203,21 @@ export default function BillingPage() {
       </div>
 
       {/* Plan Comparison */}
-      <Card>
-        <h3 className="font-semibold text-[#0B2545] mb-4">Plan Comparison</h3>
+      <div className="bg-[#0F172A] rounded-xl border border-white/5 p-5">
+        <h3 className="font-semibold text-white mb-4">Plan Comparison</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-3 pr-4 font-medium text-gray-500">Feature</th>
+              <tr className="border-b border-white/5">
+                <th className="text-left py-3 pr-4 font-medium text-slate-500">Feature</th>
                 {plans.map((p) => (
-                  <th key={p.id} className="text-center py-3 px-2 font-medium text-gray-500">
+                  <th key={p.id} className="text-center py-3 px-2 font-medium text-slate-500">
                     {p.name}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-white/5">
               <ComparisonRow
                 label="Price"
                 values={plans.map((p) => `₹${p.price_inr.toLocaleString("en-IN")}/mo`)}
@@ -265,7 +262,7 @@ export default function BillingPage() {
             </tbody>
           </table>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }
@@ -303,31 +300,31 @@ function PlanCard({ plan, isCurrent, isPopular }: {
   };
 
   return (
-    <div className={`relative bg-white rounded-xl border-2 p-5 flex flex-col ${
-      isCurrent ? "border-blue-500 shadow-md" : isPopular ? "border-teal-400" : "border-gray-200"
+    <div className={`relative bg-[#0F172A] rounded-xl border-2 p-5 flex flex-col ${
+      isCurrent ? "border-emerald-500/50" : isPopular ? "border-emerald-500/30" : "border-white/5"
     }`}>
       {isPopular && !isCurrent && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-teal-500 text-white text-xs font-bold px-3 py-0.5 rounded-full">
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-500 text-[#0A0E1A] text-xs font-bold px-3 py-0.5 rounded-full">
           Most Popular
         </div>
       )}
       {isCurrent && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-3 py-0.5 rounded-full">
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-cyan-500 text-[#0A0E1A] text-xs font-bold px-3 py-0.5 rounded-full">
           Current Plan
         </div>
       )}
 
-      <div className="flex items-center gap-2 mb-3 text-[#0B2545]">
+      <div className="flex items-center gap-2 mb-3 text-white">
         {planIcons[plan.id] || <Zap className="w-5 h-5" />}
         <h3 className="text-lg font-bold">{plan.name}</h3>
       </div>
 
       <div className="mb-4">
-        <span className="text-3xl font-bold text-[#0B2545]">{"₹"}{plan.price_inr.toLocaleString("en-IN")}</span>
-        <span className="text-gray-500 text-sm">/month</span>
+        <span className="text-3xl font-bold text-white">{"₹"}{plan.price_inr.toLocaleString("en-IN")}</span>
+        <span className="text-slate-500 text-sm">/month</span>
       </div>
 
-      <div className="text-sm text-gray-600 mb-3">
+      <div className="text-sm text-slate-400 mb-3">
         <div>{plan.max_conversations === -1 ? "Unlimited" : plan.max_conversations} conversations</div>
         <div>{plan.max_campaigns === -1 ? "Unlimited" : plan.max_campaigns} campaigns</div>
         <div>{plan.platforms.join(" + ")} Ads</div>
@@ -335,24 +332,28 @@ function PlanCard({ plan, isCurrent, isPopular }: {
 
       <div className="flex-1 space-y-1.5 mb-4">
         {plan.features.slice(0, 6).map((f) => (
-          <div key={f} className="flex items-center gap-2 text-sm text-gray-600">
-            <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0" />
+          <div key={f} className="flex items-center gap-2 text-sm text-slate-400">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
             {featureLabels[f] || f.replace(/_/g, " ")}
           </div>
         ))}
         {plan.features.length > 6 && (
-          <div className="text-xs text-gray-400 mt-1">+{plan.features.length - 6} more features</div>
+          <div className="text-xs text-slate-600 mt-1">+{plan.features.length - 6} more features</div>
         )}
       </div>
 
-      <Button
-        variant={isCurrent ? "ghost" : isPopular ? "secondary" : "primary"}
-        size="sm"
-        fullWidth
+      <button
         disabled={isCurrent}
+        className={`w-full py-2.5 rounded-lg text-sm font-medium transition-colors ${
+          isCurrent
+            ? "bg-white/5 text-slate-500 cursor-not-allowed"
+            : isPopular
+              ? "bg-emerald-500 hover:bg-emerald-400 text-[#0A0E1A]"
+              : "border border-white/10 hover:border-white/20 text-slate-300 hover:text-white"
+        }`}
       >
         {isCurrent ? "Current Plan" : "Upgrade"}
-      </Button>
+      </button>
     </div>
   );
 }
@@ -365,22 +366,22 @@ function UsageBar({ label, used, limit }: { label: string; used: number; limit: 
   return (
     <div>
       <div className="flex justify-between text-sm mb-1">
-        <span className="text-gray-600">{label}</span>
-        <span className="font-medium text-gray-900">
+        <span className="text-slate-400">{label}</span>
+        <span className="font-medium text-white tabular-nums">
           {used} / {isUnlimited ? "Unlimited" : limit}
         </span>
       </div>
       {!isUnlimited && (
-        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+        <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
           <div
-            className={`h-full rounded-full ${isHigh ? "bg-orange-500" : "bg-blue-500"}`}
+            className={`h-full rounded-full ${isHigh ? "bg-amber-500" : "bg-emerald-500"}`}
             style={{ width: `${pct}%` }}
           />
         </div>
       )}
       {isUnlimited && (
-        <div className="h-2 bg-green-100 rounded-full overflow-hidden">
-          <div className="h-full bg-green-400 rounded-full w-0" />
+        <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+          <div className="h-full bg-emerald-500/30 rounded-full w-0" />
         </div>
       )}
     </div>
@@ -389,13 +390,13 @@ function UsageBar({ label, used, limit }: { label: string; used: number; limit: 
 
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { cls: string; label: string }> = {
-    TRIAL: { cls: "bg-blue-50 text-blue-700", label: "Trial" },
-    ACTIVE: { cls: "bg-green-50 text-green-700", label: "Active" },
-    PAST_DUE: { cls: "bg-orange-50 text-orange-700", label: "Past Due" },
-    CANCELLED: { cls: "bg-red-50 text-red-700", label: "Cancelled" },
-    EXPIRED: { cls: "bg-gray-100 text-gray-500", label: "Expired" },
+    TRIAL: { cls: "bg-cyan-500/10 text-cyan-400", label: "Trial" },
+    ACTIVE: { cls: "bg-emerald-500/10 text-emerald-400", label: "Active" },
+    PAST_DUE: { cls: "bg-amber-500/10 text-amber-400", label: "Past Due" },
+    CANCELLED: { cls: "bg-red-500/10 text-red-400", label: "Cancelled" },
+    EXPIRED: { cls: "bg-white/5 text-slate-500", label: "Expired" },
   };
-  const cfg = config[status] || { cls: "bg-gray-100 text-gray-500", label: status };
+  const cfg = config[status] || { cls: "bg-white/5 text-slate-500", label: status };
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${cfg.cls}`}>
       {cfg.label}
@@ -410,9 +411,9 @@ function ComparisonRow({ label, values, highlight }: {
 }) {
   return (
     <tr>
-      <td className={`py-2.5 pr-4 text-gray-700 ${highlight ? "font-medium" : ""}`}>{label}</td>
+      <td className={`py-2.5 pr-4 text-slate-400 ${highlight ? "font-medium text-white" : ""}`}>{label}</td>
       {values.map((v, i) => (
-        <td key={i} className={`py-2.5 px-2 text-center ${v === "✓" ? "text-green-600 font-bold" : v === "—" ? "text-gray-300" : "text-gray-700"}`}>
+        <td key={i} className={`py-2.5 px-2 text-center ${v === "✓" ? "text-emerald-400 font-bold" : v === "—" ? "text-slate-600" : "text-slate-300"}`}>
           {v}
         </td>
       ))}

@@ -92,20 +92,19 @@ export default function AnalyticsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
       </div>
     );
   }
 
   const totalEnquiries = campaigns?.total_conversions || 0;
-  const qualifiedLeads = Math.round(totalEnquiries * 0.65); // Estimated from funnel
+  const qualifiedLeads = Math.round(totalEnquiries * 0.65);
   const totalBooked = appointments?.total_booked || 0;
   const totalAttended = appointments?.attended || 0;
   const totalSpend = campaigns?.total_spend || 0;
   const costPerLead = totalEnquiries > 0 ? Math.round(totalSpend / totalEnquiries) : 0;
   const costPerAppointment = totalBooked > 0 ? Math.round(totalSpend / totalBooked) : 0;
 
-  // Funnel data
   const funnelStages = funnel?.stages || [
     { stage: "Clicks", count: campaigns?.total_clicks || 0, conversion_rate: 100 },
     { stage: "Enquiries", count: totalEnquiries, conversion_rate: campaigns?.total_clicks ? Math.round((totalEnquiries / campaigns.total_clicks) * 100) : 0 },
@@ -115,7 +114,6 @@ export default function AnalyticsPage() {
 
   const maxFunnelCount = Math.max(...funnelStages.map((s) => s.count), 1);
 
-  // Attribution channels
   const channels = attribution?.channels || [];
 
   return (
@@ -123,22 +121,22 @@ export default function AnalyticsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-[#0B2545]">Analytics &amp; ROI</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h1 className="text-xl font-bold text-white">Analytics &amp; ROI</h1>
+          <p className="text-sm text-slate-500 mt-0.5">
             Track your patient acquisition performance
           </p>
         </div>
 
         {/* Date Range Selector */}
-        <div className="flex bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div className="flex bg-[#0F172A] border border-white/10 rounded-lg overflow-hidden">
           {PERIOD_OPTIONS.map((opt) => (
             <button
               key={opt.days}
               onClick={() => setDays(opt.days)}
               className={`px-4 py-2 text-sm font-medium transition-colors ${
                 days === opt.days
-                  ? "bg-[#0B2545] text-white"
-                  : "text-gray-600 hover:bg-gray-50"
+                  ? "bg-emerald-500 text-[#0A0E1A]"
+                  : "text-slate-400 hover:bg-white/5 hover:text-white"
               }`}
             >
               {opt.label}
@@ -153,19 +151,19 @@ export default function AnalyticsPage() {
           icon={<Users className="w-5 h-5" />}
           label="Total Enquiries"
           value={fmt(totalEnquiries)}
-          color="purple"
+          color="violet"
         />
         <KpiCard
           icon={<Target className="w-5 h-5" />}
           label="Qualified Leads"
           value={fmt(qualifiedLeads)}
-          color="blue"
+          color="cyan"
         />
         <KpiCard
           icon={<Calendar className="w-5 h-5" />}
           label="Appointments Booked"
           value={fmt(totalBooked)}
-          color="teal"
+          color="emerald"
         />
         <KpiCard
           icon={<CheckCircle2 className="w-5 h-5" />}
@@ -178,41 +176,41 @@ export default function AnalyticsPage() {
           icon={<IndianRupee className="w-5 h-5" />}
           label="Cost Per Lead"
           value={`₹${fmt(costPerLead)}`}
-          color="orange"
+          color="amber"
         />
         <KpiCard
           icon={<IndianRupee className="w-5 h-5" />}
           label="Cost Per Appointment"
           value={`₹${fmt(costPerAppointment)}`}
-          color="red"
+          color="rose"
         />
       </div>
 
       {/* Funnel + Attribution */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Conversion Funnel */}
-        <div className="bg-white rounded-xl p-5 border border-gray-200">
-          <h3 className="font-semibold text-[#0B2545] flex items-center gap-2 mb-5">
-            <TrendingUp className="w-5 h-5" /> Conversion Funnel
+        <div className="bg-[#0F172A] rounded-xl p-5 border border-white/5">
+          <h3 className="font-semibold text-white flex items-center gap-2 mb-5">
+            <TrendingUp className="w-5 h-5 text-emerald-400" /> Conversion Funnel
           </h3>
           <div className="space-y-4">
             {funnelStages.map((stage, i) => {
               const widthPct = maxFunnelCount > 0 ? Math.max((stage.count / maxFunnelCount) * 100, 4) : 4;
-              const colors = ["bg-blue-500", "bg-purple-500", "bg-teal-500", "bg-green-500"];
+              const colors = ["bg-cyan-500", "bg-violet-500", "bg-emerald-500", "bg-amber-500"];
               return (
                 <div key={stage.stage}>
                   <div className="flex justify-between text-sm mb-1.5">
-                    <span className="text-gray-700 font-medium">{stage.stage}</span>
-                    <span className="text-gray-500">
+                    <span className="text-slate-300 font-medium">{stage.stage}</span>
+                    <span className="text-slate-500">
                       {fmt(stage.count)}
                       {i > 0 && (
-                        <span className="ml-1 text-xs text-gray-400">
+                        <span className="ml-1 text-xs text-slate-600">
                           ({stage.conversion_rate}% conv.)
                         </span>
                       )}
                     </span>
                   </div>
-                  <div className="h-8 bg-gray-100 rounded-lg overflow-hidden">
+                  <div className="h-8 bg-white/5 rounded-lg overflow-hidden">
                     <div
                       className={`h-full ${colors[i % colors.length]} rounded-lg flex items-center pl-3 transition-all duration-500`}
                       style={{ width: `${widthPct}%` }}
@@ -224,7 +222,7 @@ export default function AnalyticsPage() {
                   </div>
                   {i < funnelStages.length - 1 && (
                     <div className="flex justify-center py-1">
-                      <ArrowRight className="w-3 h-3 text-gray-300 rotate-90" />
+                      <ArrowRight className="w-3 h-3 text-slate-600 rotate-90" />
                     </div>
                   )}
                 </div>
@@ -234,15 +232,15 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Source Attribution */}
-        <div className="bg-white rounded-xl p-5 border border-gray-200">
-          <h3 className="font-semibold text-[#0B2545] flex items-center gap-2 mb-5">
-            <BarChart3 className="w-5 h-5" /> Source Attribution
+        <div className="bg-[#0F172A] rounded-xl p-5 border border-white/5">
+          <h3 className="font-semibold text-white flex items-center gap-2 mb-5">
+            <BarChart3 className="w-5 h-5 text-cyan-400" /> Source Attribution
           </h3>
           {channels.length === 0 ? (
             <div className="text-center py-8">
-              <BarChart3 className="w-10 h-10 text-gray-200 mx-auto mb-2" />
-              <p className="text-gray-400 text-sm">No attribution data yet.</p>
-              <p className="text-gray-400 text-xs mt-1">
+              <BarChart3 className="w-10 h-10 text-slate-700 mx-auto mb-2" />
+              <p className="text-slate-500 text-sm">No attribution data yet.</p>
+              <p className="text-slate-600 text-xs mt-1">
                 Data will appear once campaigns start driving traffic.
               </p>
             </div>
@@ -250,23 +248,23 @@ export default function AnalyticsPage() {
             <div className="space-y-4">
               {channels.map((ch) => {
                 const channelColors: Record<string, string> = {
-                  google: "bg-blue-500",
-                  meta: "bg-indigo-500",
-                  whatsapp: "bg-green-500",
-                  direct: "bg-gray-500",
+                  google: "bg-cyan-500",
+                  meta: "bg-violet-500",
+                  whatsapp: "bg-emerald-500",
+                  direct: "bg-slate-500",
                   organic: "bg-teal-500",
-                  call: "bg-orange-500",
+                  call: "bg-amber-500",
                 };
-                const color = channelColors[ch.channel.toLowerCase()] || "bg-gray-400";
+                const color = channelColors[ch.channel.toLowerCase()] || "bg-slate-500";
                 return (
                   <div key={ch.channel}>
                     <div className="flex justify-between text-sm mb-1.5">
-                      <span className="text-gray-700 font-medium capitalize">{ch.channel}</span>
-                      <span className="text-gray-500">
-                        {ch.count} <span className="text-xs text-gray-400">({ch.percentage}%)</span>
+                      <span className="text-slate-300 font-medium capitalize">{ch.channel}</span>
+                      <span className="text-slate-500">
+                        {ch.count} <span className="text-xs text-slate-600">({ch.percentage}%)</span>
                       </span>
                     </div>
-                    <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-3 bg-white/5 rounded-full overflow-hidden">
                       <div
                         className={`h-full ${color} rounded-full transition-all duration-500`}
                         style={{ width: `${Math.max(ch.percentage, 2)}%` }}
@@ -281,25 +279,25 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Campaign Performance */}
-      <div className="bg-white rounded-xl p-5 border border-gray-200">
-        <h3 className="font-semibold text-[#0B2545] flex items-center gap-2 mb-5">
-          <IndianRupee className="w-5 h-5" /> Campaign Performance Summary
+      <div className="bg-[#0F172A] rounded-xl p-5 border border-white/5">
+        <h3 className="font-semibold text-white flex items-center gap-2 mb-5">
+          <IndianRupee className="w-5 h-5 text-amber-400" /> Campaign Performance Summary
         </h3>
         {!campaigns || campaigns.total_campaigns === 0 ? (
           <div className="text-center py-8">
-            <BarChart3 className="w-10 h-10 text-gray-200 mx-auto mb-2" />
-            <p className="text-gray-400 text-sm">No campaigns running yet.</p>
+            <BarChart3 className="w-10 h-10 text-slate-700 mx-auto mb-2" />
+            <p className="text-slate-500 text-sm">No campaigns running yet.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left py-3 px-2 text-gray-500 font-medium">Metric</th>
-                  <th className="text-right py-3 px-2 text-gray-500 font-medium">Value</th>
+                <tr className="border-b border-white/5">
+                  <th className="text-left py-3 px-2 text-slate-500 font-medium">Metric</th>
+                  <th className="text-right py-3 px-2 text-slate-500 font-medium">Value</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-white/[0.03]">
                 <CampaignRow label="Total Spend" value={`₹${fmt(campaigns.total_spend)}`} />
                 <CampaignRow label="Impressions" value={fmt(campaigns.total_impressions)} />
                 <CampaignRow label="Clicks" value={fmt(campaigns.total_clicks)} />
@@ -333,30 +331,30 @@ function KpiCard({
   color: string;
 }) {
   const cm: Record<string, string> = {
-    blue: "bg-blue-50 text-blue-600",
-    green: "bg-green-50 text-green-600",
-    purple: "bg-purple-50 text-purple-600",
-    teal: "bg-teal-50 text-teal-600",
-    orange: "bg-orange-50 text-orange-600",
-    red: "bg-red-50 text-red-600",
+    cyan: "bg-cyan-500/10 text-cyan-400",
+    green: "bg-green-500/10 text-green-400",
+    violet: "bg-violet-500/10 text-violet-400",
+    emerald: "bg-emerald-500/10 text-emerald-400",
+    amber: "bg-amber-500/10 text-amber-400",
+    rose: "bg-rose-500/10 text-rose-400",
   };
   return (
-    <div className="bg-white rounded-xl p-4 border border-gray-200">
+    <div className="bg-[#0F172A] rounded-xl p-4 border border-white/5">
       <div className="flex items-center gap-2 mb-2">
-        <div className={`p-1.5 rounded-lg ${cm[color] || cm.blue}`}>{icon}</div>
-        <span className="text-xs text-gray-500">{label}</span>
+        <div className={`p-1.5 rounded-lg ${cm[color] || cm.cyan}`}>{icon}</div>
+        <span className="text-xs text-slate-500">{label}</span>
       </div>
-      <div className="text-2xl font-bold text-[#0B2545]">{value}</div>
-      {sub && <div className="text-xs text-gray-400 mt-1">{sub}</div>}
+      <div className="text-2xl font-bold text-white tabular-nums">{value}</div>
+      {sub && <div className="text-xs text-slate-500 mt-1">{sub}</div>}
     </div>
   );
 }
 
 function CampaignRow({ label, value }: { label: string; value: string }) {
   return (
-    <tr>
-      <td className="py-2.5 px-2 text-gray-600">{label}</td>
-      <td className="py-2.5 px-2 text-right font-semibold text-[#0B2545]">{value}</td>
+    <tr className="hover:bg-white/[0.02]">
+      <td className="py-2.5 px-2 text-slate-400">{label}</td>
+      <td className="py-2.5 px-2 text-right font-semibold text-white tabular-nums">{value}</td>
     </tr>
   );
 }

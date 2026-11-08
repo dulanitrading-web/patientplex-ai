@@ -78,114 +78,107 @@ export default function CallsPage() {
 
   const statusBadge = (s: string) => {
     const m: Record<string, string> = {
-      ANSWERED: "bg-green-50 text-green-700",
-      MISSED: "bg-red-50 text-red-700",
-      NO_ANSWER: "bg-yellow-50 text-yellow-700",
-      BUSY: "bg-orange-50 text-orange-700",
-      COMPLETED: "bg-green-50 text-green-700",
-      FAILED: "bg-red-50 text-red-700",
+      ANSWERED: "bg-emerald-500/10 text-emerald-400",
+      MISSED: "bg-red-500/10 text-red-400",
+      NO_ANSWER: "bg-amber-500/10 text-amber-400",
+      BUSY: "bg-orange-500/10 text-orange-400",
+      COMPLETED: "bg-emerald-500/10 text-emerald-400",
+      FAILED: "bg-red-500/10 text-red-400",
     };
-    return m[s] || "bg-gray-100 text-gray-600";
+    return m[s] || "bg-white/5 text-slate-400";
   };
 
   const DirectionIcon = ({ direction }: { direction: string }) => {
-    if (direction === "OUTBOUND") return <PhoneOutgoing className="w-4 h-4 text-blue-500" />;
-    return <PhoneIncoming className="w-4 h-4 text-teal-500" />;
+    if (direction === "OUTBOUND") return <PhoneOutgoing className="w-4 h-4 text-cyan-400" />;
+    return <PhoneIncoming className="w-4 h-4 text-emerald-400" />;
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center gap-3">
-          <Link href="/dashboard" className="text-gray-400 hover:text-gray-600">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <h1 className="text-lg font-bold text-[#0B2545]">Call Log</h1>
+    <div className="space-y-6">
+      <div className="flex items-center gap-3">
+        <h1 className="text-lg font-bold text-white">Call Log</h1>
+      </div>
+
+      {/* Stats Row */}
+      {stats && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <StatCard label="Total Calls" value={stats.total_calls} icon={<Phone className="w-4 h-4 text-white" />} />
+          <StatCard label="Answered" value={stats.answered} color="text-emerald-400" icon={<PhoneIncoming className="w-4 h-4 text-emerald-400" />} />
+          <StatCard label="Missed" value={stats.missed} color="text-red-400" icon={<PhoneMissed className="w-4 h-4 text-red-400" />} />
+          <StatCard label="Recovered" value={stats.recovered_via_whatsapp} color="text-cyan-400" icon={<MessageCircle className="w-4 h-4 text-cyan-400" />} />
         </div>
-      </header>
+      )}
 
-      <main className="max-w-5xl mx-auto px-4 py-6 space-y-6">
-        {/* Stats Row */}
-        {stats && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <StatCard label="Total Calls" value={stats.total_calls} icon={<Phone className="w-4 h-4 text-[#0B2545]" />} />
-            <StatCard label="Answered" value={stats.answered} color="text-green-600" icon={<PhoneIncoming className="w-4 h-4 text-green-500" />} />
-            <StatCard label="Missed" value={stats.missed} color="text-red-600" icon={<PhoneMissed className="w-4 h-4 text-red-500" />} />
-            <StatCard label="Recovered" value={stats.recovered_via_whatsapp} color="text-teal-600" icon={<MessageCircle className="w-4 h-4 text-teal-500" />} />
-          </div>
-        )}
+      {/* Filter */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <Filter className="w-4 h-4 text-slate-500" />
+        {STATUS_OPTIONS.map((s) => (
+          <button key={s} onClick={() => setFilter(s)}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+              filter === s ? "bg-emerald-500 text-[#0A0E1A]" : "bg-white/5 text-slate-400 border border-white/10 hover:border-white/20"
+            }`}>
+            {s === "ALL" ? "All" : s.replace("_", " ")}
+          </button>
+        ))}
+      </div>
 
-        {/* Filter */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <Filter className="w-4 h-4 text-gray-400" />
-          {STATUS_OPTIONS.map((s) => (
-            <button key={s} onClick={() => setFilter(s)}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                filter === s ? "bg-[#0B2545] text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
-              }`}>
-              {s === "ALL" ? "All" : s.replace("_", " ")}
-            </button>
-          ))}
+      {/* Call Log List */}
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <Loader2 className="w-6 h-6 animate-spin text-emerald-400" />
         </div>
-
-        {/* Call Log List */}
-        {loading ? (
-          <div className="flex justify-center py-12">
-            <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
-          </div>
-        ) : logs.length === 0 ? (
-          <div className="bg-white rounded-xl p-8 text-center border border-gray-200">
-            <Phone className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-            <p className="text-gray-500">No calls found.</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {logs.map((cl) => (
-              <div key={cl.id} className="bg-white rounded-xl border border-gray-200 p-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 bg-gray-50 rounded-lg">
-                      <DirectionIcon direction={cl.direction} />
+      ) : logs.length === 0 ? (
+        <div className="bg-[#0F172A] rounded-xl p-8 text-center border border-white/5">
+          <Phone className="w-10 h-10 text-slate-600 mx-auto mb-2" />
+          <p className="text-slate-400">No calls found.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {logs.map((cl) => (
+            <div key={cl.id} className="bg-[#0F172A] rounded-xl border border-white/5 p-4 hover:border-white/10 transition-colors">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-white/5 rounded-lg">
+                    <DirectionIcon direction={cl.direction} />
+                  </div>
+                  <div>
+                    <div className="font-medium text-white">{maskPhone(cl.caller_phone)}</div>
+                    <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-2 flex-wrap">
+                      <span className="capitalize">{cl.direction.toLowerCase()}</span>
+                      <span>·</span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" /> {formatDuration(cl.duration_seconds)}
+                      </span>
+                      <span>·</span>
+                      <span>{formatTime(cl.started_at)}</span>
                     </div>
-                    <div>
-                      <div className="font-medium text-[#0B2545]">{maskPhone(cl.caller_phone)}</div>
-                      <div className="text-xs text-gray-400 mt-0.5 flex items-center gap-2 flex-wrap">
-                        <span className="capitalize">{cl.direction.toLowerCase()}</span>
-                        <span>·</span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" /> {formatDuration(cl.duration_seconds)}
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusBadge(cl.status)}`}>
+                        {cl.status.replace("_", " ")}
+                      </span>
+                      {cl.whatsapp_followup_sent && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-cyan-500/10 text-cyan-400">
+                          <MessageCircle className="w-3 h-3" /> WhatsApp sent
                         </span>
-                        <span>·</span>
-                        <span>{formatTime(cl.started_at)}</span>
-                      </div>
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusBadge(cl.status)}`}>
-                          {cl.status.replace("_", " ")}
-                        </span>
-                        {cl.whatsapp_followup_sent && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-teal-50 text-teal-700">
-                            <MessageCircle className="w-3 h-3" /> WhatsApp sent
-                          </span>
-                        )}
-                      </div>
+                      )}
                     </div>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </main>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
 function StatCard({ label, value, color, icon }: { label: string; value: number; color?: string; icon?: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-xl p-3 border border-gray-200 text-center">
+    <div className="bg-[#0F172A] rounded-xl p-3 border border-white/5 text-center">
       {icon && <div className="flex justify-center mb-1">{icon}</div>}
-      <div className="text-xs text-gray-500">{label}</div>
-      <div className={`text-xl font-bold ${color || "text-[#0B2545]"}`}>{value}</div>
+      <div className="text-xs text-slate-500">{label}</div>
+      <div className={`text-xl font-bold ${color || "text-white"}`}>{value}</div>
     </div>
   );
 }
