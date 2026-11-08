@@ -8,6 +8,7 @@ import {
   MessageCircle, Calendar, Phone, Globe, Brain, TrendingUp,
   Users, ChevronDown, Target, Award, Lock,
   Instagram, Facebook, Search, BadgeCheck, Mail,
+  Menu, X, Clock, Zap,
 } from "lucide-react";
 
 import Logo from "@/components/Logo";
@@ -101,6 +102,8 @@ export default function LandingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [scrolled, setScrolled] = useState(false);
   const [annual, setAnnual] = useState(false);
+  const [mobileMenu, setMobileMenu] = useState(false);
+  const [heroTab, setHeroTab] = useState(0);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
@@ -137,14 +140,35 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center gap-3">
             <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors hidden sm:block">Sign in</Link>
-            <Link href="/signup" className="text-sm font-semibold px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white transition-all hover:scale-[1.03] active:scale-[0.97]">Get started</Link>
+            <Link href="/signup" className="text-sm font-semibold px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white transition-all hover:scale-[1.03] active:scale-[0.97] hidden sm:inline-flex">Get started</Link>
+            <button onClick={() => setMobileMenu(!mobileMenu)} className="md:hidden p-2 rounded-lg hover:bg-slate-100 transition-colors">
+              {mobileMenu ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
           </div>
         </div>
+        {/* Mobile menu */}
+        <AnimatePresence>
+          {mobileMenu && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+              className="md:hidden bg-white border-t border-slate-200 shadow-lg overflow-hidden">
+              <div className="px-6 py-4 space-y-3">
+                <a href="#features" onClick={() => setMobileMenu(false)} className="block text-sm font-medium text-slate-600 hover:text-slate-900 py-2">Features</a>
+                <a href="#pricing" onClick={() => setMobileMenu(false)} className="block text-sm font-medium text-slate-600 hover:text-slate-900 py-2">Pricing</a>
+                <a href="#faq" onClick={() => setMobileMenu(false)} className="block text-sm font-medium text-slate-600 hover:text-slate-900 py-2">FAQ</a>
+                <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
+                  <Link href="/login" className="text-sm font-medium text-slate-600 py-2">Sign in</Link>
+                  <Link href="/signup" className="text-sm font-semibold px-5 py-2.5 rounded-xl bg-slate-900 text-white text-center">Get started</Link>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
 
       {/* ═══ HERO ═══ */}
       <section className="pt-28 pb-20 px-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/80 via-teal-50/40 to-cyan-50/60 animate-gradient" />
+        <div className="absolute inset-0 opacity-40 pointer-events-none" style={{ backgroundImage: "radial-gradient(circle, #cbd5e1 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
         {/* Floating particles */}
         {[1,2,3,4].map(i => (
           <div key={i} className="absolute rounded-full bg-emerald-400/30 pointer-events-none" style={{
@@ -214,39 +238,78 @@ export default function LandingPage() {
                 <div className="border-b border-slate-100">
                   <div className="flex">
                     {["AI RECEPTIONIST", "AD CAMPAIGNS", "BOOKINGS"].map((tab, i) => (
-                      <div key={i} className={`px-5 py-3.5 text-xs font-bold tracking-wider transition-colors ${i === 0 ? "text-emerald-600 border-b-2 border-emerald-500 bg-emerald-50/40" : "text-slate-400 hover:text-slate-600"}`}>
-                        {i === 0 && <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 align-middle animate-pulse" />}
+                      <button key={i} onClick={() => setHeroTab(i)} className={`px-5 py-3.5 text-xs font-bold tracking-wider transition-colors ${heroTab === i ? "text-emerald-600 border-b-2 border-emerald-500 bg-emerald-50/40" : "text-slate-400 hover:text-slate-600"}`}>
+                        {heroTab === i && <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 align-middle animate-pulse" />}
                         {tab}
-                      </div>
+                      </button>
                     ))}
                   </div>
                 </div>
                 <div className="p-6">
-                  <div className="flex items-start gap-3 mb-6">
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shrink-0 shadow-sm">
-                      <Brain className="w-4 h-4 text-white" />
-                    </div>
+                  {/* Tab 0: AI Receptionist */}
+                  {heroTab === 0 && (
                     <div>
-                      <p className="text-xs font-bold text-slate-900 mb-1">PatientPlex AI</p>
-                      <div className="bg-slate-50 rounded-xl rounded-tl-sm p-4 text-sm text-slate-700 leading-relaxed border border-slate-100">
-                        Got it. I have built a campaign for <strong>SmileCraft Dental</strong> to maximize bookings in Mumbai this month.
+                      <div className="flex items-start gap-3 mb-6">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shrink-0 shadow-sm"><Brain className="w-4 h-4 text-white" /></div>
+                        <div>
+                          <p className="text-xs font-bold text-slate-900 mb-1">PatientPlex AI</p>
+                          <div className="bg-slate-50 rounded-xl rounded-tl-sm p-4 text-sm text-slate-700 leading-relaxed border border-slate-100">Got it. I have built a campaign for <strong>SmileCraft Dental</strong> to maximize bookings in Mumbai this month.</div>
+                        </div>
+                      </div>
+                      <div className="bg-gradient-to-br from-slate-50 to-emerald-50/30 rounded-xl p-5 border border-slate-100">
+                        <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1">Campaign Setup</p>
+                        <p className="font-black text-slate-900 mb-4">SmileCraft Dental &mdash; Nov bookings</p>
+                        <div className="grid grid-cols-3 gap-4 mb-4">
+                          {[["Daily budget","₹2,500","₹75,000/mo"],["Est. clicks/mo","1,240","Based on local CPCs"],["Est. bookings","62—85","5—7% conv. rate"]].map(([l,v,s],j) => (
+                            <div key={j}><p className="text-[10px] text-slate-400 mb-0.5">{l}</p><p className="text-lg font-black text-slate-900">{v}</p><p className="text-[10px] text-slate-400">{s}</p></div>
+                          ))}
+                        </div>
+                        <div className="space-y-2 text-sm">
+                          {[["Platforms","Google Search + Meta"],["Radius","5 km from clinic"],["Schedule","Mon—Sat, 7am—9pm"],["Bidding","Maximize conversions"]].map(([k,v],j) => (
+                            <div key={j} className="flex justify-between items-center"><span className="text-slate-500">{k}</span><span className="font-semibold text-slate-900">{v}</span></div>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="bg-gradient-to-br from-slate-50 to-emerald-50/30 rounded-xl p-5 border border-slate-100">
-                    <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1">Campaign Setup</p>
-                    <p className="font-black text-slate-900 mb-4">SmileCraft Dental &mdash; Nov bookings</p>
-                    <div className="grid grid-cols-3 gap-4 mb-4">
-                      {[["Daily budget","₹2,500","₹75,000/mo"],["Est. clicks/mo","1,240","Based on local CPCs"],["Est. bookings","62—85","5—7% conv. rate"]].map(([l,v,s],j) => (
-                        <div key={j}><p className="text-[10px] text-slate-400 mb-0.5">{l}</p><p className="text-lg font-black text-slate-900">{v}</p><p className="text-[10px] text-slate-400">{s}</p></div>
+                  )}
+                  {/* Tab 1: Ad Campaigns */}
+                  {heroTab === 1 && (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-sm font-bold text-slate-900">Active Campaigns</p>
+                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">4 running</span>
+                      </div>
+                      {[{t:"Teeth whitening",budget:"₹1,200/day",clicks:"342",conv:"28",status:"Active"},{t:"Dental implants",budget:"₹2,000/day",clicks:"189",conv:"15",status:"Active"},{t:"Root canal",budget:"₹800/day",clicks:"256",conv:"22",status:"Optimizing"},{t:"Braces consultation",budget:"₹600/day",clicks:"412",conv:"31",status:"Active"}].map((c,j) => (
+                        <div key={j} className="flex items-center justify-between text-xs bg-slate-50 rounded-xl p-3 border border-slate-100">
+                          <div className="w-32"><p className="font-semibold text-slate-800">{c.t}</p><p className="text-[10px] text-slate-400">{c.budget}</p></div>
+                          <div className="text-center"><p className="font-bold text-slate-800">{c.clicks}</p><p className="text-[10px] text-slate-400">clicks</p></div>
+                          <div className="text-center"><p className="font-bold text-emerald-600">{c.conv}</p><p className="text-[10px] text-slate-400">bookings</p></div>
+                          <span className={`font-semibold px-2 py-0.5 rounded text-[10px] ${c.status === "Active" ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : "bg-amber-50 text-amber-600 border border-amber-100"}`}>{c.status}</span>
+                        </div>
                       ))}
                     </div>
-                    <div className="space-y-2 text-sm">
-                      {[["Platforms","Google Search + Meta"],["Radius","5 km from clinic"],["Schedule","Mon—Sat, 7am—9pm"],["Bidding","Maximize conversions"]].map(([k,v],j) => (
-                        <div key={j} className="flex justify-between items-center"><span className="text-slate-500">{k}</span><span className="font-semibold text-slate-900">{v}</span></div>
+                  )}
+                  {/* Tab 2: Bookings */}
+                  {heroTab === 2 && (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-sm font-bold text-slate-900">Recent Bookings</p>
+                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live</span>
+                      </div>
+                      {[{n:"Priya S.",t:"Laser hair removal",time:"Just now",amt:"₹12,500",s:"Confirmed"},{n:"Rajesh K.",t:"Root canal & crown",time:"2m ago",amt:"₹8,500",s:"Confirmed"},{n:"Ananya R.",t:"Acne scar treatment",time:"5m ago",amt:"₹16,000",s:"Pending"},{n:"Vikram P.",t:"Teeth whitening",time:"8m ago",amt:"₹5,500",s:"Confirmed"}].map((b,j) => (
+                        <div key={j} className="flex items-center justify-between text-xs bg-slate-50 rounded-xl p-3 border border-slate-100">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-[10px] font-bold text-white">{b.n[0]}</div>
+                            <div><p className="font-semibold text-slate-800">{b.t}</p><p className="text-[10px] text-slate-400">{b.n} &middot; {b.time}</p></div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-emerald-600">{b.amt}</p>
+                            <p className={`text-[9px] font-medium ${b.s === "Confirmed" ? "text-emerald-500" : "text-amber-500"}`}>{b.s === "Confirmed" ? "✓ " : "● "}{b.s}</p>
+                          </div>
+                        </div>
                       ))}
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             </motion.div>
@@ -367,6 +430,80 @@ export default function LandingPage() {
                     <Counter target={s.value} suffix={s.suffix} prefix={s.prefix} />
                   </div>
                   <p className="text-sm text-slate-500 font-medium">{s.label}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ BEFORE / AFTER ═══ */}
+      <section className="py-24 px-6 bg-white">
+        <div className="max-w-5xl mx-auto">
+          <Reveal>
+            <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-center mb-4">The PatientPlex difference</h2>
+            <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">See what changes when AI runs your patient acquisition.</p>
+          </Reveal>
+          <div className="grid md:grid-cols-2 gap-6">
+            <Reveal>
+              <div className="p-8 rounded-2xl border border-red-200 bg-red-50/30 h-full">
+                <div className="flex items-center gap-2.5 mb-6">
+                  <Clock className="w-5 h-5 text-red-500" />
+                  <h3 className="text-xl font-black text-slate-900">Before PatientPlex</h3>
+                </div>
+                <ul className="space-y-4">
+                  {["Missed calls after clinic hours", "₹800+ cost per new patient", "No idea which ads actually work", "28% patient no-show rate", "Manual everything — reminders, follow-ups, booking"].map((item, i) => (
+                    <li key={i} className="flex items-start gap-3 text-sm text-slate-700">
+                      <span className="w-2 h-2 rounded-full bg-red-400 mt-1.5 shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </Reveal>
+            <Reveal delay={0.15}>
+              <div className="p-8 rounded-2xl border border-emerald-200 bg-emerald-50/30 h-full">
+                <div className="flex items-center gap-2.5 mb-6">
+                  <Zap className="w-5 h-5 text-emerald-500" />
+                  <h3 className="text-xl font-black text-slate-900">After PatientPlex</h3>
+                </div>
+                <ul className="space-y-4">
+                  {["24/7 AI WhatsApp receptionist", "₹12 average cost per booking", "Full-funnel attribution on every rupee", "4% no-show rate with auto reminders", "Everything automated — ads, booking, follow-ups"].map((item, i) => (
+                    <li key={i} className="flex items-start gap-3 text-sm text-slate-700">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ HOW IT WORKS ═══ */}
+      <section className="py-24 px-6">
+        <div className="max-w-5xl mx-auto">
+          <Reveal>
+            <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-center mb-4">Live in 10 minutes, not 10 weeks</h2>
+            <p className="text-center text-lg text-slate-500 mb-16">No agencies, no contracts, no technical setup.</p>
+          </Reveal>
+          <div className="grid md:grid-cols-3 gap-8 relative">
+            {/* Connecting line */}
+            <div className="hidden md:block absolute top-10 left-[18%] right-[18%] h-px bg-gradient-to-r from-emerald-300 via-teal-300 to-cyan-300" />
+            {[
+              { step: "01", title: "Tell us about your clinic", desc: "Specialty, location, treatments, budget. Takes about 3 minutes. We generate your landing pages and ad creatives automatically.", icon: Users, color: "bg-emerald-50 text-emerald-600" },
+              { step: "02", title: "Connect WhatsApp & Calendar", desc: "Link your clinic WhatsApp Business number and Google Calendar. The AI receptionist starts handling enquiries immediately.", icon: MessageCircle, color: "bg-teal-50 text-teal-600" },
+              { step: "03", title: "Patients start booking", desc: "Campaigns go live within hours. The AI qualifies leads, books appointments, and sends reminders. You focus on patient care.", icon: Calendar, color: "bg-cyan-50 text-cyan-600" },
+            ].map((s, i) => (
+              <Reveal key={i} delay={i * 0.15}>
+                <div className="text-center relative">
+                  <div className={`w-20 h-20 rounded-2xl ${s.color} flex items-center justify-center mx-auto mb-6 relative z-10 shadow-sm`}>
+                    <s.icon className="w-8 h-8" />
+                  </div>
+                  <div className="text-xs font-black text-emerald-500 uppercase tracking-widest mb-2">Step {s.step}</div>
+                  <h3 className="text-lg font-black text-slate-900 mb-3">{s.title}</h3>
+                  <p className="text-sm text-slate-500 leading-relaxed">{s.desc}</p>
                 </div>
               </Reveal>
             ))}
