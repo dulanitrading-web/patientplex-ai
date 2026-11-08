@@ -124,7 +124,7 @@ const TESTIMONIALS = [
   { name: "Dr. Priya Sharma", role: "Cosmetic Dentist, Mumbai", text: "We went from 3 new patients a week to 18. The WhatsApp AI handles enquiries at 2am better than my receptionist at 2pm. Our cost per patient dropped from ₹800 to ₹120.", avatar: "PS", metric: "6x more patients", rating: 5, platform: "google" },
   { name: "Dr. Rajesh Mehta", role: "Dermatologist, Delhi", text: "I was spending ₹50,000/month on agencies with zero transparency. PatientPlex shows me exactly where every rupee goes. My Google Ads quality score went from 4 to 9.", avatar: "RM", metric: "₹50K saved monthly", rating: 5, platform: "linkedin" },
   { name: "Dr. Ananya Reddy", role: "Orthodontist, Bengaluru", text: "The no-show rate at my clinic dropped from 28% to 4%. The WhatsApp reminders and the AI follow-up system are genuinely better than anything I have tried.", avatar: "AR", metric: "4% no-show rate", rating: 5, platform: "twitter" },
-  { name: "Dr. Kavita Nair", role: "Pediatric Dentist, Chennai", text: "Setup took 10 minutes. Within a week I had 12 new patient bookings through WhatsApp alone. The ROI is insane compared to my old agency.", avatar: "KN", metric: "12 bookings in week 1", rating: 5, platform: "google" },
+  { name: "Dr. Kavita Nair", role: "Ophthalmologist, Chennai", text: "We started running LASIK campaigns through PatientPlex. Within a week, 12 new consultation bookings through WhatsApp alone. The ROI compared to our old agency is incredible.", avatar: "KN", metric: "12 LASIK consults/week", rating: 5, platform: "google" },
   { name: "Dr. Amit Patel", role: "Skin Specialist, Ahmedabad", text: "Our agency was charging ₹40K and I had no idea what they were doing. Now I see every rupee, every click, every booking. Transparency is everything.", avatar: "AP", metric: "Full transparency", rating: 5, platform: "linkedin" },
   { name: "Dr. Sanjay Gupta", role: "Implantologist, Hyderabad", text: "We were skeptical about AI managing our ads. Within 3 weeks, our implant consultations tripled. The AI even handles follow-ups for patients who ghost us.", avatar: "SG", metric: "3x implant consults", rating: 5, platform: "google" },
 ];
@@ -343,7 +343,7 @@ export default function LandingPage() {
 
               <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.12 }}
                 className="text-lg text-slate-500 leading-relaxed mb-8 max-w-lg">
-                Google &amp; Meta ads, a WhatsApp AI receptionist, and smart appointment booking — all on autopilot. Used by 200+ Indian dental and dermatology clinics.
+                Google &amp; Meta ads, a WhatsApp AI receptionist, and smart appointment booking — all on autopilot. Used by 200+ clinics across 15+ specialties in India.
               </motion.p>
 
               {/* Email CTA */}
