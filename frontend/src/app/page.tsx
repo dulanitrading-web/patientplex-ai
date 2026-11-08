@@ -126,6 +126,7 @@ const TESTIMONIALS = [
   { name: "Dr. Ananya Reddy", role: "Orthodontist, Bengaluru", text: "The no-show rate at my clinic dropped from 28% to 4%. The WhatsApp reminders and the AI follow-up system are genuinely better than anything I have tried.", avatar: "AR", metric: "4% no-show rate", rating: 5, platform: "twitter" },
   { name: "Dr. Kavita Nair", role: "Pediatric Dentist, Chennai", text: "Setup took 10 minutes. Within a week I had 12 new patient bookings through WhatsApp alone. The ROI is insane compared to my old agency.", avatar: "KN", metric: "12 bookings in week 1", rating: 5, platform: "google" },
   { name: "Dr. Amit Patel", role: "Skin Specialist, Ahmedabad", text: "Our agency was charging ₹40K and I had no idea what they were doing. Now I see every rupee, every click, every booking. Transparency is everything.", avatar: "AP", metric: "Full transparency", rating: 5, platform: "linkedin" },
+  { name: "Dr. Sanjay Gupta", role: "Implantologist, Hyderabad", text: "We were skeptical about AI managing our ads. Within 3 weeks, our implant consultations tripled. The AI even handles follow-ups for patients who ghost us.", avatar: "SG", metric: "3x implant consults", rating: 5, platform: "google" },
 ];
 
 const PRICING_DATA = {
@@ -148,6 +149,8 @@ const FAQS = [
   { q: "Is my patient data secure?", a: "Yes. All data is encrypted at rest and in transit. We use Fernet symmetric encryption for OAuth tokens, HMAC-SHA256 for webhook verification, and maintain full audit logs. We are built for healthcare compliance from day one." },
   { q: "Can I try it before committing?", a: "Absolutely. Every plan starts with a 14-day free trial. No credit card required. You will have a working campaign with real patient enquiries before you pay anything." },
   { q: "What if I already have a website?", a: "PatientPlex landing pages work alongside your existing website. They are specifically optimized for ad traffic — higher quality scores mean lower cost per click. Your main website stays exactly as it is." },
+  { q: "How does the WhatsApp AI work?", a: "Our AI is powered by advanced language models trained on healthcare conversations. It understands treatment queries, checks your calendar in real-time, and books appointments — all in the patient's preferred language (Hindi, English, Tamil, Telugu, and more)." },
+  { q: "What kind of clinics use PatientPlex?", a: "Dental clinics (cosmetic, orthodontic, implant), dermatology clinics (skin, hair, laser), and multi-specialty clinics across India. We work with solo practitioners and chains with up to 50 locations." },
 ];
 
 const MOCK_QUEUE = [
@@ -156,7 +159,7 @@ const MOCK_QUEUE = [
   { name: "Ananya R.", treatment: "Acne scar treatment", time: "5m ago", amount: "₹16,000" },
 ];
 
-const PRESS = ["Economic Times", "YourStory", "Inc42", "Mint", "Business Standard"];
+const PRESS = ["Economic Times", "YourStory", "Inc42", "Mint", "Business Standard", "The Hindu"];
 
 const CHANNELS_DATA = [
   { name: "WhatsApp", border: "hover:border-green-300" },
@@ -235,6 +238,11 @@ function ROICalculator() {
           <p className="text-3xl font-black tabular-nums">{"₹"}{Math.max(0, annualSavings).toLocaleString("en-IN")}</p>
           <p className="text-sm opacity-80">saved per year</p>
         </div>
+      </div>
+      <div className="mt-8 text-center">
+        <Link href="/signup" className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-sm transition-all hover:scale-[1.03] shadow-lg shadow-emerald-500/20">
+          Start saving today <ArrowRight className="w-4 h-4" />
+        </Link>
       </div>
     </div>
   );
@@ -330,13 +338,12 @@ export default function LandingPage() {
             <div>
               <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
                 className="text-5xl sm:text-6xl lg:text-[5rem] font-black tracking-tight leading-[1.05] text-slate-900 mb-6">
-                AI runs your<br /><span className="text-gradient-hero">patient acquisition</span>
+                AI that books patients<br /><span className="text-gradient-hero">while you sleep</span>
               </motion.h1>
 
               <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.12 }}
                 className="text-lg text-slate-500 leading-relaxed mb-8 max-w-lg">
-                PatientPlex is an autonomous AI marketer for Indian clinics: it runs your Google and Meta ads, your WhatsApp
-                receptionist and your appointment booking for a flat monthly fee. More patients on autopilot.
+                Google &amp; Meta ads, a WhatsApp AI receptionist, and smart appointment booking — all on autopilot. Used by 200+ Indian dental and dermatology clinics.
               </motion.p>
 
               {/* Email CTA */}
@@ -347,6 +354,13 @@ export default function LandingPage() {
                   Get started <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
               </motion.div>
+
+              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4, delay: 0.28 }}
+                className="text-xs text-slate-400 mb-6 flex items-center gap-4">
+                <span className="flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> No credit card required</span>
+                <span className="flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> 14-day free trial</span>
+                <span className="flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Cancel anytime</span>
+              </motion.p>
 
               {/* Trusted by */}
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.35 }}
@@ -522,8 +536,8 @@ export default function LandingPage() {
       <section className="py-20 px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <Reveal>
-            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-center mb-3">
-              Every missed WhatsApp message costs you {"₹"}8,000
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-center mb-3">
+              Every missed message costs you <span className="text-red-500">{"₹"}8,000</span>
             </h2>
             <p className="text-center text-slate-500 mb-12 max-w-2xl mx-auto">
               That{"'"}s the average lifetime value of a dental patient in India. Here{"'"}s what you{"'"}re losing right now.
@@ -657,6 +671,11 @@ export default function LandingPage() {
             <p className="text-center text-sm text-slate-400 mt-4">
               Watch the full demo — no signup required
             </p>
+            <div className="flex flex-wrap items-center justify-center gap-6 mt-6 text-sm text-slate-500">
+              <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> See the AI receptionist in action</span>
+              <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> Watch ads get created automatically</span>
+              <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> Real clinic dashboard walkthrough</span>
+            </div>
           </Reveal>
         </div>
       </section>
@@ -845,7 +864,7 @@ export default function LandingPage() {
                   <thead>
                     <tr className="border-b border-slate-200">
                       <th className="text-left py-4 px-5 font-bold text-slate-900">Feature</th>
-                      <th className="py-4 px-5 font-black text-emerald-700 bg-emerald-50/60 text-center">PatientPlex</th>
+                      <th className="py-4 px-5 font-black text-emerald-700 bg-emerald-50/60 text-center"><span className="inline-flex items-center gap-1">PatientPlex <span className="text-[9px] font-bold bg-emerald-500 text-white px-1.5 py-0.5 rounded-full">Recommended</span></span></th>
                       <th className="py-4 px-5 font-bold text-slate-500 text-center">Agencies</th>
                       <th className="py-4 px-5 font-bold text-slate-500 text-center">DIY</th>
                     </tr>
@@ -1175,6 +1194,7 @@ export default function LandingPage() {
         <div className="max-w-4xl mx-auto">
           <div className="bg-gradient-to-br from-emerald-500 to-teal-500 rounded-3xl p-10 sm:p-14 text-center text-white">
             <Reveal>
+              <p className="text-sm font-medium text-white/70 uppercase tracking-widest mb-3">Join 200+ clinics already growing with PatientPlex</p>
               <h2 className="text-3xl sm:text-4xl font-black tracking-tight mb-6">Ready to stop losing patients?</h2>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 mb-8">
                 {["14-day free trial — no credit card", "Live campaign within 48 hours", "Cancel anytime, no contracts"].map((t, i) => (
@@ -1286,6 +1306,7 @@ export default function LandingPage() {
             </div>
             <div className="pt-8 border-t border-slate-200 text-center">
               <p className="text-xs text-slate-400">{"©"} 2026 PatientPlex AI. All rights reserved.</p>
+              <p className="text-xs text-slate-400 flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> All systems operational</p>
             </div>
           </div>
         </div>
