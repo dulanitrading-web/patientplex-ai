@@ -13,9 +13,9 @@ export default function Logo({ size = 36 }: { size?: number }) {
     >
       <defs>
         <linearGradient id={`${id}_bg`} x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#1e293b" />
-          <stop offset="0.5" stopColor="#334155" />
-          <stop offset="1" stopColor="#475569" />
+          <stop stopColor="#059669" />
+          <stop offset="0.5" stopColor="#10B981" />
+          <stop offset="1" stopColor="#14B8A6" />
         </linearGradient>
         <linearGradient id={`${id}_pulse`} x1="4" y1="32" x2="44" y2="32" gradientUnits="userSpaceOnUse">
           <stop stopColor="white" stopOpacity="0.5" />

@@ -58,7 +58,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <div className={clsx(
                   "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150",
                   active
-                    ? "bg-slate-50 text-black border-l-2 border-slate-500"
+                    ? "bg-emerald-50 text-emerald-700 border-l-2 border-emerald-500"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-100 border-l-2 border-transparent",
                 )}>
                   <item.icon className="w-4 h-4 shrink-0" />

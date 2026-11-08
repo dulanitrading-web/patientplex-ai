@@ -128,7 +128,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-slate-900" />
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
       </div>
     );
   }
@@ -155,15 +155,15 @@ export default function DashboardPage() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="relative rounded-xl border border-slate-300 bg-gradient-to-r from-slate-900/[0.08] to-slate-700/[0.04] p-6 overflow-hidden group"
+          className="relative rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-500/[0.08] to-cyan-500/[0.04] p-6 overflow-hidden group"
           style={{ boxShadow: "0 0 40px rgba(16,185,129,0.06)" }}
         >
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_right,rgba(16,185,129,0.08),transparent_60%)]" />
-          <div className="absolute -top-20 -right-20 w-40 h-40 bg-slate-50 rounded-full blur-3xl group-hover:bg-slate-900/15 transition-colors duration-700" />
+          <div className="absolute -top-20 -right-20 w-40 h-40 bg-emerald-50 rounded-full blur-3xl group-hover:bg-emerald-500/15 transition-colors duration-700" />
           <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                <Zap className="w-6 h-6 text-black" /> Ready to get patients?
+                <Zap className="w-6 h-6 text-emerald-600" /> Ready to get patients?
               </h2>
               <p className="text-slate-500 mt-1">
                 Launch AI-powered campaigns on Google & Meta to start getting patient enquiries.
@@ -172,7 +172,7 @@ export default function DashboardPage() {
             <button
               onClick={handleLaunch}
               disabled={launching}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-[#0A0E1A] font-semibold text-sm transition-all whitespace-nowrap disabled:opacity-50 hover:shadow-lg hover:shadow-black/10"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-500 hover:bg-slate-800 text-[#0A0E1A] font-semibold text-sm transition-all whitespace-nowrap disabled:opacity-50 hover:shadow-lg hover:shadow-emerald-500/20"
             >
               {launching ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
               Launch Campaigns <ArrowRight className="w-4 h-4" />
@@ -209,7 +209,7 @@ export default function DashboardPage() {
           className="bg-white rounded-xl p-5 border border-slate-200 hover:border-slate-200 transition-colors duration-300"
         >
           <h3 className="font-semibold text-slate-900 flex items-center gap-2 mb-4">
-            <IndianRupee className="w-5 h-5 text-black" /> Ad spend (30 days)
+            <IndianRupee className="w-5 h-5 text-emerald-600" /> Ad spend (30 days)
           </h3>
           <div className="text-3xl font-bold text-slate-900 tabular-nums">₹{fmt(campaignOverview?.total_spend || 0)}</div>
           <div className="mt-2 text-sm text-slate-600">
@@ -218,7 +218,7 @@ export default function DashboardPage() {
           </div>
           <div className="mt-4">
             <Link href="/dashboard/campaigns"
-              className="group/link inline-flex items-center gap-1.5 text-sm text-black hover:text-slate-600 transition-colors">
+              className="group/link inline-flex items-center gap-1.5 text-sm text-emerald-600 hover:text-emerald-300 transition-colors">
               View campaigns <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-0.5 transition-transform" />
             </Link>
           </div>
@@ -231,17 +231,17 @@ export default function DashboardPage() {
           className="bg-white rounded-xl p-5 border border-slate-200 hover:border-slate-200 transition-colors duration-300"
         >
           <h3 className="font-semibold text-slate-900 flex items-center gap-2 mb-4">
-            <Activity className="w-5 h-5 text-slate-700" /> Patient funnel (30 days)
+            <Activity className="w-5 h-5 text-cyan-600" /> Patient funnel (30 days)
           </h3>
           <div className="space-y-3">
             <FunnelRow label="Ad clicks" value={campaignOverview?.total_clicks || 0}
-              total={campaignOverview?.total_clicks || 1} color="bg-slate-700" />
+              total={campaignOverview?.total_clicks || 1} color="bg-cyan-500" />
             <FunnelRow label="Enquiries" value={campaignOverview?.total_conversions || 0}
-              total={campaignOverview?.total_clicks || 1} color="bg-slate-700" />
+              total={campaignOverview?.total_clicks || 1} color="bg-violet-500" />
             <FunnelRow label="Booked" value={appointmentStats?.total_booked || 0}
-              total={campaignOverview?.total_clicks || 1} color="bg-slate-900" />
+              total={campaignOverview?.total_clicks || 1} color="bg-emerald-500" />
             <FunnelRow label="Attended" value={appointmentStats?.attended || 0}
-              total={campaignOverview?.total_clicks || 1} color="bg-slate-700" />
+              total={campaignOverview?.total_clicks || 1} color="bg-emerald-400" />
           </div>
         </motion.div>
       </div>
@@ -255,7 +255,7 @@ export default function DashboardPage() {
           className="lg:col-span-2 bg-white rounded-xl p-5 border border-slate-200 hover:border-slate-200 transition-colors duration-300"
         >
           <h3 className="font-semibold text-slate-900 flex items-center gap-2 mb-4">
-            <Calendar className="w-5 h-5 text-slate-700" /> Today{"'"}s appointments
+            <Calendar className="w-5 h-5 text-cyan-600" /> Today{"'"}s appointments
           </h3>
           {todayAppts.length === 0 ? (
             <p className="text-slate-600 text-sm py-4">No appointments today.</p>
@@ -280,7 +280,7 @@ export default function DashboardPage() {
           )}
           <div className="mt-3">
             <Link href="/dashboard/appointments"
-              className="group/link inline-flex items-center gap-1.5 text-sm text-black hover:text-slate-600 transition-colors">
+              className="group/link inline-flex items-center gap-1.5 text-sm text-emerald-600 hover:text-emerald-300 transition-colors">
               View all <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-0.5 transition-transform" />
             </Link>
           </div>
@@ -320,16 +320,16 @@ export default function DashboardPage() {
 /* ---------- Sub-components ---------- */
 
 const borderColors: Record<string, string> = {
-  cyan: "from-slate-700 to-slate-600",
-  emerald: "from-slate-900 to-slate-700",
-  violet: "from-slate-700 to-slate-600",
+  cyan: "from-cyan-500 to-cyan-400",
+  emerald: "from-emerald-500 to-emerald-400",
+  violet: "from-violet-500 to-violet-400",
   amber: "from-amber-500 to-amber-400",
 };
 
 const glowShadows: Record<string, string> = {
-  cyan: "shadow-slate-700/20",
-  emerald: "shadow-black/10",
-  violet: "shadow-slate-700/20",
+  cyan: "shadow-cyan-500/20",
+  emerald: "shadow-emerald-500/20",
+  violet: "shadow-violet-500/20",
   amber: "shadow-amber-500/20",
 };
 
@@ -337,9 +337,9 @@ function MetricCard({ icon, label, value, sub, color, trend }: {
   icon: React.ReactNode; label: string; value: string; sub?: string; color: "cyan" | "emerald" | "violet" | "amber"; trend?: "up" | "down";
 }) {
   const cm: Record<string, string> = {
-    cyan: "bg-slate-50 text-slate-700",
-    emerald: "bg-slate-50 text-black",
-    violet: "bg-slate-50 text-slate-700",
+    cyan: "bg-cyan-50 text-cyan-600",
+    emerald: "bg-emerald-50 text-emerald-600",
+    violet: "bg-violet-50 text-violet-600",
     amber: "bg-amber-50 text-amber-600",
   };
   return (
@@ -353,8 +353,8 @@ function MetricCard({ icon, label, value, sub, color, trend }: {
       <div className="text-2xl font-bold text-slate-900 tabular-nums">{value}</div>
       {sub && (
         <div className="text-xs text-slate-600 mt-1 flex items-center gap-1">
-          {trend === "up" && <span className="text-black">↑</span>}
-          {trend === "down" && <span className="text-black">↓</span>}
+          {trend === "up" && <span className="text-emerald-600">↑</span>}
+          {trend === "down" && <span className="text-emerald-600">↓</span>}
           {sub}
         </div>
       )}
@@ -390,7 +390,7 @@ function FunnelRow({ label, value, total, color }: {
 function QA({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
     <div className="group/qa flex items-center gap-3 p-2.5 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors">
-      <div className="text-slate-600 group-hover/qa:text-black transition-colors">{icon}</div>
+      <div className="text-slate-600 group-hover/qa:text-emerald-600 transition-colors">{icon}</div>
       <span className="text-sm text-slate-700">{label}</span>
       <ArrowRight className="w-3.5 h-3.5 text-slate-600 ml-auto group-hover/qa:text-slate-500 group-hover/qa:translate-x-1 transition-all" />
     </div>
@@ -399,20 +399,20 @@ function QA({ icon, label }: { icon: React.ReactNode; label: string }) {
 
 function statusBarColor(status: string): string {
   const m: Record<string, string> = {
-    CONFIRMED: "bg-slate-600",
+    CONFIRMED: "bg-cyan-400",
     REMINDED: "bg-amber-400",
-    ATTENDED: "bg-slate-700",
+    ATTENDED: "bg-emerald-400",
     NO_SHOW: "bg-red-400",
     CANCELLED: "bg-slate-500",
   };
-  return m[status] || "bg-slate-600";
+  return m[status] || "bg-cyan-400";
 }
 
 function StatusBadge({ status }: { status: string }) {
   const c: Record<string, { icon: React.ReactNode; cls: string }> = {
-    CONFIRMED: { icon: <Clock className="w-3 h-3" />, cls: "bg-slate-50 text-slate-700" },
+    CONFIRMED: { icon: <Clock className="w-3 h-3" />, cls: "bg-cyan-50 text-cyan-600" },
     REMINDED: { icon: <Clock className="w-3 h-3" />, cls: "bg-amber-50 text-amber-600" },
-    ATTENDED: { icon: <CheckCircle2 className="w-3 h-3" />, cls: "bg-slate-50 text-black" },
+    ATTENDED: { icon: <CheckCircle2 className="w-3 h-3" />, cls: "bg-emerald-50 text-emerald-600" },
     NO_SHOW: { icon: <XCircle className="w-3 h-3" />, cls: "bg-red-50 text-red-600" },
     CANCELLED: { icon: <XCircle className="w-3 h-3" />, cls: "bg-slate-500/10 text-slate-500" },
   };

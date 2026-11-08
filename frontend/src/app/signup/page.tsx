@@ -73,7 +73,7 @@ export default function SignupPage() {
   }
 
   const inputClass =
-    "w-full px-4 py-3 rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-black/15 transition-colors";
+    "w-full px-4 py-3 rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 transition-colors";
 
   return (
     <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center px-4 py-12 relative overflow-hidden">
@@ -97,7 +97,7 @@ export default function SignupPage() {
           <div className="flex items-center justify-center gap-4 mb-8">
             {["14-day free trial", "No credit card"].map((t) => (
               <span key={t} className="flex items-center gap-1 text-xs text-slate-500">
-                <CheckCircle2 className="w-3 h-3 text-slate-500" />
+                <CheckCircle2 className="w-3 h-3 text-emerald-500" />
                 {t}
               </span>
             ))}
@@ -189,7 +189,7 @@ export default function SignupPage() {
 
           <p className="text-center text-sm text-slate-500 mt-6">
             Already have an account?{" "}
-            <Link href="/login" className="text-black font-medium hover:text-black transition-colors">
+            <Link href="/login" className="text-emerald-600 font-medium hover:text-emerald-700 transition-colors">
               Sign in
             </Link>
           </p>

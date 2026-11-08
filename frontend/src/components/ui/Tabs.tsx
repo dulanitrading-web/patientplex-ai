@@ -21,7 +21,7 @@ export default function Tabs({ tabs, active, onChange, className }: TabsProps) {
           className={clsx(
             "px-3 py-2 text-sm font-medium border-b-2 transition-colors -mb-px",
             active === tab.id
-              ? "border-slate-500 text-slate-700"
+              ? "border-emerald-500 text-emerald-400"
               : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-200",
           )}
         >
@@ -30,7 +30,7 @@ export default function Tabs({ tabs, active, onChange, className }: TabsProps) {
             <span className={clsx(
               "ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold",
               active === tab.id
-                ? "bg-black/5 text-slate-700"
+                ? "bg-emerald-500/10 text-emerald-400"
                 : "bg-white/5 text-slate-500",
             )}>{tab.count}</span>
           )}

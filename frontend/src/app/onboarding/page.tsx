@@ -96,7 +96,7 @@ function Toast({ message, type, onClose }: { message: string; type: "error" | "s
   return (
     <div className={clsx(
       "fixed top-4 right-4 z-50 px-4 py-3 rounded-lg text-sm text-slate-900 shadow-lg animate-slide-in",
-      type === "error" ? "bg-red-500" : "bg-slate-500"
+      type === "error" ? "bg-red-500" : "bg-emerald-500"
     )}>
       <div className="flex items-center gap-2">
         {type === "error" ? <AlertCircle className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
@@ -304,12 +304,12 @@ export default function OnboardingPage() {
     }
   }
 
-  const inputClass = "w-full px-3 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-black/30 focus:border-black/30 transition-colors";
+  const inputClass = "w-full px-3 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-colors";
 
   return (
     <div className="min-h-screen bg-[#FAFAF8] relative">
       {/* Gradient orb */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-black/[0.04] rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-emerald-500/[0.06] rounded-full blur-[120px] pointer-events-none" />
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
@@ -334,7 +334,7 @@ export default function OnboardingPage() {
                     className={clsx(
                       "w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300",
                       done && "bg-slate-900 text-white",
-                      active && "bg-slate-900 text-white shadow-lg shadow-slate-900/20 scale-110",
+                      active && "bg-slate-900 text-white shadow-lg shadow-emerald-500/30 scale-110",
                       !done && !active && "bg-white/10 text-slate-600"
                     )}
                   >
@@ -343,7 +343,7 @@ export default function OnboardingPage() {
                   <span
                     className={clsx(
                       "text-xs mt-1.5 font-medium hidden sm:block",
-                      active ? "text-black" : done ? "text-slate-500" : "text-slate-600"
+                      active ? "text-emerald-600" : done ? "text-slate-500" : "text-slate-600"
                     )}
                   >
                     {step.label}
@@ -353,7 +353,7 @@ export default function OnboardingPage() {
                   <div className="flex-1 mx-2 sm:mx-4 mt-[-20px] sm:mt-0">
                     <div className="h-0.5 rounded-full bg-white/10">
                       <div
-                        className="h-0.5 rounded-full bg-slate-500 transition-all duration-500"
+                        className="h-0.5 rounded-full bg-emerald-500 transition-all duration-500"
                         style={{ width: done ? "100%" : "0%" }}
                       />
                     </div>
@@ -386,14 +386,14 @@ export default function OnboardingPage() {
                       className={clsx(
                         "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-200",
                         selected
-                          ? "border-slate-500 bg-slate-50"
+                          ? "border-emerald-500 bg-emerald-50"
                           : "border-slate-200 hover:border-slate-200 bg-slate-50"
                       )}
                     >
-                      <div className={clsx("w-10 h-10 rounded-lg flex items-center justify-center", selected ? "bg-slate-100" : "bg-slate-50")}>
-                        <Icon className={clsx("w-5 h-5", selected ? "text-black" : "text-slate-600")} />
+                      <div className={clsx("w-10 h-10 rounded-lg flex items-center justify-center", selected ? "bg-emerald-100" : "bg-slate-50")}>
+                        <Icon className={clsx("w-5 h-5", selected ? "text-emerald-600" : "text-slate-600")} />
                       </div>
-                      <span className={clsx("text-sm font-medium", selected ? "text-black" : "text-slate-500")}>
+                      <span className={clsx("text-sm font-medium", selected ? "text-emerald-600" : "text-slate-500")}>
                         {spec.name}
                       </span>
                     </button>
@@ -419,7 +419,7 @@ export default function OnboardingPage() {
                           className={clsx(
                             "w-5 h-5 rounded flex items-center justify-center border-2 transition-all",
                             svc.enabled
-                              ? "bg-slate-500 border-slate-500"
+                              ? "bg-emerald-500 border-emerald-500"
                               : "border-white/20 bg-transparent"
                           )}
                         >
@@ -502,7 +502,7 @@ export default function OnboardingPage() {
                 <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
                   <div className="flex items-center justify-between mb-2">
                     <label className="text-sm font-medium text-slate-700">Ad targeting radius</label>
-                    <span className="text-sm font-bold text-black">{geoRadius} km</span>
+                    <span className="text-sm font-bold text-emerald-600">{geoRadius} km</span>
                   </div>
                   <input
                     type="range"
@@ -510,14 +510,14 @@ export default function OnboardingPage() {
                     max={20}
                     value={geoRadius}
                     onChange={(e) => setGeoRadius(Number(e.target.value))}
-                    className="w-full h-2 bg-white/10 rounded-full appearance-none cursor-pointer accent-slate-500"
+                    className="w-full h-2 bg-white/10 rounded-full appearance-none cursor-pointer accent-emerald-500"
                   />
                   <div className="flex justify-between text-xs text-slate-600 mt-1">
                     <span>1 km</span>
                     <span>20 km</span>
                   </div>
                   <p className="text-xs text-slate-600 mt-2 flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-black" />
+                    <MapPin className="w-3.5 h-3.5 text-emerald-600" />
                     Patients within {geoRadius} km will see your ads
                   </p>
                 </div>
@@ -546,7 +546,7 @@ export default function OnboardingPage() {
                   step={1000}
                   value={budget}
                   onChange={(e) => setBudget(Number(e.target.value))}
-                  className="w-full h-2 bg-white/10 rounded-full appearance-none cursor-pointer accent-slate-500"
+                  className="w-full h-2 bg-white/10 rounded-full appearance-none cursor-pointer accent-emerald-500"
                 />
                 <div className="flex justify-between text-xs text-slate-600 mt-1">
                   <span>{formatINR(5000)}</span>
@@ -555,17 +555,17 @@ export default function OnboardingPage() {
               </div>
 
               {/* Estimates */}
-              <div className="rounded-xl p-5 border border-slate-300 bg-black/[0.03]">
+              <div className="rounded-xl p-5 border border-emerald-200 bg-emerald-500/[0.04]">
                 <h3 className="text-sm font-semibold text-slate-700 mb-4">
                   At {formatINR(budget)}/month, you can expect approximately:
                 </h3>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-black tabular-nums">~{estimatedClicks}</div>
+                    <div className="text-2xl font-bold text-emerald-600 tabular-nums">~{estimatedClicks}</div>
                     <div className="text-xs text-slate-600 mt-1">clicks/month</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-slate-700 tabular-nums">~{estimatedEnquiries}</div>
+                    <div className="text-2xl font-bold text-cyan-600 tabular-nums">~{estimatedEnquiries}</div>
                     <div className="text-xs text-slate-600 mt-1">enquiries</div>
                   </div>
                   <div className="text-center">
@@ -590,15 +590,15 @@ export default function OnboardingPage() {
                 {/* WhatsApp */}
                 <div className="border border-slate-200 rounded-xl p-5 bg-slate-50">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center">
-                      <MessageCircle className="w-5 h-5 text-black" />
+                    <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center">
+                      <MessageCircle className="w-5 h-5 text-emerald-600" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-slate-900">WhatsApp Business</h3>
                       <p className="text-xs text-slate-600">Patients will reach you here</p>
                     </div>
                     {whatsappNumber.replace(/\D/g, "").length >= 10 && (
-                      <CheckCircle2 className="w-5 h-5 text-black ml-auto" />
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600 ml-auto" />
                     )}
                   </div>
                   <div className="flex gap-2">
@@ -618,22 +618,22 @@ export default function OnboardingPage() {
                 {/* Google Calendar */}
                 <div className="border border-slate-200 rounded-xl p-5 bg-slate-50">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className={clsx("w-10 h-10 rounded-lg flex items-center justify-center", calendarConnected ? "bg-slate-50" : "bg-slate-50")}>
-                      <Calendar className={clsx("w-5 h-5", calendarConnected ? "text-black" : "text-slate-700")} />
+                    <div className={clsx("w-10 h-10 rounded-lg flex items-center justify-center", calendarConnected ? "bg-emerald-50" : "bg-cyan-50")}>
+                      <Calendar className={clsx("w-5 h-5", calendarConnected ? "text-emerald-600" : "text-cyan-600")} />
                     </div>
                     <div>
                       <h3 className="font-semibold text-slate-900">Google Calendar</h3>
                       <p className="text-xs text-slate-600">Auto-book appointments into your schedule</p>
                     </div>
                     {calendarConnected ? (
-                      <CheckCircle2 className="w-5 h-5 text-black ml-auto" />
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600 ml-auto" />
                     ) : (
                       <Circle className="w-5 h-5 text-slate-600 ml-auto" />
                     )}
                   </div>
 
                   {calendarConnected ? (
-                    <div className="bg-slate-50 rounded-lg px-4 py-2.5 text-sm text-black flex items-center gap-2">
+                    <div className="bg-emerald-50 rounded-lg px-4 py-2.5 text-sm text-emerald-600 flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4" />
                       Calendar connected
                     </div>
@@ -675,7 +675,7 @@ export default function OnboardingPage() {
             <button
               onClick={handleNext}
               disabled={loading}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-slate-500 hover:bg-slate-800 text-slate-900 font-semibold text-sm transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-emerald-500 hover:bg-slate-800 text-slate-900 font-semibold text-sm transition-colors disabled:opacity-50"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               {currentStep === 4 ? (

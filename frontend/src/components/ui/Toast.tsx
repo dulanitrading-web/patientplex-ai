@@ -32,17 +32,17 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const remove = (id: string) => setToasts((prev) => prev.filter((t) => t.id !== id));
 
   const icons = {
-    success: <CheckCircle2 className="w-4 h-4 text-slate-700" />,
+    success: <CheckCircle2 className="w-4 h-4 text-emerald-400" />,
     error: <AlertCircle className="w-4 h-4 text-red-600" />,
     warning: <AlertCircle className="w-4 h-4 text-amber-400" />,
-    info: <Info className="w-4 h-4 text-slate-600" />,
+    info: <Info className="w-4 h-4 text-cyan-400" />,
   };
 
   const styles = {
-    success: "border-black/10 bg-black/5",
+    success: "border-emerald-500/20 bg-emerald-500/5",
     error: "border-red-500/20 bg-red-500/5",
     warning: "border-amber-500/20 bg-amber-500/5",
-    info: "border-slate-500/20 bg-slate-500/5",
+    info: "border-cyan-500/20 bg-cyan-500/5",
   };
 
   return (

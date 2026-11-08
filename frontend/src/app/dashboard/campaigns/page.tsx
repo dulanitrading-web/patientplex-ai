@@ -86,17 +86,17 @@ export default function CampaignsPage() {
   };
 
   const statusConfig: Record<string, { cls: string; icon: React.ReactNode }> = {
-    ACTIVE: { cls: "bg-slate-50 text-black", icon: <CheckCircle2 className="w-3 h-3" /> },
+    ACTIVE: { cls: "bg-emerald-50 text-emerald-600", icon: <CheckCircle2 className="w-3 h-3" /> },
     PAUSED: { cls: "bg-amber-50 text-amber-600", icon: <Pause className="w-3 h-3" /> },
     DRAFT: { cls: "bg-white/5 text-slate-500", icon: <Clock className="w-3 h-3" /> },
-    PENDING_REVIEW: { cls: "bg-slate-50 text-slate-700", icon: <Clock className="w-3 h-3" /> },
+    PENDING_REVIEW: { cls: "bg-cyan-50 text-cyan-600", icon: <Clock className="w-3 h-3" /> },
     ERROR: { cls: "bg-red-50 text-red-600", icon: <XCircle className="w-3 h-3" /> },
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-slate-900" />
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
       </div>
     );
   }
@@ -107,7 +107,7 @@ export default function CampaignsPage() {
         <h1 className="text-xl font-bold text-slate-900">Campaigns</h1>
         <button
           onClick={handleLaunch}
-          className="px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-[#0A0E1A] text-sm font-medium transition-colors"
+          className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-slate-800 text-[#0A0E1A] text-sm font-medium transition-colors"
         >
           + Launch New
         </button>
@@ -120,7 +120,7 @@ export default function CampaignsPage() {
           <p className="text-slate-500 text-sm mb-4">Launch your first AI-powered campaigns on Google and Meta.</p>
           <button
             onClick={handleLaunch}
-            className="px-5 py-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-[#0A0E1A] text-sm font-medium transition-colors"
+            className="px-5 py-2.5 rounded-lg bg-emerald-500 hover:bg-slate-800 text-[#0A0E1A] text-sm font-medium transition-colors"
           >
             Launch Campaigns
           </button>

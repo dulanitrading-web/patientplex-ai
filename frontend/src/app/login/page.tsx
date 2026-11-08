@@ -86,7 +86,7 @@ export default function LoginPage() {
                   setEmail(e.target.value);
                   if (errors.email) setErrors((prev) => ({ ...prev, email: "" }));
                 }}
-                className="w-full px-4 py-3 rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-black/15 transition-colors"
+                className="w-full px-4 py-3 rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 transition-colors"
               />
               {errors.email && <p className="text-red-400 text-xs mt-1.5">{errors.email}</p>}
             </div>
@@ -94,7 +94,7 @@ export default function LoginPage() {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="block text-sm font-medium text-slate-700">Password</label>
-                <Link href="/forgot-password" className="text-xs text-black hover:text-black transition-colors">
+                <Link href="/forgot-password" className="text-xs text-emerald-600 hover:text-emerald-700 transition-colors">
                   Forgot password?
                 </Link>
               </div>
@@ -106,7 +106,7 @@ export default function LoginPage() {
                   setPassword(e.target.value);
                   if (errors.password) setErrors((prev) => ({ ...prev, password: "" }));
                 }}
-                className="w-full px-4 py-3 rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-black/15 transition-colors"
+                className="w-full px-4 py-3 rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 transition-colors"
               />
               {errors.password && <p className="text-red-400 text-xs mt-1.5">{errors.password}</p>}
             </div>
@@ -129,7 +129,7 @@ export default function LoginPage() {
 
           <p className="text-center text-sm text-slate-500 mt-6">
             Don&apos;t have an account?{" "}
-            <Link href="/signup" className="text-black font-medium hover:text-black transition-colors">
+            <Link href="/signup" className="text-emerald-600 font-medium hover:text-emerald-700 transition-colors">
               Create one
             </Link>
           </p>

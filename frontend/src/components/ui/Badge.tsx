@@ -13,10 +13,10 @@ interface BadgeProps {
 
 const styles: Record<BadgeVariant, string> = {
   default: "bg-white/10 text-slate-700",
-  success: "bg-black/5 text-slate-700",
+  success: "bg-emerald-500/10 text-emerald-400",
   warning: "bg-amber-500/10 text-amber-400",
   danger: "bg-red-500/10 text-red-600",
-  info: "bg-slate-500/10 text-slate-600",
+  info: "bg-cyan-500/10 text-cyan-400",
   outline: "bg-transparent border border-slate-200 text-slate-400",
 };
 

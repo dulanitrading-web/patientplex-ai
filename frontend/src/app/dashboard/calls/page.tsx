@@ -78,19 +78,19 @@ export default function CallsPage() {
 
   const statusBadge = (s: string) => {
     const m: Record<string, string> = {
-      ANSWERED: "bg-slate-50 text-black",
+      ANSWERED: "bg-emerald-50 text-emerald-600",
       MISSED: "bg-red-50 text-red-600",
       NO_ANSWER: "bg-amber-50 text-amber-600",
       BUSY: "bg-orange-500/10 text-orange-400",
-      COMPLETED: "bg-slate-50 text-black",
+      COMPLETED: "bg-emerald-50 text-emerald-600",
       FAILED: "bg-red-50 text-red-600",
     };
     return m[s] || "bg-white/5 text-slate-500";
   };
 
   const DirectionIcon = ({ direction }: { direction: string }) => {
-    if (direction === "OUTBOUND") return <PhoneOutgoing className="w-4 h-4 text-slate-700" />;
-    return <PhoneIncoming className="w-4 h-4 text-black" />;
+    if (direction === "OUTBOUND") return <PhoneOutgoing className="w-4 h-4 text-cyan-600" />;
+    return <PhoneIncoming className="w-4 h-4 text-emerald-600" />;
   };
 
   return (
@@ -103,9 +103,9 @@ export default function CallsPage() {
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <StatCard label="Total Calls" value={stats.total_calls} icon={<Phone className="w-4 h-4 text-slate-900" />} />
-          <StatCard label="Answered" value={stats.answered} color="text-black" icon={<PhoneIncoming className="w-4 h-4 text-black" />} />
+          <StatCard label="Answered" value={stats.answered} color="text-emerald-600" icon={<PhoneIncoming className="w-4 h-4 text-emerald-600" />} />
           <StatCard label="Missed" value={stats.missed} color="text-red-600" icon={<PhoneMissed className="w-4 h-4 text-red-600" />} />
-          <StatCard label="Recovered" value={stats.recovered_via_whatsapp} color="text-slate-700" icon={<MessageCircle className="w-4 h-4 text-slate-700" />} />
+          <StatCard label="Recovered" value={stats.recovered_via_whatsapp} color="text-cyan-600" icon={<MessageCircle className="w-4 h-4 text-cyan-600" />} />
         </div>
       )}
 
@@ -125,7 +125,7 @@ export default function CallsPage() {
       {/* Call Log List */}
       {loading ? (
         <div className="flex justify-center py-12">
-          <Loader2 className="w-6 h-6 animate-spin text-black" />
+          <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
         </div>
       ) : logs.length === 0 ? (
         <div className="bg-white rounded-xl p-8 text-center border border-slate-200">
@@ -157,7 +157,7 @@ export default function CallsPage() {
                         {cl.status.replace("_", " ")}
                       </span>
                       {cl.whatsapp_followup_sent && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-50 text-slate-700">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-cyan-50 text-cyan-600">
                           <MessageCircle className="w-3 h-3" /> WhatsApp sent
                         </span>
                       )}
