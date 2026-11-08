@@ -13,6 +13,76 @@ import {
 
 import Logo from "@/components/Logo";
 
+/* ─── Brand SVG Logos ─── */
+function GoogleLogo({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24">
+      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A11.96 11.96 0 0 0 0 12c0 1.94.46 3.77 1.28 5.41l3.56-2.77.01-.55z" fill="#FBBC05"/>
+      <path d="M12 4.75c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 1.09 14.97 0 12 0 7.7 0 3.99 2.47 2.18 6.07l3.66 2.84c.87-2.6 3.3-4.16 6.16-4.16z" fill="#EA4335"/>
+    </svg>
+  );
+}
+function WhatsAppLogo({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="#25D366">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/>
+    </svg>
+  );
+}
+function InstagramLogo({ size = 20 }: { size?: number }) {
+  const id = `ig_${size}`;
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24">
+      <defs>
+        <linearGradient id={id} x1="0" y1="24" x2="24" y2="0" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#FD5"/>
+          <stop offset=".5" stopColor="#FF543E"/>
+          <stop offset="1" stopColor="#C837AB"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z" fill={`url(#${id})`}/>
+    </svg>
+  );
+}
+function FacebookLogo({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="#1877F2">
+      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+    </svg>
+  );
+}
+function MetaLogo({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="#0081FB">
+      <path d="M6.915 4.03c-1.968 0-3.683 1.28-4.871 3.113C.704 9.208 0 11.883 0 14.449c0 .706.07 1.369.21 1.973a4.478 4.478 0 0 0 1.593 2.61c.76.585 1.675.868 2.64.868 1.17 0 2.287-.47 3.215-1.22.926-.746 1.755-1.815 2.439-3.128L12 12.95l1.903 2.602c.684 1.313 1.513 2.382 2.44 3.128.927.75 2.044 1.22 3.214 1.22.965 0 1.88-.283 2.64-.868a4.478 4.478 0 0 0 1.593-2.61c.14-.604.21-1.267.21-1.973 0-2.566-.704-5.241-2.044-7.306C20.768 5.31 19.053 4.03 17.085 4.03c-1.17 0-2.287.47-3.215 1.22-.926.746-1.755 1.815-2.439 3.128L12 11.05l-1.431-1.672c-.684-1.313-1.513-2.382-2.44-3.128C7.202 5.5 6.085 4.03 6.915 4.03z"/>
+    </svg>
+  );
+}
+function GoogleCalendarLogo({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24">
+      <path d="M18 2H6a4 4 0 0 0-4 4v12a4 4 0 0 0 4 4h12a4 4 0 0 0 4-4V6a4 4 0 0 0-4-4z" fill="#fff" stroke="#4285F4" strokeWidth="1.5"/>
+      <rect x="6" y="8" width="5" height="3" rx="0.5" fill="#4285F4"/>
+      <rect x="13" y="8" width="5" height="3" rx="0.5" fill="#EA4335"/>
+      <rect x="6" y="13" width="5" height="3" rx="0.5" fill="#FBBC05"/>
+      <rect x="13" y="13" width="5" height="3" rx="0.5" fill="#34A853"/>
+      <rect x="8" y="1" width="2" height="3" rx="1" fill="#5F6368"/>
+      <rect x="14" y="1" width="2" height="3" rx="1" fill="#5F6368"/>
+    </svg>
+  );
+}
+function GoogleAdsLogo({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24">
+      <path d="M3.245 16.897l5.702-9.893a3.39 3.39 0 0 1 4.636-1.238l-5.702 9.893a3.39 3.39 0 0 1-4.636 1.238z" fill="#FBBC05"/>
+      <path d="M20.755 16.897l-5.702-9.893a3.39 3.39 0 0 0-4.636-1.238l5.702 9.893a3.39 3.39 0 0 0 4.636 1.238z" fill="#4285F4"/>
+      <circle cx="5.634" cy="18.366" r="3.366" fill="#34A853"/>
+    </svg>
+  );
+}
+
 /* ─── Animated counter ─── */
 function Counter({ target, suffix = "", prefix = "" }: { target: number; suffix?: string; prefix?: string }) {
   const ref = useRef(null);
@@ -88,13 +158,13 @@ const MOCK_QUEUE = [
 
 const PRESS = ["Economic Times", "YourStory", "Inc42", "Mint", "Business Standard"];
 
-const CHANNELS = [
-  { name: "WhatsApp", icon: MessageCircle, color: "text-green-600", bg: "bg-green-50", border: "hover:border-green-300" },
-  { name: "Google Ads", icon: Search, color: "text-blue-600", bg: "bg-blue-50", border: "hover:border-blue-300" },
-  { name: "Instagram", icon: Instagram, color: "text-pink-600", bg: "bg-pink-50", border: "hover:border-pink-300" },
-  { name: "Facebook", icon: Facebook, color: "text-blue-700", bg: "bg-blue-50", border: "hover:border-blue-300" },
-  { name: "Phone", icon: Phone, color: "text-violet-600", bg: "bg-violet-50", border: "hover:border-violet-300" },
-  { name: "Website", icon: Globe, color: "text-emerald-600", bg: "bg-emerald-50", border: "hover:border-emerald-300" },
+const CHANNELS_DATA = [
+  { name: "WhatsApp", border: "hover:border-green-300" },
+  { name: "Google Ads", border: "hover:border-blue-300" },
+  { name: "Instagram", border: "hover:border-pink-300" },
+  { name: "Facebook", border: "hover:border-blue-300" },
+  { name: "Phone", border: "hover:border-violet-300" },
+  { name: "Website", border: "hover:border-emerald-300" },
 ];
 
 /* ─── ROI Calculator ─── */
@@ -295,14 +365,14 @@ export default function LandingPage() {
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.45 }}
                 className="flex items-center gap-3">
                 {[
-                  { bg: "bg-white", children: <span className="font-black text-sm" style={{background:"linear-gradient(135deg,#4285F4,#EA4335,#FBBC05,#34A853)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>G</span> },
-                  { bg: "bg-white", children: <span className="font-black text-sm text-blue-600">M</span> },
-                  { bg: "bg-white", children: <MessageCircle className="w-4 h-4 text-green-500" /> },
-                  { bg: "bg-white", children: <Instagram className="w-4 h-4 text-pink-500" /> },
-                  { bg: "bg-white", children: <Calendar className="w-4 h-4 text-red-500" /> },
-                ].map((p, i) => (
-                  <div key={i} className={`w-10 h-10 rounded-xl ${p.bg} border border-slate-200 shadow-sm flex items-center justify-center hover:shadow-md hover:scale-105 transition-all`}>
-                    {p.children}
+                  <GoogleLogo key="g" size={20} />,
+                  <MetaLogo key="m" size={20} />,
+                  <WhatsAppLogo key="w" size={20} />,
+                  <InstagramLogo key="i" size={20} />,
+                  <GoogleCalendarLogo key="c" size={20} />,
+                ].map((icon, i) => (
+                  <div key={i} className="w-10 h-10 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-center hover:shadow-md hover:scale-105 transition-all">
+                    {icon}
                   </div>
                 ))}
               </motion.div>
@@ -495,15 +565,25 @@ export default function LandingPage() {
             <Reveal delay={0.15}>
               <div className="grid grid-cols-3 gap-4 relative">
                 <div className="absolute -inset-6 bg-gradient-to-br from-emerald-50 via-transparent to-cyan-50 rounded-3xl -z-10" />
-                {CHANNELS.map((ch, i) => (
-                  <motion.div key={i} whileHover={{ y: -4, scale: 1.02 }}
-                    className={`bg-white rounded-2xl border border-slate-200 ${ch.border} p-6 flex flex-col items-center gap-3 shadow-sm hover:shadow-lg transition-all duration-300 cursor-default`}>
-                    <div className={`w-12 h-12 rounded-xl ${ch.bg} ${ch.color} flex items-center justify-center`}>
-                      <ch.icon className="w-6 h-6" />
-                    </div>
-                    <span className="text-sm font-semibold text-slate-700">{ch.name}</span>
-                  </motion.div>
-                ))}
+                {CHANNELS_DATA.map((ch, i) => {
+                  const icons = [
+                    <WhatsAppLogo key="wa" size={28} />,
+                    <GoogleAdsLogo key="ga" size={28} />,
+                    <InstagramLogo key="ig" size={28} />,
+                    <FacebookLogo key="fb" size={28} />,
+                    <Phone key="ph" className="w-7 h-7 text-violet-600" />,
+                    <Globe key="gl" className="w-7 h-7 text-emerald-600" />,
+                  ];
+                  return (
+                    <motion.div key={i} whileHover={{ y: -4, scale: 1.02 }}
+                      className={`bg-white rounded-2xl border border-slate-200 ${ch.border} p-6 flex flex-col items-center gap-3 shadow-sm hover:shadow-lg transition-all duration-300 cursor-default`}>
+                      <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center">
+                        {icons[i]}
+                      </div>
+                      <span className="text-sm font-semibold text-slate-700">{ch.name}</span>
+                    </motion.div>
+                  );
+                })}
               </div>
             </Reveal>
           </div>
@@ -519,19 +599,19 @@ export default function LandingPage() {
           </Reveal>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { name: "Google Ads", desc: "Auto-optimize campaigns", icon: Search, color: "text-blue-600", bg: "bg-blue-50" },
-              { name: "Meta Ads", desc: "Facebook + Instagram ads", icon: Facebook, color: "text-blue-700", bg: "bg-blue-50" },
-              { name: "WhatsApp Business", desc: "AI chatbot receptionist", icon: MessageCircle, color: "text-green-600", bg: "bg-green-50" },
-              { name: "Google Calendar", desc: "Appointment sync", icon: Calendar, color: "text-red-500", bg: "bg-red-50" },
-              { name: "Google My Business", desc: "Review management", icon: Star, color: "text-amber-500", bg: "bg-amber-50" },
-              { name: "Practo", desc: "Patient referrals", icon: Users, color: "text-teal-600", bg: "bg-teal-50" },
-              { name: "Zoho CRM", desc: "Patient data sync", icon: BarChart3, color: "text-violet-600", bg: "bg-violet-50" },
-              { name: "Razorpay", desc: "Payment collection", icon: Target, color: "text-blue-600", bg: "bg-blue-50" },
+              { name: "Google Ads", desc: "Auto-optimize campaigns", logo: <GoogleAdsLogo size={24} /> },
+              { name: "Meta Ads", desc: "Facebook + Instagram ads", logo: <MetaLogo size={24} /> },
+              { name: "WhatsApp Business", desc: "AI chatbot receptionist", logo: <WhatsAppLogo size={24} /> },
+              { name: "Google Calendar", desc: "Appointment sync", logo: <GoogleCalendarLogo size={24} /> },
+              { name: "Google My Business", desc: "Review management", logo: <GoogleLogo size={24} /> },
+              { name: "Practo", desc: "Patient referrals", logo: <Users className="w-6 h-6 text-teal-600" /> },
+              { name: "Zoho CRM", desc: "Patient data sync", logo: <BarChart3 className="w-6 h-6 text-violet-600" /> },
+              { name: "JustDial", desc: "Get discovered by patients nearby", logo: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#FFD700" stroke="#E6C200" strokeWidth="1"/><path d="M12 6l1.5 3.5H18l-3 2.5 1.2 3.5L12 13l-4.2 2.5 1.2-3.5-3-2.5h4.5L12 6z" fill="#1A1A1A"/></svg> },
             ].map((item, i) => (
               <Reveal key={i} delay={i * 0.05}>
                 <motion.div whileHover={{ y: -3 }} className="bg-[#FAFAF8] rounded-2xl border border-slate-200 p-5 flex items-start gap-4 hover:shadow-lg transition-all duration-300 cursor-default">
-                  <div className={`w-10 h-10 rounded-xl ${item.bg} ${item.color} flex items-center justify-center shrink-0`}>
-                    <item.icon className="w-5 h-5" />
+                  <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center shrink-0">
+                    {item.logo}
                   </div>
                   <div>
                     <p className="font-bold text-slate-900 text-sm">{item.name}</p>
