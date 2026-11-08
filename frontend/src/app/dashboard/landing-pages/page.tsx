@@ -69,9 +69,9 @@ export default function LandingPagesPage() {
       </div>
 
       {/* Info Card */}
-      <div className="rounded-xl p-5 border border-emerald-200 bg-emerald-500/[0.06]">
+      <div className="rounded-xl p-5 border border-slate-300 bg-slate-900/[0.06]">
         <div className="flex items-start gap-3">
-          <Globe className="w-6 h-6 shrink-0 mt-0.5 text-emerald-600" />
+          <Globe className="w-6 h-6 shrink-0 mt-0.5 text-black" />
           <div>
             <h2 className="font-semibold text-slate-900">Your Doctor Landing Pages</h2>
             <p className="text-slate-500 text-sm mt-1">
@@ -84,7 +84,7 @@ export default function LandingPagesPage() {
 
       {loading ? (
         <div className="flex justify-center py-12">
-          <Loader2 className="w-6 h-6 animate-spin text-emerald-500" />
+          <Loader2 className="w-6 h-6 animate-spin text-slate-900" />
         </div>
       ) : pages.length === 0 ? (
         <div className="bg-white rounded-xl p-8 border border-slate-200 text-center">
@@ -108,18 +108,18 @@ export default function LandingPagesPage() {
             <div key={page.url} className="bg-white rounded-xl border border-slate-200 p-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-start gap-3">
-                  <div className={`p-2 rounded-lg ${page.type === "main" ? "bg-emerald-50" : "bg-cyan-50"}`}>
+                  <div className={`p-2 rounded-lg ${page.type === "main" ? "bg-slate-50" : "bg-slate-50"}`}>
                     {page.type === "main" ? (
-                      <Globe className="w-5 h-5 text-emerald-600" />
+                      <Globe className="w-5 h-5 text-black" />
                     ) : (
-                      <FileText className="w-5 h-5 text-cyan-600" />
+                      <FileText className="w-5 h-5 text-slate-700" />
                     )}
                   </div>
                   <div>
                     <div className="font-medium text-sm text-slate-900">{page.title}</div>
                     <div className="text-xs text-slate-600 mt-0.5 break-all">{page.url}</div>
                     <span className={`inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-medium ${
-                      page.type === "main" ? "bg-emerald-50 text-emerald-600" : "bg-cyan-50 text-cyan-600"
+                      page.type === "main" ? "bg-slate-50 text-black" : "bg-slate-50 text-slate-700"
                     }`}>
                       {page.type === "main" ? "Main Page" : "Treatment Page"}
                     </span>
@@ -129,14 +129,14 @@ export default function LandingPagesPage() {
                   <button onClick={() => copyUrl(page.url)}
                     className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-slate-500 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
                     {copied === page.url ? (
-                      <><CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Copied</>
+                      <><CheckCircle2 className="w-3.5 h-3.5 text-black" /> Copied</>
                     ) : (
                       <><Copy className="w-3.5 h-3.5" /> Copy URL</>
                     )}
                   </button>
                   {previewUrl && page.type === "main" && (
                     <a href={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || ''}${previewUrl}`} target="_blank" rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 rounded-lg hover:bg-emerald-500/20 transition-colors">
+                      className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-black bg-slate-50 rounded-lg hover:bg-black/10 transition-colors">
                       <ExternalLink className="w-3.5 h-3.5" /> Preview
                     </a>
                   )}
@@ -151,24 +151,24 @@ export default function LandingPagesPage() {
       {pages.length > 0 && (
         <div className="bg-white rounded-xl border border-slate-200 p-5">
           <h3 className="font-semibold text-slate-900 flex items-center gap-2 mb-3">
-            <Smartphone className="w-5 h-5 text-violet-600" /> How Your Page Looks
+            <Smartphone className="w-5 h-5 text-slate-700" /> How Your Page Looks
           </h3>
           <p className="text-sm text-slate-600 mb-4">
             Your landing pages are mobile-first with WhatsApp booking, Google Maps,
             and treatment details. They load instantly for better ad quality scores.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-            <div className="p-3 bg-emerald-50 rounded-lg">
-              <div className="font-medium text-emerald-600">Mobile Optimized</div>
-              <div className="text-emerald-600/60 text-xs mt-1">80% of patient traffic is mobile</div>
+            <div className="p-3 bg-slate-50 rounded-lg">
+              <div className="font-medium text-black">Mobile Optimized</div>
+              <div className="text-black/60 text-xs mt-1">80% of patient traffic is mobile</div>
             </div>
-            <div className="p-3 bg-cyan-50 rounded-lg">
-              <div className="font-medium text-cyan-600">Fast Loading</div>
-              <div className="text-cyan-600/60 text-xs mt-1">No frameworks — pure HTML/CSS</div>
+            <div className="p-3 bg-slate-50 rounded-lg">
+              <div className="font-medium text-slate-700">Fast Loading</div>
+              <div className="text-slate-700/60 text-xs mt-1">No frameworks — pure HTML/CSS</div>
             </div>
-            <div className="p-3 bg-violet-50 rounded-lg">
-              <div className="font-medium text-violet-600">SEO Ready</div>
-              <div className="text-violet-600/60 text-xs mt-1">Schema.org medical business markup</div>
+            <div className="p-3 bg-slate-50 rounded-lg">
+              <div className="font-medium text-slate-700">SEO Ready</div>
+              <div className="text-slate-700/60 text-xs mt-1">Schema.org medical business markup</div>
             </div>
           </div>
         </div>

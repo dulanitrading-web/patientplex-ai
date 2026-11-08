@@ -27,7 +27,7 @@ export default function Select({ label, options, value, onChange, placeholder, e
             "w-full appearance-none rounded-lg border px-3 py-2.5 pr-9 text-sm bg-white transition-colors",
             error
               ? "border-red-300 focus:ring-red-500/30"
-              : "border-slate-300 focus:border-emerald-500 focus:ring-emerald-500/30",
+              : "border-slate-300 focus:border-slate-500 focus:ring-black/15",
             "focus:outline-none focus:ring-2 focus:ring-offset-0",
             "text-slate-900"
           )}

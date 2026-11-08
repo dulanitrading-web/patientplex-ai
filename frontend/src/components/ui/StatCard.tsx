@@ -13,8 +13,8 @@ interface StatCardProps {
 }
 
 const colorMap: Record<string, { bg: string; text: string }> = {
-  emerald: { bg: "bg-emerald-500/10", text: "text-emerald-400" },
-  cyan: { bg: "bg-cyan-500/10", text: "text-cyan-400" },
+  emerald: { bg: "bg-black/5", text: "text-slate-700" },
+  cyan: { bg: "bg-slate-500/10", text: "text-slate-600" },
   violet: { bg: "bg-violet-500/10", text: "text-violet-400" },
   amber: { bg: "bg-amber-500/10", text: "text-amber-400" },
   red: { bg: "bg-red-500/10", text: "text-red-600" },
@@ -34,7 +34,7 @@ export default function StatCard({ icon, label, value, change, color = "emerald"
         {change !== undefined && (
           <span className={clsx(
             "flex items-center gap-0.5 text-xs font-medium pb-0.5",
-            change >= 0 ? "text-emerald-400" : "text-red-600",
+            change >= 0 ? "text-slate-700" : "text-red-600",
           )}>
             {change >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
             {Math.abs(change)}%

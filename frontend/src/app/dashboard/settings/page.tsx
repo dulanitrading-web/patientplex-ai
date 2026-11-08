@@ -77,7 +77,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-slate-900" />
       </div>
     );
   }
@@ -91,7 +91,7 @@ export default function SettingsPage() {
 
       {/* Profile Section */}
       <div className="bg-white rounded-xl border border-slate-200 p-5">
-        <SectionHeader icon={<User className="w-5 h-5 text-emerald-600" />} title="Profile" />
+        <SectionHeader icon={<User className="w-5 h-5 text-black" />} title="Profile" />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
           <InfoField label="Full Name" value={doctor?.full_name} />
           <InfoField label="Email" value={doctor?.email} />
@@ -103,7 +103,7 @@ export default function SettingsPage() {
 
       {/* Clinic Details */}
       <div className="bg-white rounded-xl border border-slate-200 p-5">
-        <SectionHeader icon={<Building2 className="w-5 h-5 text-cyan-600" />} title="Clinic Details" />
+        <SectionHeader icon={<Building2 className="w-5 h-5 text-slate-700" />} title="Clinic Details" />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
           <InfoField label="Clinic Name" value={doctor?.clinic_name} />
           <InfoField label="Specialty" value={doctor?.specialty ? formatSpecialty(doctor.specialty) : undefined} />
@@ -116,7 +116,7 @@ export default function SettingsPage() {
             <label className="block text-sm font-medium text-slate-600 mb-2">Services</label>
             <div className="flex flex-wrap gap-2">
               {doctor.services.map((s) => (
-                <span key={s} className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-600">
+                <span key={s} className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-50 text-black">
                   {s}
                 </span>
               ))}
@@ -127,7 +127,7 @@ export default function SettingsPage() {
 
       {/* Integration Status */}
       <div className="bg-white rounded-xl border border-slate-200 p-5">
-        <SectionHeader icon={<Link2 className="w-5 h-5 text-violet-600" />} title="Integration Status" />
+        <SectionHeader icon={<Link2 className="w-5 h-5 text-slate-700" />} title="Integration Status" />
         <div className="space-y-3 mt-4">
           <IntegrationRow
             icon={<Calendar className="w-4 h-4" />}
@@ -170,7 +170,7 @@ export default function SettingsPage() {
           </div>
         ) : (
           <div className="mt-4">
-            <p className="text-sm text-slate-600">No active subscription. Start a free trial from the <a href="/dashboard/billing" className="text-emerald-600 hover:text-emerald-300">Billing</a> page.</p>
+            <p className="text-sm text-slate-600">No active subscription. Start a free trial from the <a href="/dashboard/billing" className="text-black hover:text-slate-600">Billing</a> page.</p>
           </div>
         )}
       </div>
@@ -216,10 +216,10 @@ function IntegrationRow({ icon, name, status, detail }: {
   detail: string;
 }) {
   const statusConfig = {
-    connected: { icon: <CheckCircle2 className="w-4 h-4 text-emerald-600" />, label: "Connected", cls: "bg-emerald-50 text-emerald-600" },
+    connected: { icon: <CheckCircle2 className="w-4 h-4 text-black" />, label: "Connected", cls: "bg-slate-50 text-black" },
     pending: { icon: <Clock className="w-4 h-4 text-amber-600" />, label: "Pending", cls: "bg-amber-50 text-amber-600" },
     not_connected: { icon: <XCircle className="w-4 h-4 text-slate-600" />, label: "Not Connected", cls: "bg-white/5 text-slate-600" },
-    coming_soon: { icon: <Clock className="w-4 h-4 text-cyan-600" />, label: "Coming Soon", cls: "bg-cyan-50 text-cyan-600" },
+    coming_soon: { icon: <Clock className="w-4 h-4 text-slate-700" />, label: "Coming Soon", cls: "bg-slate-50 text-slate-700" },
   };
   const cfg = statusConfig[status];
 

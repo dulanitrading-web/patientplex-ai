@@ -45,8 +45,8 @@ export default function ForgotPasswordPage() {
         <div className="bg-white border border-slate-200 rounded-xl p-8 shadow-sm">
           {submitted ? (
             <div className="text-center py-4">
-              <div className="w-12 h-12 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+              <div className="w-12 h-12 bg-black/5 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle2 className="w-6 h-6 text-slate-700" />
               </div>
               <h1 className="text-2xl font-bold text-slate-900 mb-2">Check your email</h1>
               <p className="text-slate-500 text-sm mb-6">
@@ -54,7 +54,7 @@ export default function ForgotPasswordPage() {
               </p>
               <Link
                 href="/login"
-                className="inline-flex items-center gap-2 text-emerald-600 hover:text-emerald-700 font-medium text-sm transition-colors"
+                className="inline-flex items-center gap-2 text-black hover:text-black font-medium text-sm transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Back to sign in
@@ -63,8 +63,8 @@ export default function ForgotPasswordPage() {
           ) : (
             <>
               <div className="flex justify-center mb-4">
-                <div className="w-12 h-12 bg-emerald-500/10 rounded-full flex items-center justify-center">
-                  <Mail className="w-6 h-6 text-emerald-400" />
+                <div className="w-12 h-12 bg-black/5 rounded-full flex items-center justify-center">
+                  <Mail className="w-6 h-6 text-slate-700" />
                 </div>
               </div>
               <h1 className="text-2xl font-bold text-slate-900 text-center mb-1">
@@ -85,7 +85,7 @@ export default function ForgotPasswordPage() {
                       setEmail(e.target.value);
                       if (errors.email) setErrors((prev) => ({ ...prev, email: "" }));
                     }}
-                    className="w-full px-3 py-2.5 rounded-lg bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-colors"
+                    className="w-full px-3 py-2.5 rounded-lg bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-black/15 focus:border-slate-500 transition-colors"
                   />
                   {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
                 </div>
@@ -103,7 +103,7 @@ export default function ForgotPasswordPage() {
               <p className="text-center text-sm text-slate-500 mt-6">
                 <Link
                   href="/login"
-                  className="inline-flex items-center gap-1 text-emerald-600 hover:text-emerald-700 font-medium transition-colors"
+                  className="inline-flex items-center gap-1 text-black hover:text-black font-medium transition-colors"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   Back to sign in

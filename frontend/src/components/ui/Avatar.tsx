@@ -11,8 +11,8 @@ interface AvatarProps {
 const sizes = { sm: "w-8 h-8 text-xs", md: "w-10 h-10 text-sm", lg: "w-12 h-12 text-base" };
 
 const colors = [
-  "bg-emerald-500/15 text-emerald-400",
-  "bg-cyan-500/15 text-cyan-400",
+  "bg-black/10 text-slate-700",
+  "bg-slate-500/10 text-slate-600",
   "bg-violet-500/15 text-violet-400",
   "bg-amber-500/15 text-amber-400",
   "bg-rose-500/15 text-rose-400",

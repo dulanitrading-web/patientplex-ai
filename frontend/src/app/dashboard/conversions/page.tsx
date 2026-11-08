@@ -46,12 +46,12 @@ const STAGE_ICONS: Record<string, React.ReactNode> = {
 };
 
 const STAGE_COLORS = [
-  "bg-cyan-500",
-  "bg-cyan-400",
-  "bg-violet-500",
-  "bg-violet-400",
-  "bg-emerald-500",
-  "bg-emerald-400",
+  "bg-slate-700",
+  "bg-slate-600",
+  "bg-slate-700",
+  "bg-slate-600",
+  "bg-slate-900",
+  "bg-slate-700",
   "bg-green-500",
   "bg-green-400",
 ];
@@ -125,7 +125,7 @@ export default function ConversionsPage() {
 
       {loading ? (
         <div className="flex justify-center py-12">
-          <Loader2 className="w-6 h-6 animate-spin text-emerald-500" />
+          <Loader2 className="w-6 h-6 animate-spin text-slate-900" />
         </div>
       ) : funnel.length === 0 ? (
         <div className="bg-white rounded-xl p-8 text-center border border-slate-200">
@@ -202,7 +202,7 @@ export default function ConversionsPage() {
                         <td className="py-2.5 px-3 text-right text-slate-700">{ch.appointments}</td>
                         <td className="py-2.5 px-3 text-right">
                           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                            ch.conversion_rate >= 20 ? "bg-emerald-50 text-emerald-600" :
+                            ch.conversion_rate >= 20 ? "bg-slate-50 text-black" :
                             ch.conversion_rate >= 10 ? "bg-amber-50 text-amber-600" :
                             "bg-red-50 text-red-600"
                           }`}>

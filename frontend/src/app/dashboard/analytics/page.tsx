@@ -92,7 +92,7 @@ export default function AnalyticsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-slate-900" />
       </div>
     );
   }
@@ -191,12 +191,12 @@ export default function AnalyticsPage() {
         {/* Conversion Funnel */}
         <div className="bg-white rounded-xl p-5 border border-slate-200">
           <h3 className="font-semibold text-slate-900 flex items-center gap-2 mb-5">
-            <TrendingUp className="w-5 h-5 text-emerald-600" /> Conversion Funnel
+            <TrendingUp className="w-5 h-5 text-black" /> Conversion Funnel
           </h3>
           <div className="space-y-4">
             {funnelStages.map((stage, i) => {
               const widthPct = maxFunnelCount > 0 ? Math.max((stage.count / maxFunnelCount) * 100, 4) : 4;
-              const colors = ["bg-cyan-500", "bg-violet-500", "bg-emerald-500", "bg-amber-500"];
+              const colors = ["bg-slate-700", "bg-slate-700", "bg-slate-900", "bg-amber-500"];
               return (
                 <div key={stage.stage}>
                   <div className="flex justify-between text-sm mb-1.5">
@@ -234,7 +234,7 @@ export default function AnalyticsPage() {
         {/* Source Attribution */}
         <div className="bg-white rounded-xl p-5 border border-slate-200">
           <h3 className="font-semibold text-slate-900 flex items-center gap-2 mb-5">
-            <BarChart3 className="w-5 h-5 text-cyan-600" /> Source Attribution
+            <BarChart3 className="w-5 h-5 text-slate-700" /> Source Attribution
           </h3>
           {channels.length === 0 ? (
             <div className="text-center py-8">
@@ -248,11 +248,11 @@ export default function AnalyticsPage() {
             <div className="space-y-4">
               {channels.map((ch) => {
                 const channelColors: Record<string, string> = {
-                  google: "bg-cyan-500",
-                  meta: "bg-violet-500",
-                  whatsapp: "bg-emerald-500",
+                  google: "bg-slate-700",
+                  meta: "bg-slate-700",
+                  whatsapp: "bg-slate-900",
                   direct: "bg-slate-500",
-                  organic: "bg-teal-500",
+                  organic: "bg-slate-800",
                   call: "bg-amber-500",
                 };
                 const color = channelColors[ch.channel.toLowerCase()] || "bg-slate-500";
@@ -331,10 +331,10 @@ function KpiCard({
   color: string;
 }) {
   const cm: Record<string, string> = {
-    cyan: "bg-cyan-50 text-cyan-600",
+    cyan: "bg-slate-50 text-slate-700",
     green: "bg-green-500/10 text-green-400",
-    violet: "bg-violet-50 text-violet-600",
-    emerald: "bg-emerald-50 text-emerald-600",
+    violet: "bg-slate-50 text-slate-700",
+    emerald: "bg-slate-50 text-black",
     amber: "bg-amber-50 text-amber-600",
     rose: "bg-rose-50 text-rose-600",
   };

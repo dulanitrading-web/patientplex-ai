@@ -68,9 +68,9 @@ export default function ConversationsPage() {
   }
 
   const statusColor: Record<string, string> = {
-    ACTIVE: "bg-emerald-400",
+    ACTIVE: "bg-slate-700",
     BOOKING_IN_PROGRESS: "bg-amber-400",
-    BOOKED: "bg-cyan-400",
+    BOOKED: "bg-slate-600",
     COMPLETED: "bg-slate-400",
     ABANDONED: "bg-red-400",
   };
@@ -87,7 +87,7 @@ export default function ConversationsPage() {
         <div className="bg-white rounded-xl border border-slate-200 overflow-y-auto">
           {loading ? (
             <div className="flex justify-center py-12">
-              <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
+              <Loader2 className="w-6 h-6 animate-spin text-black" />
             </div>
           ) : conversations.length === 0 ? (
             <div className="p-8 text-center">
@@ -100,7 +100,7 @@ export default function ConversationsPage() {
               {conversations.map((c) => (
                 <button key={c.id} onClick={() => openChat(c.id)}
                   className={`w-full text-left p-4 hover:bg-slate-100 transition-colors ${
-                    selected?.id === c.id ? "bg-emerald-50" : ""
+                    selected?.id === c.id ? "bg-slate-50" : ""
                   }`}>
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-3">
@@ -134,7 +134,7 @@ export default function ConversationsPage() {
         <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 flex flex-col">
           {chatLoading ? (
             <div className="flex-1 flex items-center justify-center">
-              <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
+              <Loader2 className="w-6 h-6 animate-spin text-black" />
             </div>
           ) : !selected ? (
             <div className="flex-1 flex items-center justify-center text-slate-600">
@@ -159,7 +159,7 @@ export default function ConversationsPage() {
                   </div>
                 </div>
                 <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                  selected.status === "BOOKED" ? "bg-emerald-50 text-emerald-600" : "bg-white/5 text-slate-500"
+                  selected.status === "BOOKED" ? "bg-slate-50 text-black" : "bg-white/5 text-slate-500"
                 }`}>
                   {selected.status === "BOOKED" && <CheckCircle2 className="w-3 h-3 mr-1" />}
                   {selected.status}
@@ -173,7 +173,7 @@ export default function ConversationsPage() {
                     <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm ${
                       msg.role === "assistant"
                         ? "bg-white border border-slate-200 text-slate-800"
-                        : "bg-emerald-600 text-white"
+                        : "bg-black text-white"
                     }`}>
                       <div className="whitespace-pre-wrap">{msg.content}</div>
                       <div className={`text-[10px] mt-1 ${

@@ -71,9 +71,9 @@ export default function AppointmentsPage() {
 
   const statusBadge = (s: string) => {
     const m: Record<string, string> = {
-      CONFIRMED: "bg-cyan-50 text-cyan-600",
+      CONFIRMED: "bg-slate-50 text-slate-700",
       REMINDED: "bg-amber-50 text-amber-600",
-      ATTENDED: "bg-emerald-50 text-emerald-600",
+      ATTENDED: "bg-slate-50 text-black",
       NO_SHOW: "bg-red-50 text-red-600",
       CANCELLED: "bg-white/5 text-slate-600",
     };
@@ -93,10 +93,10 @@ export default function AppointmentsPage() {
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <StatCard label="Total" value={stats.total_booked} />
-          <StatCard label="Attended" value={stats.attended} color="text-emerald-600" />
+          <StatCard label="Attended" value={stats.attended} color="text-black" />
           <StatCard label="No-Show" value={stats.no_show} color="text-red-600" />
           <StatCard label="Cancelled" value={stats.cancelled} color="text-slate-600" />
-          <StatCard label="Rate" value={`${stats.attendance_rate}%`} color="text-cyan-600" />
+          <StatCard label="Rate" value={`${stats.attendance_rate}%`} color="text-slate-700" />
         </div>
       )}
 
@@ -107,7 +107,7 @@ export default function AppointmentsPage() {
           <button key={s} onClick={() => setFilter(s)}
             className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
               filter === s
-                ? "bg-emerald-50 text-emerald-600 border border-emerald-300"
+                ? "bg-slate-50 text-black border border-black/20"
                 : "text-slate-500 border border-slate-200 hover:border-slate-300 hover:text-slate-700"
             }`}>
             {s === "ALL" ? "All" : s.replace("_", " ")}
@@ -118,7 +118,7 @@ export default function AppointmentsPage() {
       {/* Appointments List */}
       {loading ? (
         <div className="flex justify-center py-12">
-          <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
+          <Loader2 className="w-6 h-6 animate-spin text-black" />
         </div>
       ) : appointments.length === 0 ? (
         <div className="bg-white rounded-xl p-8 text-center border border-slate-200">
@@ -156,7 +156,7 @@ export default function AppointmentsPage() {
                     <button
                       onClick={() => markStatus(a.id, "ATTENDED")}
                       disabled={updating === a.id}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-emerald-500 hover:bg-slate-800 text-[#0A0E1A] transition-colors disabled:opacity-50"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-900 hover:bg-slate-800 text-[#0A0E1A] transition-colors disabled:opacity-50"
                     >
                       {updating === a.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
                       Attended
