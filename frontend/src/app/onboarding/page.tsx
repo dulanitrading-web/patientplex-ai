@@ -316,7 +316,7 @@ export default function OnboardingPage() {
       <div className="pt-8 pb-4 px-4 relative">
         <Link href="/" className="flex items-center justify-center gap-2.5">
           <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-400 to-cyan-400 flex items-center justify-center">
-            <span className="text-[#0A0E1A] font-bold text-sm">P</span>
+            <span className="text-slate-900 font-bold text-sm">P</span>
           </div>
           <span className="text-slate-900 text-xl font-semibold tracking-tight">PatientPlex</span>
         </Link>
@@ -334,8 +334,8 @@ export default function OnboardingPage() {
                   <div
                     className={clsx(
                       "w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300",
-                      done && "bg-emerald-500 text-white",
-                      active && "bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 scale-110",
+                      done && "bg-slate-900 text-white",
+                      active && "bg-slate-900 text-white shadow-lg shadow-emerald-500/30 scale-110",
                       !done && !active && "bg-white/10 text-slate-600"
                     )}
                   >
@@ -391,7 +391,7 @@ export default function OnboardingPage() {
                           : "border-slate-200 hover:border-slate-200 bg-slate-50"
                       )}
                     >
-                      <div className={clsx("w-10 h-10 rounded-lg flex items-center justify-center", selected ? "bg-emerald-500/20" : "bg-white/5")}>
+                      <div className={clsx("w-10 h-10 rounded-lg flex items-center justify-center", selected ? "bg-emerald-100" : "bg-slate-50")}>
                         <Icon className={clsx("w-5 h-5", selected ? "text-emerald-600" : "text-slate-600")} />
                       </div>
                       <span className={clsx("text-sm font-medium", selected ? "text-emerald-600" : "text-slate-500")}>
@@ -446,7 +446,7 @@ export default function OnboardingPage() {
                     <button
                       type="button"
                       onClick={addCustomService}
-                      className="p-2.5 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"
+                      className="p-2.5 bg-slate-50 rounded-lg hover:bg-white/10 transition-colors"
                     >
                       <Plus className="w-4 h-4 text-slate-500" />
                     </button>
@@ -603,7 +603,7 @@ export default function OnboardingPage() {
                     )}
                   </div>
                   <div className="flex gap-2">
-                    <div className="flex items-center bg-white/5 border border-slate-200 rounded-lg px-3 text-sm text-slate-500 font-medium">
+                    <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg px-3 text-sm text-slate-500 font-medium">
                       +91
                     </div>
                     <input
@@ -676,7 +676,7 @@ export default function OnboardingPage() {
             <button
               onClick={handleNext}
               disabled={loading}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-emerald-500 hover:bg-slate-800 text-[#0A0E1A] font-semibold text-sm transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-emerald-500 hover:bg-slate-800 text-slate-900 font-semibold text-sm transition-colors disabled:opacity-50"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               {currentStep === 4 ? (
