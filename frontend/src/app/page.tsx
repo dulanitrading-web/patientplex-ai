@@ -167,7 +167,11 @@ export default function LandingPage() {
 
       {/* ═══ HERO ═══ */}
       <section className="pt-28 pb-20 px-6 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/80 via-teal-50/40 to-cyan-50/60 animate-gradient" />
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-100/90 via-teal-50/60 to-cyan-100/80" />
+          <div className="absolute top-0 right-0 w-[60%] h-full bg-gradient-to-l from-amber-50/40 to-transparent" />
+          <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-[#FAFAF8] to-transparent" />
+        </div>
         <div className="absolute inset-0 opacity-40 pointer-events-none" style={{ backgroundImage: "radial-gradient(circle, #cbd5e1 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
         {/* Floating particles */}
         {[1,2,3,4].map(i => (
@@ -182,7 +186,7 @@ export default function LandingPage() {
           <div className="grid lg:grid-cols-2 gap-14 items-center">
             <div>
               <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
-                className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.05] text-slate-900 mb-6">
+                className="text-5xl sm:text-6xl lg:text-[5rem] font-black tracking-tight leading-[1.05] text-slate-900 mb-6">
                 AI runs your<br /><span className="text-gradient-hero">patient acquisition</span>
               </motion.h1>
 
@@ -234,6 +238,15 @@ export default function LandingPage() {
             {/* Dashboard mockup */}
             <motion.div initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.3 }}
               className="hidden lg:block">
+              {/* Stacked product layers like Ryze */}
+              <div className="relative pt-14">
+                <div className="absolute top-0 left-4 right-4 z-0">
+                  <div className="bg-emerald-100/60 rounded-t-xl px-5 py-2 text-[10px] font-bold text-emerald-700 uppercase tracking-widest border border-emerald-200/60 border-b-0">{"●"} Patient CRM</div>
+                </div>
+                <div className="absolute top-7 left-2 right-2 z-0">
+                  <div className="bg-teal-100/60 rounded-t-xl px-5 py-2 text-[10px] font-bold text-teal-700 uppercase tracking-widest border border-teal-200/60 border-b-0">{"●"} Analytics Dashboard</div>
+                </div>
+                <div className="relative z-10">
               <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl shadow-slate-200/50 overflow-hidden hover:shadow-3xl transition-shadow duration-500">
                 <div className="border-b border-slate-100">
                   <div className="flex">
@@ -246,6 +259,17 @@ export default function LandingPage() {
                   </div>
                 </div>
                 <div className="p-6">
+                  <div className="flex gap-4">
+                    {/* Mini sidebar */}
+                    <div className="flex flex-col items-center gap-3 py-2 border-r border-slate-100 pr-4">
+                      {[Brain, BarChart3, Star, MessageCircle, Calendar, Globe].map((Icon, idx) => (
+                        <div key={idx} className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${idx === 0 ? "bg-emerald-50 text-emerald-600" : "text-slate-300 hover:bg-slate-50 hover:text-slate-500"}`}>
+                          <Icon className="w-4 h-4" />
+                        </div>
+                      ))}
+                    </div>
+                    {/* Main content */}
+                    <div className="flex-1 min-w-0">
                   {/* Tab 0: AI Receptionist */}
                   {heroTab === 0 && (
                     <div>
@@ -310,6 +334,23 @@ export default function LandingPage() {
                       ))}
                     </div>
                   )}
+                    </div>
+                  </div>
+                  {/* Action buttons */}
+                  <div className="flex items-center justify-end gap-2 mt-4 pt-4 border-t border-slate-100">
+                    <button className="text-xs font-medium text-slate-500 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-colors">Edit first</button>
+                    <button className="text-xs font-semibold text-white bg-emerald-500 px-4 py-1.5 rounded-lg hover:bg-emerald-600 transition-colors">Launch campaign</button>
+                  </div>
+                </div>
+                {/* Chat input */}
+                <div className="px-6 pb-5">
+                  <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                    <Brain className="w-4 h-4 text-slate-300 shrink-0" />
+                    <span className="text-xs text-slate-400">Ask PatientPlex anything about your ads...</span>
+                    <ArrowRight className="w-4 h-4 text-slate-300 ml-auto shrink-0" />
+                  </div>
+                </div>
+              </div>
                 </div>
               </div>
             </motion.div>
