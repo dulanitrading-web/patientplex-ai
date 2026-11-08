@@ -4,9 +4,10 @@ services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: cliniccare
-      POSTGRES_PASSWORD: cliniccare_dev_2026
-      POSTGRES_DB: cliniccare
+      # PRODUCTION: Override these in .env — never use defaults in production
+      POSTGRES_USER: ${POSTGRES_USER:-cliniccare}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cliniccare_dev_2026}
+      POSTGRES_DB: ${POSTGRES_DB:-cliniccare}
     ports:
       - "5432:5432"
     volumes:
@@ -24,8 +25,9 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql+asyncpg://cliniccare:cliniccare_dev_2026@db:5432/cliniccare
-      SECRET_KEY: dev-secret-key-change-in-production
+      # PRODUCTION: Override DATABASE_URL and SECRET_KEY in .env
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://cliniccare:cliniccare_dev_2026@db:5432/cliniccare}
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}
       CLAUDE_API_KEY: ${CLAUDE_API_KEY:-}
       WHATSAPP_API_TOKEN: ${WHATSAPP_API_TOKEN:-}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
@@ -50,7 +52,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     environment:
-      DATABASE_URL: postgresql+asyncpg://cliniccare:cliniccare_dev_2026@db:5432/cliniccare
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://cliniccare:cliniccare_dev_2026@db:5432/cliniccare}
       CLAUDE_API_KEY: ${CLAUDE_API_KEY:-}
       WHATSAPP_API_TOKEN: ${WHATSAPP_API_TOKEN:-}
     depends_on:

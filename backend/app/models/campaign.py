@@ -8,7 +8,7 @@ from sqlalchemy import (
     Boolean, DateTime, Enum, Float, ForeignKey, Integer, JSON, String, Text,
 )
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 
@@ -81,6 +81,9 @@ class Campaign(Base):
     last_synced_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     platform_response: Mapped[dict | None] = mapped_column(JSON, nullable=True)  # Raw API response
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # Relationships
+    doctor = relationship("Doctor", back_populates="campaigns")
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(

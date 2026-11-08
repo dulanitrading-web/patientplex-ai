@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.auth import get_current_doctor
+from app.core.audit import log_audit
 from app.core.config import settings
 from app.db.session import get_db
 from app.models.billing import PLAN_CONFIG, PlanTier
@@ -135,8 +136,19 @@ async def razorpay_webhook(request: Request, db: AsyncSession = Depends(get_db))
     body = await request.body()
     signature = request.headers.get("X-Razorpay-Signature", "")
 
-    # Verify webhook signature
-    # In production, verify: hmac.new(webhook_secret, body, hashlib.sha256).hexdigest() == signature
+    # Verify webhook signature using HMAC-SHA256
+    webhook_secret = settings.RAZORPAY_KEY_SECRET
+    if not webhook_secret:
+        logger.warning("RAZORPAY_KEY_SECRET is empty — skipping webhook signature verification (dev mode)")
+    else:
+        expected = hmac.new(
+            webhook_secret.encode(),
+            body,
+            hashlib.sha256,
+        ).hexdigest()
+        if not hmac.compare_digest(expected, signature):
+            logger.warning("Razorpay webhook signature mismatch")
+            raise HTTPException(status_code=403, detail="Invalid webhook signature")
 
     try:
         payload = await request.json()
@@ -149,5 +161,10 @@ async def razorpay_webhook(request: Request, db: AsyncSession = Depends(get_db))
     billing = BillingService(db)
     result = await billing.handle_razorpay_webhook(event, event_payload)
 
+    log_audit(
+        action="razorpay_webhook",
+        resource="billing",
+        details={"event": event, "result": result},
+    )
     logger.info("Razorpay webhook: event=%s result=%s", event, result)
     return {"status": "ok", **result}

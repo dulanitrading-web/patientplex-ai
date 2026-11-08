@@ -9,6 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.core.encryption import decrypt_json, encrypt_json
 from app.models.doctor import Doctor
 
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
@@ -34,13 +35,17 @@ class GoogleCalendarService:
         return flow
 
     @staticmethod
-    async def _build_service(token_data: dict, db: AsyncSession = None, doctor_id: str = None):
+    async def _build_service(token_data, db: AsyncSession = None, doctor_id: str = None):
         """Build an authorized Calendar API service from stored token data.
 
         If ``db`` and ``doctor_id`` are provided and the access token has
         expired, the credentials are refreshed using the stored refresh token
         and the updated token is persisted back to the database.
+
+        ``token_data`` may be a dict (legacy/unencrypted) or an encrypted
+        string produced by :func:`encrypt_json`.
         """
+        token_data = decrypt_json(token_data)
         creds = Credentials(
             token=token_data["token"],
             refresh_token=token_data.get("refresh_token"),
@@ -63,7 +68,7 @@ class GoogleCalendarService:
                 doctor = result.scalar_one()
                 updated_token_data = dict(token_data)
                 updated_token_data["token"] = creds.token
-                doctor.google_calendar_token = updated_token_data
+                doctor.google_calendar_token = encrypt_json(updated_token_data)
                 await db.flush()
 
         return build("calendar", "v3", credentials=creds)
@@ -123,7 +128,7 @@ class GoogleCalendarService:
             select(Doctor).where(Doctor.id == doctor_id)
         )
         doctor = result.scalar_one()
-        doctor.google_calendar_token = token_data
+        doctor.google_calendar_token = encrypt_json(token_data)
         doctor.google_calendar_id = calendar_id
         doctor.google_calendar_connected = True
         await db.commit()

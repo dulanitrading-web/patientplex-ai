@@ -7,7 +7,7 @@ Also marks no-shows for appointments past their time.
 import logging
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import and_, select, update
+from sqlalchemy import and_, cast, select, update, Date, Time
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.conversation import Appointment, AppointmentStatus
@@ -60,7 +60,8 @@ class ReminderService:
         is_24h = reminder_type == "24h"
         sent_field = "reminder_24h_sent" if is_24h else "reminder_2h_sent"
 
-        # Query appointments in window that haven't been reminded yet
+        # Query appointments in window that haven't been reminded yet,
+        # filtering by date and time range in SQL to avoid loading all rows.
         result = await db.execute(
             select(Appointment, Doctor)
             .join(Doctor, Appointment.doctor_id == Doctor.id)
@@ -71,13 +72,18 @@ class ReminderService:
                         AppointmentStatus.REMINDED,
                     ]),
                     getattr(Appointment, sent_field) == False,
+                    # Filter by date range in SQL (appointments on the window days)
+                    Appointment.appointment_date >= window_start.date(),
+                    Appointment.appointment_date <= window_end.date(),
                 )
             )
         )
         rows = result.all()
 
         for appointment, doctor in rows:
-            # Combine date+time to check if in window
+            # Final precise check combining date+time (SQL lacks a portable
+            # date+time concat across all dialects, so this is kept in Python
+            # but now operates on a small, pre-filtered result set).
             appt_dt = datetime.combine(
                 appointment.appointment_date,
                 appointment.appointment_time,
@@ -121,6 +127,8 @@ class ReminderService:
                         AppointmentStatus.CONFIRMED,
                         AppointmentStatus.REMINDED,
                     ]),
+                    # Only look at appointments on or before the cutoff date
+                    Appointment.appointment_date <= cutoff.date(),
                 )
             )
         )

@@ -53,7 +53,7 @@ export default function SignupPage() {
         password: form.password,
       });
       localStorage.setItem("pp_token", data.access_token);
-      document.cookie = `pp_token=${data.access_token}; path=/; max-age=${60*60*24*7}; SameSite=Lax`;
+      // HttpOnly cookie is now set by the backend response
       if (data.user?.full_name) {
         localStorage.setItem("user_name", data.user.full_name);
       }

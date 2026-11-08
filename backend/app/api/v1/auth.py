@@ -1,6 +1,7 @@
 """Authentication endpoints: signup, login, and current-user retrieval."""
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -10,6 +11,8 @@ from jose import JWTError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.audit import log_audit
+from app.core.config import settings
 from app.core.security import create_access_token, hash_password, verify_password, verify_token
 from app.db.session import get_db
 from app.models.doctor import Doctor
@@ -69,8 +72,24 @@ async def signup(request: Request, body: DoctorCreate, db: AsyncSession = Depend
     await db.commit()
     await db.refresh(doctor)
 
-    token = create_access_token(data={"sub": str(doctor.id)})
-    return TokenResponse(access_token=token)
+    access_token = create_access_token(data={"sub": str(doctor.id)})
+
+    log_audit(action="signup", actor_id=str(doctor.id), resource="auth", details={"email": doctor.email})
+
+    response = JSONResponse(
+        content={"access_token": access_token, "token_type": "bearer"},
+        status_code=status.HTTP_201_CREATED,
+    )
+    response.set_cookie(
+        key="pp_token",
+        value=access_token,
+        httponly=True,
+        secure=settings.ENVIRONMENT != "development",
+        samesite="lax",
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        path="/",
+    )
+    return response
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -88,8 +107,23 @@ async def login(request: Request, body: DoctorLogin, db: AsyncSession = Depends(
             detail="Invalid email or password.",
         )
 
-    token = create_access_token(data={"sub": str(doctor.id)})
-    return TokenResponse(access_token=token)
+    access_token = create_access_token(data={"sub": str(doctor.id)})
+
+    log_audit(action="login", actor_id=str(doctor.id), resource="auth", details={"email": doctor.email})
+
+    response = JSONResponse(
+        content={"access_token": access_token, "token_type": "bearer"},
+    )
+    response.set_cookie(
+        key="pp_token",
+        value=access_token,
+        httponly=True,
+        secure=settings.ENVIRONMENT != "development",
+        samesite="lax",
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        path="/",
+    )
+    return response
 
 
 @router.get("/me", response_model=DoctorResponse)

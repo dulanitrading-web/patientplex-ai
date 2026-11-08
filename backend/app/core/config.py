@@ -1,7 +1,10 @@
 """Application configuration loaded from environment variables."""
 
+import logging
 from pydantic import model_validator
 from pydantic_settings import BaseSettings
+
+_config_logger = logging.getLogger(__name__)
 
 
 class Settings(BaseSettings):
@@ -65,6 +68,10 @@ class Settings(BaseSettings):
     RAZORPAY_KEY_ID: str = ""
     RAZORPAY_KEY_SECRET: str = ""
 
+    # Field-level encryption for sensitive data (e.g. OAuth tokens)
+    # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+    ENCRYPTION_KEY: str = ""
+
     # Claude API (AI ad copy generation + receptionist)
     CLAUDE_API_KEY: str = ""
 
@@ -83,6 +90,11 @@ class Settings(BaseSettings):
             raise ValueError(
                 "SECRET_KEY must be changed from the default value in non-development environments. "
                 "Generate one with: python -c \"import secrets; print(secrets.token_hex(32))\""
+            )
+        if not self.ENCRYPTION_KEY:
+            _config_logger.warning(
+                "ENCRYPTION_KEY is not set — OAuth tokens will be stored unencrypted. "
+                "Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\""
             )
         return self
 

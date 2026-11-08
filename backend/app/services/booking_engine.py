@@ -111,6 +111,45 @@ class BookingEngine:
         except (ValueError, AttributeError) as exc:
             return {"success": False, "error": f"Invalid date/time: {exc}"}
 
+        # Check for duplicate booking (same doctor + patient + date + time within 30 min)
+        duplicate_window_start = (appt_datetime - timedelta(minutes=30)).time()
+        duplicate_window_end = (appt_datetime + timedelta(minutes=30)).time()
+        dup_result = await self.db.execute(
+            select(Appointment).where(
+                and_(
+                    Appointment.doctor_id == doctor.id,
+                    Appointment.patient_phone == patient_phone,
+                    Appointment.appointment_date == appt_date,
+                    Appointment.appointment_time >= duplicate_window_start,
+                    Appointment.appointment_time <= duplicate_window_end,
+                    Appointment.status.in_([
+                        AppointmentStatus.CONFIRMED,
+                        AppointmentStatus.REMINDED,
+                    ]),
+                )
+            )
+        )
+        existing = dup_result.scalar_one_or_none()
+        if existing:
+            logger.info(
+                "Duplicate booking detected for %s with Dr. %s on %s ~%s, returning existing appointment %s",
+                patient_phone, doctor.full_name, appointment_date, appointment_time, existing.id,
+            )
+            return {
+                "success": True,
+                "duplicate": True,
+                "appointment_id": str(existing.id),
+                "patient_name": existing.patient_name,
+                "treatment": existing.treatment,
+                "date": existing.appointment_date.isoformat(),
+                "time": existing.appointment_time.strftime("%H:%M"),
+                "doctor": doctor.full_name,
+                "clinic": doctor.clinic_name,
+                "google_event_id": existing.google_event_id,
+                "confirmation_sent": existing.confirmation_sent,
+                "doctor_notified": True,
+            }
+
         # Validate the slot is still available
         availability = await self.check_availability(doctor, appointment_date, appointment_time)
         slot_available = any(

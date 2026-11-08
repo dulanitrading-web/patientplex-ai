@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 
 from sqlalchemy import Boolean, DateTime, Enum, Float, Integer, JSON, String, Text
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 
@@ -94,6 +94,11 @@ class Doctor(Base):
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
     )
+
+    # Relationships
+    campaigns = relationship("Campaign", back_populates="doctor", lazy="selectin")
+    conversations = relationship("Conversation", back_populates="doctor", lazy="selectin")
+    subscriptions = relationship("Subscription", back_populates="doctor", lazy="selectin")
 
     def __repr__(self) -> str:
         return f"<Doctor {self.full_name} ({self.email})>"

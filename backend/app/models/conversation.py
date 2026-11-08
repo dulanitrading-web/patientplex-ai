@@ -59,6 +59,7 @@ class Conversation(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
+    doctor = relationship("Doctor", back_populates="conversations")
     appointments = relationship("Appointment", back_populates="conversation")
 
 
