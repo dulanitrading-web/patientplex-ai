@@ -58,6 +58,10 @@ class Settings(BaseSettings):
     CALCOM_BASE_URL: str = "https://api.cal.com/v1"  # Self-hosted: your-domain/api/v1
     CALCOM_EVENT_TYPE_ID: int = 0  # Default event type for appointments
 
+    # Razorpay (Billing / Payments)
+    RAZORPAY_KEY_ID: str = ""
+    RAZORPAY_KEY_SECRET: str = ""
+
     # Claude API (AI ad copy generation + receptionist)
     CLAUDE_API_KEY: str = ""
 

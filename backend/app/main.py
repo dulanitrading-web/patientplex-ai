@@ -18,6 +18,11 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan: runs startup and shutdown hooks."""
+    if settings.SECRET_KEY == "change-this-to-a-random-secret-key-in-production":
+        logger.warning(
+            "⚠️  SECRET_KEY is set to the default value. "
+            "Generate a secure key: python -c \"import secrets; print(secrets.token_hex(32))\""
+        )
     logger.info("PatientPlex AI API started")
     yield
     logger.info("PatientPlex AI API shutting down")
@@ -33,10 +38,16 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS — allow all origins during development
+# CORS — restrict origins in production, allow all in dev
+ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "https://patientplex.ai",
+    "https://app.patientplex.ai",
+    "https://www.patientplex.ai",
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

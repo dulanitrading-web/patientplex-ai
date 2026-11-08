@@ -17,7 +17,7 @@ async function fetchWithAuth(
   options: RequestInit = {}
 ): Promise<Response> {
   const token =
-    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    typeof window !== "undefined" ? localStorage.getItem("pp_token") : null;
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",

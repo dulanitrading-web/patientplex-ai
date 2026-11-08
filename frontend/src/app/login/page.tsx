@@ -32,7 +32,8 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const data = await login(email, password);
-      localStorage.setItem("token", data.access_token);
+      localStorage.setItem("pp_token", data.access_token);
+      document.cookie = `pp_token=${data.access_token}; path=/; max-age=${60*60*24*7}; SameSite=Lax`;
       if (data.user?.full_name) {
         localStorage.setItem("user_name", data.user.full_name);
       }

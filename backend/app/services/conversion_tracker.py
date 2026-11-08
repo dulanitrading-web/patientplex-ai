@@ -198,7 +198,7 @@ class ConversionTracker:
                 "source_channel": e.source_channel,
                 "treatment": e.treatment,
                 "timestamp": e.timestamp.isoformat(),
-                "metadata": e.metadata,
+                "metadata": e.extra_data,
             }
             for e in events
         ]

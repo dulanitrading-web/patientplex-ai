@@ -63,7 +63,7 @@ class BookingEngine:
         """
         try:
             all_slots = await self.calendar.get_available_slots(
-                str(doctor.id), requested_date
+                str(doctor.id), requested_date, self.db
             )
         except Exception as exc:
             logger.warning("Calendar check failed, using default slots: %s", exc)
@@ -125,7 +125,7 @@ class BookingEngine:
         google_event_id = None
         try:
             cal_result = await self.calendar.book_slot(
-                str(doctor.id), appt_datetime, patient_name, patient_phone, treatment
+                str(doctor.id), appt_datetime, patient_name, patient_phone, treatment, self.db
             )
             google_event_id = cal_result.get("event_id")
         except Exception as exc:

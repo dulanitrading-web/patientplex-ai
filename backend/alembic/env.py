@@ -15,6 +15,8 @@ from app.db.base import Base
 from app.models.doctor import Doctor  # noqa: F401
 from app.models.conversation import Conversation, Appointment  # noqa: F401
 from app.models.campaign import Campaign  # noqa: F401
+from app.models.call_log import CallLog, ConversionEvent  # noqa: F401
+from app.models.billing import Subscription, Invoice  # noqa: F401
 
 config = context.config
 if config.config_file_name is not None:

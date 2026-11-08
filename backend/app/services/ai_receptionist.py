@@ -313,7 +313,7 @@ class AIReceptionist:
 
         try:
             slots = await self.calendar_service.get_available_slots(
-                str(self.doctor.id), date_str
+                str(self.doctor.id), date_str, self.db
             )
             self._available_slots = slots
             if not slots:
@@ -375,6 +375,7 @@ class AIReceptionist:
                 patient_name,
                 patient_phone,
                 treatment,
+                self.db,
             )
             google_event_id = result.get("event_id")
         except Exception as exc:

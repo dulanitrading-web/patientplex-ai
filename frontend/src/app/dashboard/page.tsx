@@ -77,7 +77,7 @@ export default function DashboardPage() {
   const [launching, setLaunching] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("pp_token");
     if (!token) {
       router.push("/login");
       return;
@@ -115,7 +115,8 @@ export default function DashboardPage() {
   }
 
   function handleSignOut() {
-    localStorage.removeItem("token");
+    localStorage.removeItem("pp_token");
+    document.cookie = "pp_token=; path=/; max-age=0";
     router.push("/login");
   }
 

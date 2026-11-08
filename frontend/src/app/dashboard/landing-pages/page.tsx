@@ -127,7 +127,7 @@ export default function LandingPagesPage() {
                       )}
                     </button>
                     {previewUrl && page.type === "main" && (
-                      <a href={`http://localhost:8000${previewUrl}`} target="_blank" rel="noopener noreferrer"
+                      <a href={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || ''}${previewUrl}`} target="_blank" rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
                         <ExternalLink className="w-3.5 h-3.5" /> Preview
                       </a>

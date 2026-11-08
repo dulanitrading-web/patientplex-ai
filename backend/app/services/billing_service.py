@@ -38,8 +38,8 @@ class BillingService:
 
     def __init__(self, db: AsyncSession):
         self.db = db
-        self.key_id = settings.SECRET_KEY  # Override with RAZORPAY_KEY_ID
-        self.key_secret = settings.SECRET_KEY  # Override with RAZORPAY_KEY_SECRET
+        self.key_id = settings.RAZORPAY_KEY_ID
+        self.key_secret = settings.RAZORPAY_KEY_SECRET
 
     async def create_trial(self, doctor_id: UUID) -> Subscription:
         """Start a 14-day free trial for a new doctor. Called after onboarding."""
