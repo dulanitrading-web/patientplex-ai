@@ -5,20 +5,25 @@ import Link from "next/link";
 import clsx from "clsx";
 import {
   LayoutDashboard, BarChart3, Calendar, MessageCircle, Globe,
-  Phone, TrendingUp, Settings, LogOut, Zap, Menu, X,
+  Phone, TrendingUp, Settings, CreditCard, LogOut, Zap, Menu, X, Users,
 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/context/auth";
 import Avatar from "@/components/ui/Avatar";
+import NotificationBell from "@/components/ui/NotificationBell";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
-  { href: "/dashboard/campaigns", label: "Campaigns", icon: BarChart3 },
+  { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/dashboard/patients", label: "Patients", icon: Users },
+  { href: "/dashboard/campaigns", label: "Campaigns", icon: TrendingUp },
   { href: "/dashboard/appointments", label: "Appointments", icon: Calendar },
   { href: "/dashboard/conversations", label: "WhatsApp", icon: MessageCircle },
-  // { href: "/dashboard/calls", label: "Calls", icon: Phone },        // TODO: re-add when calls page is built
-  // { href: "/dashboard/conversions", label: "Funnel", icon: TrendingUp }, // TODO: re-add when funnel page is built
+  { href: "/dashboard/calls", label: "Calls", icon: Phone },
+  { href: "/dashboard/conversions", label: "Funnel", icon: BarChart3 },
   { href: "/dashboard/landing-pages", label: "Landing Pages", icon: Globe },
+  { href: "/dashboard/billing", label: "Billing", icon: CreditCard },
+  { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -97,7 +102,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Menu className="w-5 h-5" />
           </button>
           <div className="flex-1" />
-          <span className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block">
+          <NotificationBell />
+          <span className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block ml-2">
             {doctor?.clinic_name} · {doctor?.city}
           </span>
         </header>

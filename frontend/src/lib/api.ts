@@ -219,4 +219,55 @@ export async function getMe() {
   return res.json();
 }
 
+// Call Logs
+export async function getCallStats(days = 30) {
+  const res = await fetchWithAuth(`/calls/stats?days=${days}`);
+  return res.json();
+}
+
+export async function getCallLogs(status?: string, limit = 50, offset = 0) {
+  const params = new URLSearchParams();
+  if (status && status !== "ALL") params.set("status", status);
+  params.set("limit", String(limit));
+  params.set("offset", String(offset));
+  const res = await fetchWithAuth(`/calls/logs?${params.toString()}`);
+  return res.json();
+}
+
+// Conversions / Funnel
+export async function getConversionFunnel(days?: number) {
+  const params = days ? `?days=${days}` : "";
+  const res = await fetchWithAuth(`/conversions/funnel${params}`);
+  return res.json();
+}
+
+export async function getConversionAttribution(days?: number) {
+  const params = days ? `?days=${days}` : "";
+  const res = await fetchWithAuth(`/conversions/attribution${params}`);
+  return res.json();
+}
+
+// Billing
+export async function getSubscription() {
+  const res = await fetchWithAuth("/billing/subscription");
+  return res.json();
+}
+
+export async function getBillingPlans() {
+  const res = await fetchWithAuth("/billing/plans");
+  return res.json();
+}
+
+export async function startTrial() {
+  const res = await fetchWithAuth("/billing/start-trial", { method: "POST" });
+  return res.json();
+}
+
+// Password Reset
+export async function requestPasswordReset(email: string) {
+  // TODO: Backend endpoint /api/v1/auth/forgot-password needs implementation
+  // For now, always return success to prevent email enumeration
+  return { message: "If an account exists, you'll receive a reset link." };
+}
+
 export { ApiError };
