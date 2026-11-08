@@ -97,6 +97,79 @@ const CHANNELS = [
   { name: "Website", icon: Globe, color: "text-emerald-600", bg: "bg-emerald-50", border: "hover:border-emerald-300" },
 ];
 
+/* ─── ROI Calculator ─── */
+function ROICalculator() {
+  const [adSpend, setAdSpend] = useState(50000);
+  const [costPerPatient, setCostPerPatient] = useState(800);
+  const [locations, setLocations] = useState(1);
+
+  const pplexPatients = Math.round((adSpend / 12) * locations);
+  const agencyPatients = Math.round((adSpend / costPerPatient) * locations);
+  const pplexCost = adSpend + (locations === 1 ? 14999 : 24999 * locations);
+  const agencyCost = adSpend + (50000 * locations);
+  const monthlySavings = agencyCost - pplexCost;
+  const annualSavings = monthlySavings * 12;
+
+  return (
+    <div className="grid lg:grid-cols-2 gap-8">
+      <div className="space-y-8 p-8 bg-[#FAFAF8] rounded-2xl border border-slate-200">
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <label className="text-sm font-bold text-slate-900">Current monthly ad spend</label>
+            <span className="text-sm font-black text-emerald-600 tabular-nums">{"₹"}{adSpend.toLocaleString("en-IN")}</span>
+          </div>
+          <input type="range" min={10000} max={500000} step={5000} value={adSpend}
+            onChange={(e) => setAdSpend(Number(e.target.value))}
+            className="w-full h-2 rounded-full bg-slate-200 appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-emerald-500 [&::-webkit-slider-thumb]:shadow-md" />
+          <div className="flex justify-between text-[10px] text-slate-400 mt-1"><span>{"₹"}10,000</span><span>{"₹"}5,00,000</span></div>
+        </div>
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <label className="text-sm font-bold text-slate-900">Current cost per patient</label>
+            <span className="text-sm font-black text-emerald-600 tabular-nums">{"₹"}{costPerPatient.toLocaleString("en-IN")}</span>
+          </div>
+          <input type="range" min={100} max={2000} step={50} value={costPerPatient}
+            onChange={(e) => setCostPerPatient(Number(e.target.value))}
+            className="w-full h-2 rounded-full bg-slate-200 appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-emerald-500 [&::-webkit-slider-thumb]:shadow-md" />
+          <div className="flex justify-between text-[10px] text-slate-400 mt-1"><span>{"₹"}100</span><span>{"₹"}2,000</span></div>
+        </div>
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <label className="text-sm font-bold text-slate-900">Number of locations</label>
+            <span className="text-sm font-black text-emerald-600 tabular-nums">{locations}</span>
+          </div>
+          <input type="range" min={1} max={10} step={1} value={locations}
+            onChange={(e) => setLocations(Number(e.target.value))}
+            className="w-full h-2 rounded-full bg-slate-200 appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-emerald-500 [&::-webkit-slider-thumb]:shadow-md" />
+          <div className="flex justify-between text-[10px] text-slate-400 mt-1"><span>1</span><span>10</span></div>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="p-6 bg-emerald-50 rounded-2xl border border-emerald-200">
+          <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-2">With PatientPlex</p>
+          <p className="text-3xl font-black text-slate-900 tabular-nums">{pplexPatients.toLocaleString("en-IN")}</p>
+          <p className="text-sm text-slate-500">patients/month at {"₹"}12 each</p>
+        </div>
+        <div className="p-6 bg-red-50 rounded-2xl border border-red-200">
+          <p className="text-xs font-bold text-red-500 uppercase tracking-widest mb-2">With Agency</p>
+          <p className="text-3xl font-black text-slate-900 tabular-nums">{agencyPatients.toLocaleString("en-IN")}</p>
+          <p className="text-sm text-slate-500">patients/month at {"₹"}{costPerPatient} each</p>
+        </div>
+        <div className="p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
+          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Monthly Savings</p>
+          <p className="text-3xl font-black text-emerald-600 tabular-nums">{"₹"}{Math.max(0, monthlySavings).toLocaleString("en-IN")}</p>
+          <p className="text-sm text-slate-500">saved every month</p>
+        </div>
+        <div className="p-6 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl text-white shadow-lg">
+          <p className="text-xs font-bold uppercase tracking-widest mb-2 opacity-80">Annual Savings</p>
+          <p className="text-3xl font-black tabular-nums">{"₹"}{Math.max(0, annualSavings).toLocaleString("en-IN")}</p>
+          <p className="text-sm opacity-80">saved per year</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ═══════════════════════════════════════════════════════════════ */
 export default function LandingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -401,8 +474,42 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ═══ WALL OF LOVE ═══ */}
+      {/* ═══ INTEGRATIONS ═══ */}
       <section className="py-24 px-6 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <Reveal>
+            <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-center mb-4">Connects with tools you already use</h2>
+            <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">PatientPlex integrates with the platforms your clinic relies on — no manual data entry.</p>
+          </Reveal>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { name: "Google Ads", desc: "Auto-optimize campaigns", icon: Search, color: "text-blue-600", bg: "bg-blue-50" },
+              { name: "Meta Ads", desc: "Facebook + Instagram ads", icon: Facebook, color: "text-blue-700", bg: "bg-blue-50" },
+              { name: "WhatsApp Business", desc: "AI chatbot receptionist", icon: MessageCircle, color: "text-green-600", bg: "bg-green-50" },
+              { name: "Google Calendar", desc: "Appointment sync", icon: Calendar, color: "text-red-500", bg: "bg-red-50" },
+              { name: "Google My Business", desc: "Review management", icon: Star, color: "text-amber-500", bg: "bg-amber-50" },
+              { name: "Practo", desc: "Patient referrals", icon: Users, color: "text-teal-600", bg: "bg-teal-50" },
+              { name: "Zoho CRM", desc: "Patient data sync", icon: BarChart3, color: "text-violet-600", bg: "bg-violet-50" },
+              { name: "Razorpay", desc: "Payment collection", icon: Target, color: "text-blue-600", bg: "bg-blue-50" },
+            ].map((item, i) => (
+              <Reveal key={i} delay={i * 0.05}>
+                <motion.div whileHover={{ y: -3 }} className="bg-[#FAFAF8] rounded-2xl border border-slate-200 p-5 flex items-start gap-4 hover:shadow-lg transition-all duration-300 cursor-default">
+                  <div className={`w-10 h-10 rounded-xl ${item.bg} ${item.color} flex items-center justify-center shrink-0`}>
+                    <item.icon className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-slate-900 text-sm">{item.name}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{item.desc}</p>
+                  </div>
+                </motion.div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ WALL OF LOVE ═══ */}
+      <section className="py-24 px-6 bg-slate-50">
         <div className="max-w-7xl mx-auto">
           <Reveal>
             <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-center mb-3">Wall of Love <span className="inline-block">{"❤️"}</span></h2>
@@ -478,6 +585,17 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ═══ ROI CALCULATOR ═══ */}
+      <section className="py-24 px-6 bg-white">
+        <div className="max-w-5xl mx-auto">
+          <Reveal>
+            <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-center mb-4">Calculate your ROI</h2>
+            <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">See how much you could save by switching from agencies to PatientPlex.</p>
+          </Reveal>
+          <ROICalculator />
+        </div>
+      </section>
+
       {/* ═══ BEFORE / AFTER ═══ */}
       <section className="py-24 px-6 bg-white">
         <div className="max-w-5xl mx-auto">
@@ -522,8 +640,59 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ═══ HOW IT WORKS ═══ */}
+      {/* ═══ COMPARISON TABLE ═══ */}
       <section className="py-24 px-6">
+        <div className="max-w-5xl mx-auto">
+          <Reveal>
+            <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-center mb-4">Why clinics switch to PatientPlex</h2>
+            <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">Compare us to agencies and DIY — see the difference.</p>
+          </Reveal>
+          <Reveal delay={0.1}>
+            <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-200">
+                      <th className="text-left py-4 px-5 font-bold text-slate-900">Feature</th>
+                      <th className="py-4 px-5 font-black text-emerald-700 bg-emerald-50/60 text-center">PatientPlex</th>
+                      <th className="py-4 px-5 font-bold text-slate-500 text-center">Agencies</th>
+                      <th className="py-4 px-5 font-bold text-slate-500 text-center">DIY</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      ["Monthly cost", "₹4,999–24,999", "₹30,000–1,00,000", "Free but time-costly"],
+                      ["Setup time", "10 minutes", "2–4 weeks", "Weeks of learning"],
+                      ["AI receptionist", true, false, false],
+                      ["Ad optimization", "Auto", "Manual", "Manual"],
+                      ["WhatsApp booking", true, false, false],
+                      ["Full transparency", true, "Limited reports", "Full but complex"],
+                      ["No-show reduction", "Auto reminders", false, "Manual"],
+                      ["Contract lock-in", false, "6–12 months", false],
+                    ].map((row, i) => (
+                      <tr key={i} className="border-b border-slate-100 last:border-0">
+                        <td className="py-3.5 px-5 text-slate-700 font-medium">{row[0] as string}</td>
+                        <td className="py-3.5 px-5 bg-emerald-50/40 text-center font-semibold">
+                          {row[1] === true ? <CheckCircle2 className="w-5 h-5 text-emerald-500 mx-auto" /> : row[1] === false ? <span className="text-xs text-slate-400">No lock-in ✓</span> : <span className="text-emerald-700">{row[1] as string}</span>}
+                        </td>
+                        <td className="py-3.5 px-5 text-center text-slate-500">
+                          {row[2] === true ? <CheckCircle2 className="w-5 h-5 text-slate-400 mx-auto" /> : row[2] === false ? <X className="w-5 h-5 text-red-400 mx-auto" /> : (row[2] as string)}
+                        </td>
+                        <td className="py-3.5 px-5 text-center text-slate-500">
+                          {row[3] === true ? <CheckCircle2 className="w-5 h-5 text-slate-400 mx-auto" /> : row[3] === false ? <X className="w-5 h-5 text-red-400 mx-auto" /> : (row[3] as string)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ═══ HOW IT WORKS ═══ */}
+      <section className="py-24 px-6 bg-white">
         <div className="max-w-5xl mx-auto">
           <Reveal>
             <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-center mb-4">Live in 10 minutes, not 10 weeks</h2>
@@ -546,6 +715,41 @@ export default function LandingPage() {
                   <h3 className="text-lg font-black text-slate-900 mb-3">{s.title}</h3>
                   <p className="text-sm text-slate-500 leading-relaxed">{s.desc}</p>
                 </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ USE CASES ═══ */}
+      <section className="py-24 px-6">
+        <div className="max-w-7xl mx-auto">
+          <Reveal>
+            <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-center mb-4">How clinics use PatientPlex</h2>
+            <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">Real use cases across dental, dermatology, and multi-specialty clinics.</p>
+          </Reveal>
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              { title: "Dental Clinics", emoji: "🦷", gradient: "from-emerald-400 to-teal-400", items: ["Teeth whitening campaigns on Google", "Orthodontic consultations via WhatsApp", "Automated recall reminders for cleanings", "Reviews collection after appointments"] },
+              { title: "Dermatology Clinics", emoji: "✨", gradient: "from-pink-400 to-rose-400", items: ["Skin treatment awareness ads on Instagram", "Laser & cosmetic procedure consultations", "Before/after gallery promotion", "Seasonal campaigns (monsoon skincare, etc.)"] },
+              { title: "Multi-Specialty Clinics", emoji: "🏥", gradient: "from-blue-400 to-cyan-400", items: ["Cross-department patient routing", "Multi-location campaign management", "Centralized analytics dashboard", "Specialty-specific landing pages"] },
+            ].map((useCase, i) => (
+              <Reveal key={i} delay={i * 0.12}>
+                <motion.div whileHover={{ y: -4 }} className="bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-xl transition-all duration-300">
+                  <div className={`h-1.5 bg-gradient-to-r ${useCase.gradient}`} />
+                  <div className="p-7">
+                    <div className="text-3xl mb-4">{useCase.emoji}</div>
+                    <h3 className="text-xl font-black text-slate-900 mb-5">{useCase.title}</h3>
+                    <ul className="space-y-3">
+                      {useCase.items.map((item, j) => (
+                        <li key={j} className="flex items-start gap-2.5 text-sm text-slate-600">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </motion.div>
               </Reveal>
             ))}
           </div>
@@ -717,12 +921,31 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ═══ SECURITY ═══ */}
-      <section className="py-12 px-6">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-10 text-sm text-slate-400">
-          {[{ icon: Shield, text: "End-to-end encryption" },{ icon: Lock, text: "HMAC-SHA256 webhooks" },{ icon: Award, text: "Healthcare-grade audit logs" },{ icon: Shield, text: "SOC 2 aligned" }].map((b,i) => (
-            <div key={i} className="flex items-center gap-2"><b.icon className="w-4 h-4 text-emerald-500/60" /><span className="font-medium">{b.text}</span></div>
-          ))}
+      {/* ═══ TRUST & SECURITY ═══ */}
+      <section className="py-24 px-6">
+        <div className="max-w-7xl mx-auto">
+          <Reveal>
+            <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-center mb-4">Enterprise-grade security for patient data</h2>
+            <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">Built for healthcare compliance from day one.</p>
+          </Reveal>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+            {[
+              { icon: Shield, title: "Data Encryption", desc: "AES-256 encryption at rest, TLS 1.3 for all data in transit. Your patient data is always protected.", color: "text-emerald-600", bg: "bg-emerald-50" },
+              { icon: Lock, title: "Access Control", desc: "Role-based permissions for your team. Two-factor authentication on every account.", color: "text-blue-600", bg: "bg-blue-50" },
+              { icon: Award, title: "Audit Logging", desc: "Complete activity trails for every action. HIPAA-aligned compliance logging built in.", color: "text-violet-600", bg: "bg-violet-50" },
+              { icon: Globe, title: "Data Residency", desc: "All servers located in India. Your patient data never leaves the country. Full GDPR compliance.", color: "text-teal-600", bg: "bg-teal-50" },
+            ].map((card, i) => (
+              <Reveal key={i} delay={i * 0.1}>
+                <motion.div whileHover={{ y: -3 }} className="p-6 bg-white rounded-2xl border border-slate-200 hover:shadow-lg transition-all duration-300 h-full">
+                  <div className={`w-12 h-12 rounded-xl ${card.bg} ${card.color} flex items-center justify-center mb-4`}>
+                    <card.icon className="w-6 h-6" />
+                  </div>
+                  <h3 className="font-black text-slate-900 mb-2">{card.title}</h3>
+                  <p className="text-sm text-slate-500 leading-relaxed">{card.desc}</p>
+                </motion.div>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -777,15 +1000,17 @@ export default function LandingPage() {
         {/* Footer columns */}
         <div className="py-16 px-6">
           <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-10 mb-12">
-              <div className="col-span-2 md:col-span-1">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-8 mb-12">
+              <div className="col-span-2 sm:col-span-3 lg:col-span-2">
                 <Link href="/" className="flex items-center gap-2 mb-4"><Logo size={28} /><span className="font-black text-lg text-slate-900">PatientPlex</span></Link>
                 <p className="text-sm text-slate-500 leading-relaxed mb-4">AI-powered patient acquisition for Indian clinics.</p>
                 <div className="inline-flex items-center gap-1.5 text-xs text-slate-400">{"🇮🇳"} Made in India</div>
               </div>
               {[
-                { title: "Product", links: ["Features", "Pricing", "Integrations", "API"] },
-                { title: "Company", links: ["About", "Blog", "Careers", "Contact"] },
+                { title: "Product", links: ["Features", "Pricing", "Integrations", "API", "Status Page"] },
+                { title: "For Clinics", links: ["Dental Marketing", "Dermatology Marketing", "Multi-Location", "Case Studies"] },
+                { title: "Resources", links: ["Blog", "Documentation", "API Reference", "Help Center"] },
+                { title: "Company", links: ["About", "Careers", "Contact", "Partners"] },
                 { title: "Legal", links: ["Privacy Policy", "Terms of Service", "Security", "HIPAA"] },
               ].map((col, i) => (
                 <div key={i}><h4 className="text-sm font-bold text-slate-900 mb-4">{col.title}</h4><ul className="space-y-2.5">{col.links.map((l,j) => <li key={j}><a href="#" className="text-sm text-slate-500 hover:text-slate-700 transition-colors">{l}</a></li>)}</ul></div>
