@@ -606,7 +606,7 @@ export default function LandingPage() {
               { name: "Google My Business", desc: "Review management", logo: <GoogleLogo size={24} /> },
               { name: "Practo", desc: "Patient referrals", logo: <Users className="w-6 h-6 text-teal-600" /> },
               { name: "Zoho CRM", desc: "Patient data sync", logo: <BarChart3 className="w-6 h-6 text-violet-600" /> },
-              { name: "JustDial", desc: "Get discovered by patients nearby", logo: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#FFD700" stroke="#E6C200" strokeWidth="1"/><path d="M12 6l1.5 3.5H18l-3 2.5 1.2 3.5L12 13l-4.2 2.5 1.2-3.5-3-2.5h4.5L12 6z" fill="#1A1A1A"/></svg> },
+              { name: "Google Reviews", desc: "Automated review collection", logo: <GoogleLogo size={24} /> },
             ].map((item, i) => (
               <Reveal key={i} delay={i * 0.05}>
                 <motion.div whileHover={{ y: -3 }} className="bg-[#FAFAF8] rounded-2xl border border-slate-200 p-5 flex items-start gap-4 hover:shadow-lg transition-all duration-300 cursor-default">
