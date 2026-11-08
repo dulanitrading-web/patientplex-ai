@@ -125,7 +125,7 @@ const TESTIMONIALS = [
   { name: "Dr. Rajesh Mehta", role: "Dermatologist, Delhi", text: "I was spending ₹50,000/month on agencies with zero transparency. PatientPlex shows me exactly where every rupee goes. My Google Ads quality score went from 4 to 9.", avatar: "RM", metric: "₹50K saved monthly", rating: 5, platform: "linkedin" },
   { name: "Dr. Ananya Reddy", role: "Orthodontist, Bengaluru", text: "The no-show rate at my clinic dropped from 28% to 4%. The WhatsApp reminders and the AI follow-up system are genuinely better than anything I have tried.", avatar: "AR", metric: "4% no-show rate", rating: 5, platform: "twitter" },
   { name: "Dr. Kavita Nair", role: "Ophthalmologist, Chennai", text: "We started running LASIK campaigns through PatientPlex. Within a week, 12 new consultation bookings through WhatsApp alone. The ROI compared to our old agency is incredible.", avatar: "KN", metric: "12 LASIK consults/week", rating: 5, platform: "google" },
-  { name: "Dr. Amit Patel", role: "Skin Specialist, Ahmedabad", text: "Our agency was charging ₹40K and I had no idea what they were doing. Now I see every rupee, every click, every booking. Transparency is everything.", avatar: "AP", metric: "Full transparency", rating: 5, platform: "linkedin" },
+  { name: "Dr. Amit Patel", role: "Orthopedic Surgeon, Ahmedabad", text: "Our agency was charging ₹40K for joint replacement marketing and I had no idea what they were doing. Now I see every rupee, every click, every booking. Transparency is everything.", avatar: "AP", metric: "Full transparency", rating: 5, platform: "linkedin" },
   { name: "Dr. Sanjay Gupta", role: "Implantologist, Hyderabad", text: "We were skeptical about AI managing our ads. Within 3 weeks, our implant consultations tripled. The AI even handles follow-ups for patients who ghost us.", avatar: "SG", metric: "3x implant consults", rating: 5, platform: "google" },
 ];
 
@@ -604,8 +604,45 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ═══ INTEGRATIONS ═══ */}
+      {/* ═══ SPECIALTIES WE SERVE ═══ */}
       <section className="py-24 px-6 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <Reveal>
+            <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-center mb-4">Built for every type of clinic</h2>
+            <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">15+ medical specialties trust PatientPlex</p>
+          </Reveal>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            {[
+              { emoji: "🦷", name: "Dental & Cosmetic Dentistry" },
+              { emoji: "🧴", name: "Dermatology & Skin Care" },
+              { emoji: "👁️", name: "Ophthalmology & Eye Care" },
+              { emoji: "🦴", name: "Orthopedics & Sports Medicine" },
+              { emoji: "🤰", name: "Gynecology & Obstetrics" },
+              { emoji: "🧬", name: "IVF & Fertility" },
+              { emoji: "👶", name: "Pediatrics" },
+              { emoji: "🧠", name: "Neurology" },
+              { emoji: "❤️", name: "Cardiology" },
+              { emoji: "🫁", name: "Pulmonology" },
+              { emoji: "🦻", name: "ENT (Ear, Nose, Throat)" },
+              { emoji: "💊", name: "General Medicine" },
+              { emoji: "🏥", name: "Multi-Specialty Hospitals" },
+              { emoji: "🧘", name: "Physiotherapy & Rehab" },
+              { emoji: "💉", name: "Aesthetic & Cosmetic Surgery" },
+              { emoji: "🔬", name: "Diagnostic Centers" },
+            ].map((spec, i) => (
+              <Reveal key={i} delay={i * 0.03}>
+                <motion.div whileHover={{ scale: 1.03 }} className="flex items-center gap-3 bg-[#FAFAF8] rounded-xl border border-slate-200 px-4 py-3.5 hover:shadow-md hover:border-emerald-200 transition-all duration-200 cursor-default">
+                  <span className="text-lg shrink-0">{spec.emoji}</span>
+                  <span className="text-sm font-medium text-slate-700">{spec.name}</span>
+                </motion.div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ INTEGRATIONS ═══ */}
+      <section className="py-24 px-6 bg-slate-50">
         <div className="max-w-7xl mx-auto">
           <Reveal>
             <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-center mb-4">Connects with tools you already use</h2>
@@ -936,13 +973,16 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <Reveal>
             <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-center mb-4">How clinics use PatientPlex</h2>
-            <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">Real use cases across dental, dermatology, and multi-specialty clinics.</p>
+            <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">Real use cases across 15+ healthcare specialties.</p>
           </Reveal>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              { title: "Dental Clinics", emoji: "🦷", gradient: "from-emerald-400 to-teal-400", items: ["Teeth whitening campaigns on Google", "Orthodontic consultations via WhatsApp", "Automated recall reminders for cleanings", "Reviews collection after appointments"] },
-              { title: "Dermatology Clinics", emoji: "✨", gradient: "from-pink-400 to-rose-400", items: ["Skin treatment awareness ads on Instagram", "Laser & cosmetic procedure consultations", "Before/after gallery promotion", "Seasonal campaigns (monsoon skincare, etc.)"] },
-              { title: "Multi-Specialty Clinics", emoji: "🏥", gradient: "from-blue-400 to-cyan-400", items: ["Cross-department patient routing", "Multi-location campaign management", "Centralized analytics dashboard", "Specialty-specific landing pages"] },
+              { title: "Dental Clinics", emoji: "🦷", gradient: "from-emerald-400 to-teal-400", items: ["Teeth whitening & cosmetic dentistry campaigns", "Orthodontic consultation bookings via WhatsApp", "Implant patient follow-up automation", "Review collection after procedures"] },
+              { title: "Dermatology & Skin Clinics", emoji: "✨", gradient: "from-pink-400 to-rose-400", items: ["Laser treatment & cosmetic procedure ads", "Skin consultation bookings", "Before/after gallery promotion", "Seasonal campaign automation"] },
+              { title: "Eye Clinics & Ophthalmology", emoji: "👁️", gradient: "from-blue-400 to-indigo-400", items: ["LASIK & cataract surgery campaigns", "Vision checkup appointment booking", "Post-surgery follow-up reminders", "Insurance-covered procedure marketing"] },
+              { title: "Orthopedic & Physiotherapy", emoji: "🦴", gradient: "from-amber-400 to-orange-400", items: ["Joint replacement awareness campaigns", "Physiotherapy session scheduling", "Sports injury clinic marketing", "Post-op rehabilitation booking"] },
+              { title: "Gynecology & IVF Clinics", emoji: "🤰", gradient: "from-purple-400 to-violet-400", items: ["Fertility treatment awareness ads", "Prenatal checkup scheduling", "IVF consultation bookings", "Sensitive patient communication AI"] },
+              { title: "General & Multi-Specialty", emoji: "🏥", gradient: "from-cyan-400 to-blue-400", items: ["Cross-department patient routing", "Multi-location campaign management", "Health checkup package promotion", "Centralized analytics dashboard"] },
             ].map((useCase, i) => (
               <Reveal key={i} delay={i * 0.12}>
                 <motion.div whileHover={{ y: -4 }} className="bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-xl transition-all duration-300">
@@ -1278,7 +1318,7 @@ export default function LandingPage() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-8 mb-12">
               <div className="col-span-2 sm:col-span-3 lg:col-span-2">
                 <Link href="/" className="flex items-center gap-2 mb-4"><Logo size={28} /><span className="font-black text-lg text-slate-900">PatientPlex</span></Link>
-                <p className="text-sm text-slate-500 leading-relaxed mb-4">AI-powered patient acquisition for Indian clinics.</p>
+                <p className="text-sm text-slate-500 leading-relaxed mb-4">AI-powered patient acquisition for healthcare clinics across India — dental, dermatology, ophthalmology, orthopedics, gynecology, IVF, and 10+ more specialties.</p>
                 <div className="inline-flex items-center gap-1.5 text-xs text-slate-400">{"🇮🇳"} Made in India</div>
               </div>
               {[

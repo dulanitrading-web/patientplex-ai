@@ -5,8 +5,8 @@ import { Providers } from "./providers";
 export const metadata: Metadata = {
   title: "PatientPlex AI — AI-Powered Patient Acquisition for Indian Clinics",
   description:
-    "Stop paying agencies. PatientPlex AI runs your Google & Meta ads, WhatsApp receptionist, and appointment booking — all on autopilot. Used by 200+ Indian dental and dermatology clinics.",
-  keywords: ["patient acquisition", "dental marketing", "dermatology marketing", "WhatsApp AI", "clinic marketing India", "healthcare SaaS"],
+    "Stop paying agencies. PatientPlex AI runs your Google & Meta ads, WhatsApp receptionist, and appointment booking — all on autopilot. Used by 200+ healthcare clinics across 15+ specialties in India.",
+  keywords: ["patient acquisition", "dental marketing", "dermatology marketing", "ophthalmology marketing", "orthopedic marketing", "gynecology marketing", "IVF clinic marketing", "WhatsApp AI", "clinic marketing India", "healthcare SaaS"],
   openGraph: {
     title: "PatientPlex AI — Stop Paying Agencies. Start Getting Patients.",
     description: "AI-powered Google & Meta ads, WhatsApp receptionist, and appointment booking for Indian clinics. ₹12 avg cost per booking.",
