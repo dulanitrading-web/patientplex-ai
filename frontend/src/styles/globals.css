@@ -9,29 +9,29 @@
   }
 
   body {
-    @apply bg-[#060910] text-slate-100;
+    @apply bg-[#FAFAF8] text-slate-800;
   }
 
   ::selection {
-    @apply bg-emerald-500/20 text-emerald-100;
+    @apply bg-emerald-500/20 text-emerald-900;
   }
 }
 
 @layer components {
   .card {
-    @apply bg-[#0F172A] rounded-xl border border-white/5 p-5;
+    @apply bg-white rounded-xl border border-slate-200 p-5;
   }
 
   .card-elevated {
-    @apply bg-[#0F172A] rounded-xl border border-white/10 p-6 shadow-lg shadow-black/20;
+    @apply bg-white rounded-xl border border-slate-200 p-6 shadow-lg;
   }
 
   .input-base {
-    @apply block w-full rounded-lg border-white/10
-      bg-white/[0.05] text-white
-      focus:border-emerald-500/50 focus:ring-emerald-500/50 focus:ring-1
+    @apply block w-full rounded-lg border-slate-300
+      bg-white text-slate-900
+      focus:border-emerald-500 focus:ring-emerald-500/30 focus:ring-2
       text-sm py-2.5 px-3 transition-colors
-      placeholder:text-slate-500;
+      placeholder:text-slate-400;
   }
 }
 
