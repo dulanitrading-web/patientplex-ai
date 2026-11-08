@@ -664,9 +664,9 @@ export default function PatientPlexApp() {
               </div>
 
               <div className="p-4 font-mono text-xs min-h-[300px] space-y-3">
-                <div className="text-slate-600">// PatientPlex MCP Server — Connect your clinic&apos;s AI brain to any workflow</div>
-                <div className="text-slate-600">// Endpoint: mcp://patientplex.ai/{loc.id}/v2</div>
-                <div className="text-slate-600">// ---</div>
+                <div className="text-slate-600">{"// PatientPlex MCP Server — Connect your clinic's AI brain to any workflow"}</div>
+                <div className="text-slate-600">{"// Endpoint: mcp://patientplex.ai/{loc.id}/v2"}</div>
+                <div className="text-slate-600">{"// ---"}</div>
 
                 {mcpHistory.map((h, i) => (
                   <div key={i}>
