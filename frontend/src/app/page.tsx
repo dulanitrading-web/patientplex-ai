@@ -8,7 +8,7 @@ import {
   MessageCircle, Calendar, Phone, Globe, Brain, TrendingUp,
   Users, ChevronDown, Target, Award, Lock,
   Instagram, Facebook, Search, BadgeCheck, Mail,
-  Menu, X, Clock, Zap,
+  Menu, X, Clock, Zap, Activity, Play, TrendingDown,
 } from "lucide-react";
 
 import Logo from "@/components/Logo";
@@ -448,6 +448,42 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ═══ HOW MUCH ARE YOU LOSING? ═══ */}
+      <section className="py-20 px-6 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <Reveal>
+            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-center mb-3">
+              Every missed WhatsApp message costs you {"₹"}8,000
+            </h2>
+            <p className="text-center text-slate-500 mb-12 max-w-2xl mx-auto">
+              That{"'"}s the average lifetime value of a dental patient in India. Here{"'"}s what you{"'"}re losing right now.
+            </p>
+          </Reveal>
+          <div className="grid md:grid-cols-3 gap-6 mb-8">
+            {[
+              { value: "₹2.4L/month", desc: "Revenue lost from missed after-hours enquiries", icon: TrendingDown, color: "text-red-500 bg-red-50" },
+              { value: "73%", desc: "Of patients book with the first clinic that responds", icon: Clock, color: "text-amber-500 bg-amber-50" },
+              { value: "4.2x", desc: "More bookings when you respond within 5 minutes", icon: Zap, color: "text-emerald-500 bg-emerald-50" },
+            ].map((s, i) => (
+              <Reveal key={i} delay={i * 0.1}>
+                <div className="text-center p-8 bg-slate-50 rounded-2xl border border-slate-200 hover:shadow-md transition-shadow">
+                  <div className={`w-12 h-12 rounded-xl ${s.color} flex items-center justify-center mx-auto mb-4`}>
+                    <s.icon className="w-6 h-6" />
+                  </div>
+                  <div className="text-3xl font-black text-slate-900 mb-2">{s.value}</div>
+                  <p className="text-sm text-slate-500">{s.desc}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+          <Reveal>
+            <p className="text-center text-sm text-emerald-600 font-medium">
+              PatientPlex makes sure you never miss another patient <ArrowRight className="w-4 h-4 inline ml-1" />
+            </p>
+          </Reveal>
+        </div>
+      </section>
+
       {/* ═══ CHANNELS ═══ */}
       <section className="py-24 px-6 relative">
         <div className="max-w-7xl mx-auto">
@@ -508,6 +544,43 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ═══ VIDEO DEMO ═══ */}
+      <section className="py-24 px-6">
+        <div className="max-w-4xl mx-auto">
+          <Reveal>
+            <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-center mb-4">
+              See PatientPlex in action
+            </h2>
+            <p className="text-center text-slate-500 mb-12 text-lg">
+              Watch how a clinic goes from zero to 50+ patient bookings in 2 weeks
+            </p>
+          </Reveal>
+          <Reveal delay={0.15}>
+            <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-slate-800 to-slate-900 aspect-video flex items-center justify-center group cursor-pointer shadow-2xl">
+              {/* Grid pattern overlay */}
+              <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle, #fff 1px, transparent 1px)", backgroundSize: "20px 20px" }} />
+              {/* Play button */}
+              <div className="relative z-10 w-20 h-20 rounded-full bg-white/90 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                <Play className="w-8 h-8 text-slate-900 ml-1" fill="currentColor" />
+              </div>
+              {/* Duration badge */}
+              <div className="absolute bottom-4 right-4 px-3 py-1 rounded-lg bg-black/60 text-white text-xs font-medium">
+                2:34
+              </div>
+              {/* Decorative elements */}
+              <div className="absolute top-6 left-6 flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                <div className="w-3 h-3 rounded-full bg-amber-500/80" />
+                <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
+              </div>
+            </div>
+            <p className="text-center text-sm text-slate-400 mt-4">
+              Watch the full demo — no signup required
+            </p>
+          </Reveal>
+        </div>
+      </section>
+
       {/* ═══ WALL OF LOVE ═══ */}
       <section className="py-24 px-6 bg-slate-50">
         <div className="max-w-7xl mx-auto">
@@ -559,6 +632,44 @@ export default function LandingPage() {
           <Reveal delay={0.3}>
             <p className="text-center mt-12 text-slate-500 text-sm">Join <span className="font-bold text-emerald-600">200+ happy doctors</span> already using PatientPlex</p>
           </Reveal>
+        </div>
+      </section>
+
+      {/* ═══ SUCCESS STORIES ═══ */}
+      <section className="py-24 px-6">
+        <div className="max-w-7xl mx-auto">
+          <Reveal>
+            <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-center mb-4">Real results from real clinics</h2>
+            <p className="text-center text-slate-500 mb-16 text-lg">See how Indian clinics transformed their patient acquisition with PatientPlex.</p>
+          </Reveal>
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              { clinic: "SmileCraft Dental, Mumbai", headline: "From 12 to 78 patients/month in 90 days", metrics: [["Cost per patient", "₹800 → ₹45"], ["ROAS", "6.5x"], ["WhatsApp response", "92%"]], color: "from-emerald-500 to-teal-500" },
+              { clinic: "GlowDerm Clinic, Delhi", headline: "₹3.2L monthly revenue added with zero extra staff", metrics: [["Booking increase", "340%"], ["No-show rate", "4%"], ["Cost per lead", "₹18"]], color: "from-cyan-500 to-blue-500" },
+              { clinic: "OrthoElite, Bengaluru", headline: "Expanded to 3 locations using PatientPlex data", metrics: [["Locations managed", "3"], ["Patients/year", "2,400+"], ["Avg booking cost", "₹12"]], color: "from-violet-500 to-purple-500" },
+            ].map((cs, i) => (
+              <Reveal key={i} delay={i * 0.1}>
+                <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col">
+                  <div className={`h-2 bg-gradient-to-r ${cs.color}`} />
+                  <div className="p-6 flex-1 flex flex-col">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">{cs.clinic}</p>
+                    <h3 className="text-lg font-black text-slate-900 mb-4 leading-snug">{cs.headline}</h3>
+                    <div className="space-y-2 mb-6 flex-1">
+                      {cs.metrics.map(([label, val], j) => (
+                        <div key={j} className="flex justify-between items-center text-sm">
+                          <span className="text-slate-500">{label}</span>
+                          <span className="font-bold text-slate-900">{val}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <a href="#" className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 transition-colors">
+                      Read case study <ArrowRight className="w-3.5 h-3.5 inline ml-1" />
+                    </a>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -921,6 +1032,36 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ═══ AI FEATURES DEEP DIVE ═══ */}
+      <section className="py-24 px-6">
+        <div className="max-w-7xl mx-auto">
+          <Reveal>
+            <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-center mb-4">AI that gets smarter every day</h2>
+            <p className="text-center text-slate-500 mb-16 text-lg max-w-2xl mx-auto">Our AI learns from every interaction across 200+ clinics to deliver better results for yours.</p>
+          </Reveal>
+          <div className="grid md:grid-cols-2 gap-6">
+            {[
+              { icon: Globe, title: "Smart Language Detection", desc: "Automatically detects Hindi, English, Tamil, Telugu, Marathi and responds in the patient's language. No configuration needed.", color: "text-emerald-600 bg-emerald-50" },
+              { icon: Brain, title: "Treatment Recommendations", desc: "Suggests relevant treatments based on patient symptoms and your clinic's services. Increases average booking value by 35%.", color: "text-cyan-600 bg-cyan-50" },
+              { icon: Activity, title: "Sentiment Analysis", desc: "Detects frustrated or urgent patients and escalates to clinic staff instantly. Never lose a high-value patient to a slow response.", color: "text-violet-600 bg-violet-50" },
+              { icon: Calendar, title: "Predictive Scheduling", desc: "Predicts no-shows and overbooking patterns, then suggests optimal appointment slots. Reduces gaps in your calendar by 40%.", color: "text-amber-600 bg-amber-50" },
+            ].map((f, i) => (
+              <Reveal key={i} delay={i * 0.1}>
+                <div className="bg-white rounded-2xl border border-slate-200 p-7 hover:shadow-lg transition-shadow flex gap-5">
+                  <div className={`w-12 h-12 rounded-xl ${f.color} flex items-center justify-center shrink-0`}>
+                    <f.icon className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-900 mb-2">{f.title}</h3>
+                    <p className="text-sm text-slate-500 leading-relaxed">{f.desc}</p>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ═══ TRUST & SECURITY ═══ */}
       <section className="py-24 px-6">
         <div className="max-w-7xl mx-auto">
@@ -944,6 +1085,40 @@ export default function LandingPage() {
                   <p className="text-sm text-slate-500 leading-relaxed">{card.desc}</p>
                 </motion.div>
               </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ GETTING STARTED CTA ═══ */}
+      <section className="py-20 px-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-gradient-to-br from-emerald-500 to-teal-500 rounded-3xl p-10 sm:p-14 text-center text-white">
+            <Reveal>
+              <h2 className="text-3xl sm:text-4xl font-black tracking-tight mb-6">Ready to stop losing patients?</h2>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 mb-8">
+                {["14-day free trial — no credit card", "Live campaign within 48 hours", "Cancel anytime, no contracts"].map((t, i) => (
+                  <span key={i} className="flex items-center gap-2 text-sm font-medium text-white/90">
+                    <CheckCircle2 className="w-4 h-4 text-white shrink-0" /> {t}
+                  </span>
+                ))}
+              </div>
+              <Link href="/signup" className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-white text-emerald-700 font-bold text-lg hover:bg-slate-50 transition-colors shadow-lg">
+                Start your free trial <ArrowRight className="w-5 h-5" />
+              </Link>
+              <p className="text-sm text-white/60 mt-4">Or schedule a 15-minute demo call</p>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ PARTNERS & AWARDS ═══ */}
+      <section className="py-10 px-6">
+        <div className="max-w-7xl mx-auto text-center">
+          <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Recognized by</p>
+          <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10">
+            {["Google Partner", "Meta Business Partner", "Startup India", "NASSCOM"].map((p, i) => (
+              <span key={i} className="text-sm sm:text-base font-bold text-slate-300 tracking-tight">{p}</span>
             ))}
           </div>
         </div>
