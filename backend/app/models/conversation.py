@@ -19,6 +19,7 @@ class ConversationStatus(str, enum.Enum):
     BOOKED = "BOOKED"
     COMPLETED = "COMPLETED"
     ABANDONED = "ABANDONED"
+    ESCALATED = "ESCALATED"
 
 
 class AppointmentStatus(str, enum.Enum):

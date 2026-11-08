@@ -27,7 +27,10 @@ from app.services.whatsapp import whatsapp_service
 
 logger = logging.getLogger(__name__)
 
+PROMPT_VERSION = "1.0.0"
+
 SYSTEM_PROMPT_TEMPLATE = """You are a friendly, professional AI receptionist for Dr. {doctor_name}'s {clinic_name}.
+[Prompt version: {prompt_version}]
 Specialty: {specialty}
 Services offered: {services}
 Clinic address: {address}, {city}
@@ -99,6 +102,20 @@ CLAUDE_TOOLS = [
             "properties": {},
         },
     },
+    {
+        "name": "escalate_to_human",
+        "description": "Escalate the conversation to a human staff member when the patient's request is outside AI capabilities, involves medical advice, complaints, or when the patient explicitly asks to speak to a human.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "reason": {
+                    "type": "string",
+                    "description": "Brief reason for escalation",
+                }
+            },
+            "required": ["reason"],
+        },
+    },
 ]
 
 
@@ -137,13 +154,19 @@ class AIReceptionist:
         system_prompt = self._build_system_prompt()
 
         # Call Claude and handle tool use loop
-        response_text = await self._call_claude_with_tools(
+        response_text, total_usage = await self._call_claude_with_tools(
             system_prompt, claude_messages, conversation, patient_phone
         )
 
-        # Save assistant response to conversation history
+        # Save assistant response to conversation history with metadata
         conversation.messages = conversation.messages + [
-            {"role": "assistant", "content": response_text, "timestamp": datetime.now(timezone.utc).isoformat()}
+            {
+                "role": "assistant",
+                "content": response_text,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "prompt_version": PROMPT_VERSION,
+                "usage": total_usage,
+            }
         ]
         await self.db.commit()
 
@@ -186,6 +209,7 @@ class AIReceptionist:
             services=services,
             address=self.doctor.clinic_address or "",
             city=self.doctor.city or "",
+            prompt_version=PROMPT_VERSION,
         )
 
     def _build_claude_messages(self, conversation: Conversation) -> list[dict]:
@@ -204,19 +228,36 @@ class AIReceptionist:
         messages: list[dict],
         conversation: Conversation,
         patient_phone: str,
-    ) -> str:
+    ) -> tuple[str, dict]:
         """Call Claude API with tools and handle the tool-use loop.
 
         Claude may request tool calls (check slots, book appointment).
         We execute them and feed results back until Claude gives a final text response.
+
+        Returns:
+            A tuple of (response_text, usage_dict) where usage_dict contains
+            input_tokens, output_tokens, and total_tokens across all iterations.
         """
         current_messages = list(messages)
         max_iterations = 5  # Safety limit on tool-call loops
+        total_usage = {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
 
         for _ in range(max_iterations):
             response = await self._call_claude_api(system_prompt, current_messages)
             if response is None:
-                return "Sorry, I'm having trouble right now. Please try again in a moment."
+                return "Sorry, I'm having trouble right now. Please try again in a moment.", total_usage
+
+            # Track token usage
+            usage = response.get("usage", {})
+            input_tokens = usage.get("input_tokens", 0)
+            output_tokens = usage.get("output_tokens", 0)
+            total_usage["input_tokens"] += input_tokens
+            total_usage["output_tokens"] += output_tokens
+            total_usage["total_tokens"] += input_tokens + output_tokens
+            logger.info(
+                "Claude API usage — input: %d, output: %d, cumulative total: %d",
+                input_tokens, output_tokens, total_usage["total_tokens"],
+            )
 
             # Check if Claude wants to use a tool
             stop_reason = response.get("stop_reason", "end_turn")
@@ -248,9 +289,10 @@ class AIReceptionist:
             else:
                 # Final text response
                 text_parts = [b["text"] for b in content_blocks if b.get("type") == "text"]
-                return " ".join(text_parts) if text_parts else "How can I help you today?"
+                response_text = " ".join(text_parts) if text_parts else "How can I help you today?"
+                return response_text, total_usage
 
-        return "I'd be happy to help you book an appointment. What treatment are you interested in?"
+        return "I'd be happy to help you book an appointment. What treatment are you interested in?", total_usage
 
     async def _call_claude_api(self, system_prompt: str, messages: list[dict]) -> dict | None:
         """Make a request to the Claude Messages API."""
@@ -299,11 +341,48 @@ class AIReceptionist:
                 return await self._handle_book_appointment(tool_input, conversation, patient_phone)
             elif tool_name == "get_clinic_directions":
                 return self._handle_get_directions()
+            elif tool_name == "escalate_to_human":
+                return await self._handle_escalate_to_human(tool_input, conversation)
             else:
                 return f"Unknown tool: {tool_name}"
         except Exception as exc:
             logger.error("Tool execution failed (%s): %s", tool_name, exc)
             return f"Tool error: {str(exc)}"
+
+    async def _handle_escalate_to_human(
+        self, tool_input: dict, conversation: Conversation
+    ) -> str:
+        """Escalate the conversation to a human staff member."""
+        reason = tool_input.get("reason", "Patient requested human assistance")
+
+        # Update conversation status
+        conversation.status = ConversationStatus.ESCALATED
+        await self.db.flush()
+
+        # Notify the doctor via WhatsApp
+        if self.doctor.whatsapp_number:
+            notification_message = (
+                f"[PatientPlex AI] Escalation alert\n"
+                f"Patient: {conversation.patient_phone}\n"
+                f"Reason: {reason}\n"
+                f"Please follow up with the patient directly."
+            )
+            try:
+                await whatsapp_service.send_message(
+                    to=self.doctor.whatsapp_number,
+                    message=notification_message,
+                )
+            except Exception as exc:
+                logger.error("Failed to notify doctor about escalation: %s", exc)
+
+        logger.info(
+            "Conversation %s escalated to human. Reason: %s",
+            conversation.id, reason,
+        )
+        return json.dumps({
+            "escalated": True,
+            "message": "Escalated to clinic staff. They will be notified immediately.",
+        })
 
     async def _handle_show_slots(self, tool_input: dict, conversation: Conversation) -> str:
         """Fetch available slots from Google Calendar."""
@@ -330,19 +409,15 @@ class AIReceptionist:
             })
         except Exception as exc:
             logger.error("Failed to fetch slots: %s", exc)
+            # Trigger escalation instead of showing hardcoded fallback slots
+            await self._handle_escalate_to_human(
+                {"reason": "Calendar service unavailable while checking slots"},
+                conversation,
+            )
             return json.dumps({
-                "available": True,
-                "date": date_str,
-                "slots": [
-                    {"start": "09:00", "end": "09:30"},
-                    {"start": "10:00", "end": "10:30"},
-                    {"start": "11:30", "end": "12:00"},
-                    {"start": "14:00", "end": "14:30"},
-                    {"start": "15:30", "end": "16:00"},
-                    {"start": "17:00", "end": "17:30"},
-                ],
-                "count": 6,
-                "note": "Showing default slots (calendar not connected)",
+                "available": False,
+                "message": "I'm having trouble checking the calendar right now. Let me connect you with the clinic staff to find a slot.",
+                "escalated": True,
             })
 
     async def _handle_book_appointment(

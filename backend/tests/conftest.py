@@ -70,7 +70,7 @@ async def auth_token(client):
         "phone": "+919999999999",
         "password": "TestPass123!",
     })
-    assert resp.status_code == 200
+    assert resp.status_code == 201
     return resp.json()["access_token"]
 
 

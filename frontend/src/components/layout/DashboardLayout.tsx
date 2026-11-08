@@ -16,8 +16,8 @@ const NAV_ITEMS = [
   { href: "/dashboard/campaigns", label: "Campaigns", icon: BarChart3 },
   { href: "/dashboard/appointments", label: "Appointments", icon: Calendar },
   { href: "/dashboard/conversations", label: "WhatsApp", icon: MessageCircle },
-  { href: "/dashboard/calls", label: "Calls", icon: Phone },
-  { href: "/dashboard/conversions", label: "Funnel", icon: TrendingUp },
+  // { href: "/dashboard/calls", label: "Calls", icon: Phone },        // TODO: re-add when calls page is built
+  // { href: "/dashboard/conversions", label: "Funnel", icon: TrendingUp }, // TODO: re-add when funnel page is built
   { href: "/dashboard/landing-pages", label: "Landing Pages", icon: Globe },
 ];
 

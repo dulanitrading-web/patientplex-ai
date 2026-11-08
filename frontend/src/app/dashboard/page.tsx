@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   BarChart3,
@@ -11,7 +10,6 @@ import {
   MousePointerClick,
   Eye,
   Globe,
-  LogOut,
   ArrowRight,
   Loader2,
   Zap,
@@ -68,7 +66,6 @@ interface TodayAppointment {
 }
 
 export default function DashboardPage() {
-  const router = useRouter();
   const [doctor, setDoctor] = useState<DoctorProfile | null>(null);
   const [campaignOverview, setCampaignOverview] = useState<CampaignOverview | null>(null);
   const [appointmentStats, setAppointmentStats] = useState<AppointmentStats | null>(null);
@@ -77,11 +74,6 @@ export default function DashboardPage() {
   const [launching, setLaunching] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("pp_token");
-    if (!token) {
-      router.push("/login");
-      return;
-    }
     loadDashboard();
   }, []);
 
@@ -114,15 +106,9 @@ export default function DashboardPage() {
     }
   }
 
-  function handleSignOut() {
-    localStorage.removeItem("pp_token");
-    document.cookie = "pp_token=; path=/; max-age=0";
-    router.push("/login");
-  }
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex items-center justify-center py-20">
         <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
       </div>
     );
@@ -131,26 +117,7 @@ export default function DashboardPage() {
   const hasCampaigns = (campaignOverview?.total_campaigns || 0) > 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-[#0B2545]">PatientPlex AI</h1>
-            <p className="text-sm text-gray-500">Welcome, {doctor?.full_name || "Doctor"}</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-500 hidden sm:block">
-              {doctor?.clinic_name} · {doctor?.city}
-            </span>
-            <button onClick={handleSignOut} className="text-gray-400 hover:text-gray-600 p-2" title="Sign out">
-              <LogOut className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+    <div className="space-y-6">
         {/* Launch CTA */}
         {!hasCampaigns && (
           <div className="bg-gradient-to-r from-[#0B2545] to-[#13838C] rounded-2xl p-6 text-white">
@@ -273,7 +240,7 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

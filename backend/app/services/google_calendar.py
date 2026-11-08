@@ -34,8 +34,13 @@ class GoogleCalendarService:
         return flow
 
     @staticmethod
-    def _build_service(token_data: dict):
-        """Build an authorized Calendar API service from stored token data."""
+    async def _build_service(token_data: dict, db: AsyncSession = None, doctor_id: str = None):
+        """Build an authorized Calendar API service from stored token data.
+
+        If ``db`` and ``doctor_id`` are provided and the access token has
+        expired, the credentials are refreshed using the stored refresh token
+        and the updated token is persisted back to the database.
+        """
         creds = Credentials(
             token=token_data["token"],
             refresh_token=token_data.get("refresh_token"),
@@ -43,6 +48,24 @@ class GoogleCalendarService:
             client_id=settings.GOOGLE_CLIENT_ID,
             client_secret=settings.GOOGLE_CLIENT_SECRET,
         )
+
+        # Refresh expired credentials when possible
+        if creds.expired and creds.refresh_token:
+            from google.auth.transport.requests import Request
+
+            creds.refresh(Request())
+
+            # Persist the refreshed token back to the database
+            if db is not None and doctor_id is not None:
+                result = await db.execute(
+                    select(Doctor).where(Doctor.id == doctor_id)
+                )
+                doctor = result.scalar_one()
+                updated_token_data = dict(token_data)
+                updated_token_data["token"] = creds.token
+                doctor.google_calendar_token = updated_token_data
+                await db.flush()
+
         return build("calendar", "v3", credentials=creds)
 
     async def get_auth_url(self, doctor_id: str) -> str:
