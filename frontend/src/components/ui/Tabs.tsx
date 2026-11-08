@@ -13,7 +13,7 @@ interface TabsProps {
 
 export default function Tabs({ tabs, active, onChange, className }: TabsProps) {
   return (
-    <div className={clsx("flex items-center gap-1 border-b border-gray-200 dark:border-gray-700", className)}>
+    <div className={clsx("flex items-center gap-1 border-b border-white/5", className)}>
       {tabs.map((tab) => (
         <button
           key={tab.id}
@@ -21,8 +21,8 @@ export default function Tabs({ tabs, active, onChange, className }: TabsProps) {
           className={clsx(
             "px-3 py-2 text-sm font-medium border-b-2 transition-colors -mb-px",
             active === tab.id
-              ? "border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400"
-              : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300",
+              ? "border-emerald-500 text-emerald-400"
+              : "border-transparent text-slate-500 hover:text-slate-300 hover:border-white/10",
           )}
         >
           {tab.label}
@@ -30,8 +30,8 @@ export default function Tabs({ tabs, active, onChange, className }: TabsProps) {
             <span className={clsx(
               "ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold",
               active === tab.id
-                ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
-                : "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400",
+                ? "bg-emerald-500/10 text-emerald-400"
+                : "bg-white/5 text-slate-500",
             )}>{tab.count}</span>
           )}
         </button>

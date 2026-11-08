@@ -57,42 +57,54 @@ const FEATURES = [
     title: "AI WhatsApp receptionist",
     desc: "Claude-powered conversations that qualify leads, answer treatment questions, and book appointments — in Hindi, English, or your patients' language.",
     color: "text-emerald-400",
+    hoverColor: "group-hover:text-emerald-300",
     bg: "bg-emerald-500/10",
+    gradient: "from-emerald-500 to-teal-500",
   },
   {
     icon: BarChart3,
     title: "Google & Meta ad engine",
     desc: "Hyper-local campaigns that target patients within 5km of your clinic. Auto-optimized bids, A/B tested creatives, quality score tracking.",
     color: "text-cyan-400",
+    hoverColor: "group-hover:text-cyan-300",
     bg: "bg-cyan-500/10",
+    gradient: "from-cyan-500 to-blue-500",
   },
   {
     icon: Calendar,
     title: "Smart appointment booking",
     desc: "Syncs with Google Calendar. Sends WhatsApp reminders. Detects duplicate bookings. Reduces no-shows by 60% with automated follow-ups.",
     color: "text-violet-400",
+    hoverColor: "group-hover:text-violet-300",
     bg: "bg-violet-500/10",
+    gradient: "from-violet-500 to-purple-500",
   },
   {
     icon: Phone,
     title: "Call tracking & recovery",
     desc: "Every missed call becomes a WhatsApp follow-up. IVR routing, call recording, and conversion attribution — know which ad drove which patient.",
     color: "text-amber-400",
+    hoverColor: "group-hover:text-amber-300",
     bg: "bg-amber-500/10",
+    gradient: "from-amber-500 to-orange-500",
   },
   {
     icon: Globe,
     title: "SEO landing pages",
     desc: "Treatment-specific pages optimized for Google Ads quality score. Schema.org medical markup. Mobile-first. Generated from your clinic profile.",
     color: "text-rose-400",
+    hoverColor: "group-hover:text-rose-300",
     bg: "bg-rose-500/10",
+    gradient: "from-rose-500 to-pink-500",
   },
   {
     icon: TrendingUp,
     title: "Conversion analytics",
     desc: "Full-funnel visibility: ad click → WhatsApp enquiry → appointment → attended. See exactly which treatments and campaigns bring ROI.",
     color: "text-sky-400",
+    hoverColor: "group-hover:text-sky-300",
     bg: "bg-sky-500/10",
+    gradient: "from-sky-500 to-indigo-500",
   },
 ];
 
@@ -178,11 +190,59 @@ const MOCK_QUEUE = [
 export default function LandingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState(0);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 80);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#0A0E1A] text-slate-100 overflow-x-hidden">
+      {/* ─── Keyframes ─── */}
+      <style>{`
+        @keyframes float-slow {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(30px, -20px) scale(1.05); }
+          66% { transform: translate(-20px, 15px) scale(0.95); }
+        }
+        @keyframes float-slower {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          50% { transform: translate(-40px, 25px) scale(1.08); }
+        }
+        @keyframes float-particle {
+          0%, 100% { transform: translateY(0) scale(1); opacity: 0.4; }
+          50% { transform: translateY(-20px) scale(1.2); opacity: 0.8; }
+        }
+        @keyframes shimmer {
+          0% { background-position: -200% center; }
+          100% { background-position: 200% center; }
+        }
+        .animate-float-slow { animation: float-slow 12s ease-in-out infinite; }
+        .animate-float-slower { animation: float-slower 16s ease-in-out infinite; }
+        .animate-float-particle-1 { animation: float-particle 4s ease-in-out infinite; }
+        .animate-float-particle-2 { animation: float-particle 5s ease-in-out infinite 1s; }
+        .animate-float-particle-3 { animation: float-particle 6s ease-in-out infinite 2s; }
+        .animate-float-particle-4 { animation: float-particle 3.5s ease-in-out infinite 0.5s; }
+        .badge-shimmer {
+          background: linear-gradient(110deg, #10B981 0%, #10B981 40%, #34d399 50%, #10B981 60%, #10B981 100%);
+          background-size: 200% 100%;
+          animation: shimmer 3s ease-in-out infinite;
+        }
+        .hero-grid {
+          background-image:
+            repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 60px),
+            repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 60px);
+        }
+      `}</style>
+
       {/* ─── Nav ─── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#0A0E1A]/80 backdrop-blur-xl">
+      <nav className={`fixed top-0 left-0 right-0 z-50 bg-[#0A0E1A]/80 backdrop-blur-xl transition-all duration-500 ${
+        scrolled
+          ? "border-b border-emerald-500/10 shadow-[0_1px_20px_rgba(16,185,129,0.06)]"
+          : "border-b border-white/5"
+      }`}>
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-cyan-400 flex items-center justify-center">
@@ -211,8 +271,13 @@ export default function LandingPage() {
 
       {/* ─── Hero ─── */}
       <section className="pt-32 pb-20 px-6 relative">
-        {/* Subtle gradient orb */}
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-emerald-500/8 rounded-full blur-[120px] pointer-events-none" />
+        {/* Grid pattern */}
+        <div className="absolute inset-0 hero-grid pointer-events-none" />
+
+        {/* Floating gradient orbs */}
+        <div className="absolute top-20 left-1/4 w-[600px] h-[500px] bg-emerald-500/[0.07] rounded-full blur-[120px] pointer-events-none animate-float-slow" />
+        <div className="absolute top-40 right-1/4 w-[500px] h-[400px] bg-cyan-500/[0.05] rounded-full blur-[100px] pointer-events-none animate-float-slower" />
+        <div className="absolute bottom-20 left-1/3 w-[400px] h-[300px] bg-violet-500/[0.04] rounded-full blur-[100px] pointer-events-none animate-float-slow" style={{ animationDelay: "4s" }} />
 
         <div className="max-w-6xl mx-auto relative">
           <div className="max-w-2xl">
@@ -278,12 +343,12 @@ export default function LandingPage() {
             </motion.div>
           </div>
 
-          {/* Dashboard preview */}
+          {/* Dashboard preview — interactive hover */}
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.4 }}
-            className="mt-16 rounded-xl border border-white/10 bg-[#0F172A] overflow-hidden shadow-2xl shadow-emerald-500/5"
+            className="mt-16 rounded-xl border border-white/10 bg-[#0F172A] overflow-hidden shadow-2xl shadow-emerald-500/5 hover:border-emerald-500/20 hover:shadow-emerald-500/10 hover:shadow-2xl transition-all duration-500 hover:scale-[1.01]"
           >
             {/* Window chrome */}
             <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5">
@@ -306,7 +371,7 @@ export default function LandingPage() {
                 {MOCK_METRICS.map((m, i) => (
                   <div key={i} className="p-4 rounded-lg bg-white/[0.03] border border-white/5">
                     <div className="text-xs text-slate-500 mb-1">{m.label}</div>
-                    <div className="text-xl font-bold text-white">{m.value}</div>
+                    <div className="text-xl font-bold text-white tabular-nums">{m.value}</div>
                     <div className="text-xs text-emerald-400 mt-1">↑ {m.change}</div>
                   </div>
                 ))}
@@ -331,7 +396,7 @@ export default function LandingPage() {
                         <div className="text-xs text-slate-500">{p.name} · {p.time}</div>
                       </div>
                     </div>
-                    <span className="text-sm font-medium text-emerald-400">{p.amount}</span>
+                    <span className="text-sm font-medium text-emerald-400 tabular-nums">{p.amount}</span>
                   </div>
                 ))}
               </div>
@@ -341,16 +406,20 @@ export default function LandingPage() {
       </section>
 
       {/* ─── Stats ─── */}
-      <section className="py-16 px-6 border-y border-white/5">
-        <div className="max-w-6xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-8">
-          {STATS.map((s, i) => (
-            <Reveal key={i} delay={i * 0.1} className="text-center">
-              <div className="text-3xl sm:text-4xl font-bold text-white mb-1">
-                <Counter target={s.value} suffix={s.suffix} prefix={s.prefix} />
-              </div>
-              <div className="text-sm text-slate-500">{s.label}</div>
-            </Reveal>
-          ))}
+      <section className="py-16 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="h-px bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent mb-16" />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+            {STATS.map((s, i) => (
+              <Reveal key={i} delay={i * 0.1} className="text-center">
+                <div className="text-3xl sm:text-4xl font-bold text-white mb-1 tabular-nums">
+                  <Counter target={s.value} suffix={s.suffix} prefix={s.prefix} />
+                </div>
+                <div className="text-sm text-slate-500">{s.label}</div>
+              </Reveal>
+            ))}
+          </div>
+          <div className="h-px bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent mt-16" />
         </div>
       </section>
 
@@ -427,9 +496,11 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
             {FEATURES.map((f, i) => (
               <Reveal key={i} delay={(i % 3) * 0.1}>
-                <div className="group p-6 rounded-xl border border-white/5 bg-white/[0.02] hover:border-white/10 hover:bg-white/[0.04] transition-all duration-300 h-full">
+                <div className="group relative p-6 rounded-xl border border-white/5 bg-white/[0.02] hover:border-white/10 hover:bg-white/[0.04] transition-all duration-300 h-full overflow-hidden">
+                  {/* Gradient top border on hover */}
+                  <div className={`absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r ${f.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
                   <div className={`inline-flex p-2.5 rounded-lg ${f.bg} mb-4`}>
-                    <f.icon className={`w-5 h-5 ${f.color}`} />
+                    <f.icon className={`w-5 h-5 ${f.color} ${f.hoverColor} transition-colors duration-300`} />
                   </div>
                   <h3 className="font-semibold text-white mb-2">{f.title}</h3>
                   <p className="text-sm text-slate-400 leading-relaxed">{f.desc}</p>
@@ -493,13 +564,15 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-3 gap-6">
             {TESTIMONIALS.map((t, i) => (
               <Reveal key={i} delay={i * 0.1}>
-                <div className="p-6 rounded-xl border border-white/5 bg-white/[0.02] h-full flex flex-col">
-                  <div className="flex items-center gap-1 mb-4">
+                <div className="relative p-6 rounded-xl border border-white/5 bg-white/[0.02] h-full flex flex-col overflow-hidden">
+                  {/* Decorative quote mark */}
+                  <span className="absolute top-4 left-5 text-6xl leading-none text-white/[0.04] font-serif pointer-events-none select-none">{"“"}</span>
+                  <div className="flex items-center gap-1 mb-4 relative">
                     {[...Array(5)].map((_, j) => (
                       <Star key={j} className="w-4 h-4 fill-amber-400 text-amber-400" />
                     ))}
                   </div>
-                  <p className="text-sm text-slate-300 leading-relaxed flex-1 mb-6">
+                  <p className="text-sm text-slate-300 leading-relaxed flex-1 mb-6 relative">
                     {`"${t.text}"`}
                   </p>
                   <div className="flex items-center justify-between pt-4 border-t border-white/5">
@@ -543,11 +616,11 @@ export default function LandingPage() {
               <Reveal key={i} delay={i * 0.1}>
                 <div className={`p-6 rounded-xl border h-full flex flex-col ${
                   p.highlight
-                    ? "border-emerald-500/30 bg-emerald-500/[0.04] relative"
+                    ? "border-emerald-500/30 bg-emerald-500/[0.04] relative shadow-lg shadow-emerald-500/[0.06]"
                     : "border-white/5 bg-white/[0.02]"
                 }`}>
                   {p.highlight && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-emerald-500 text-[#0A0E1A] text-xs font-semibold">
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full badge-shimmer text-[#0A0E1A] text-xs font-semibold">
                       Most popular
                     </div>
                   )}
@@ -556,7 +629,7 @@ export default function LandingPage() {
                     <p className="text-xs text-slate-500 mb-4">{p.desc}</p>
                     <div className="flex items-baseline gap-1">
                       <span className="text-sm text-slate-400">₹</span>
-                      <span className="text-4xl font-bold text-white">{p.price}</span>
+                      <span className="text-4xl font-bold text-white tabular-nums">{p.price}</span>
                       <span className="text-sm text-slate-500">{p.period}</span>
                     </div>
                   </div>
@@ -586,8 +659,9 @@ export default function LandingPage() {
       </section>
 
       {/* ─── Security ─── */}
-      <section className="py-16 px-6 border-y border-white/5">
+      <section className="py-16 px-6">
         <div className="max-w-6xl mx-auto">
+          <div className="h-px bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent mb-16" />
           <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-slate-500">
             {[
               { icon: Shield, text: "End-to-end encryption" },
@@ -601,6 +675,7 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
+          <div className="h-px bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent mt-16" />
         </div>
       </section>
 
@@ -622,7 +697,7 @@ export default function LandingPage() {
                 >
                   <div className="flex items-center justify-between gap-4">
                     <span className="font-medium text-white">{faq.q}</span>
-                    <ChevronDown className={`w-5 h-5 text-slate-500 shrink-0 transition-transform ${openFaq === i ? "rotate-180" : ""}`} />
+                    <ChevronDown className={`w-5 h-5 text-slate-500 shrink-0 transition-transform duration-200 ${openFaq === i ? "rotate-180" : ""}`} />
                   </div>
                   {openFaq === i && (
                     <motion.div
@@ -646,6 +721,11 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <div className="relative rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/[0.08] to-cyan-500/[0.04] p-12 sm:p-16 text-center overflow-hidden">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(16,185,129,0.1),transparent_70%)]" />
+            {/* Floating particles */}
+            <div className="absolute top-8 left-[15%] w-2 h-2 rounded-full bg-emerald-400/30 animate-float-particle-1" />
+            <div className="absolute top-16 right-[20%] w-1.5 h-1.5 rounded-full bg-cyan-400/25 animate-float-particle-2" />
+            <div className="absolute bottom-12 left-[30%] w-2.5 h-2.5 rounded-full bg-emerald-400/20 animate-float-particle-3" />
+            <div className="absolute bottom-20 right-[25%] w-1.5 h-1.5 rounded-full bg-cyan-400/30 animate-float-particle-4" />
             <div className="relative">
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
                 Your competitor{"'"}s patients are looking

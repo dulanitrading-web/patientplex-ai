@@ -10,7 +10,7 @@ interface SkeletonProps {
 }
 
 export default function Skeleton({ className, variant = "text", width, height }: SkeletonProps) {
-  const base = "animate-pulse bg-gray-200 dark:bg-gray-700";
+  const base = "animate-pulse bg-white/5";
   const variants = {
     text: "h-4 rounded",
     circle: "rounded-full",
@@ -25,22 +25,20 @@ export default function Skeleton({ className, variant = "text", width, height }:
   );
 }
 
-/** Pre-built skeleton for a stat card */
 export function StatSkeleton() {
   return (
-    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+    <div className="bg-[#0F172A] border border-white/5 rounded-xl p-4">
       <Skeleton width="60%" className="mb-2" />
       <Skeleton width="40%" height="28px" className="rounded-md" />
     </div>
   );
 }
 
-/** Pre-built skeleton for a list item */
 export function ListSkeleton({ rows = 3 }: { rows?: number }) {
   return (
     <div className="space-y-3">
       {[...Array(rows)].map((_, i) => (
-        <div key={i} className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-4 flex items-center gap-3">
+        <div key={i} className="bg-[#0F172A] border border-white/5 rounded-xl p-4 flex items-center gap-3">
           <Skeleton variant="circle" width="40px" />
           <div className="flex-1 space-y-2">
             <Skeleton width="50%" />

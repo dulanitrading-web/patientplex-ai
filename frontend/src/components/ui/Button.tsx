@@ -16,13 +16,13 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<Variant, string> = {
   primary:
-    "bg-electric text-white hover:bg-blue-700 focus:ring-electric/40 shadow-sm",
+    "bg-emerald-500 text-[#0A0E1A] hover:bg-emerald-400 focus:ring-emerald-500/40 shadow-sm shadow-emerald-500/20",
   secondary:
-    "bg-teal text-white hover:bg-teal/90 focus:ring-teal/40 shadow-sm",
+    "border border-white/10 text-slate-300 hover:border-white/20 hover:text-white hover:bg-white/5 focus:ring-white/20",
   danger:
-    "bg-coral text-white hover:bg-red-600 focus:ring-coral/40 shadow-sm",
+    "bg-red-500/10 text-red-400 hover:bg-red-500/20 focus:ring-red-500/40 border border-red-500/20",
   ghost:
-    "bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-300",
+    "bg-transparent text-slate-400 hover:text-white hover:bg-white/5 focus:ring-white/10",
 };
 
 const sizeStyles: Record<Size, string> = {
@@ -49,7 +49,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         className={clsx(
-          "inline-flex items-center justify-center font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed",
+          "inline-flex items-center justify-center font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-0 disabled:opacity-50 disabled:cursor-not-allowed",
           variantStyles[variant],
           sizeStyles[size],
           fullWidth && "w-full",

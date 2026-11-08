@@ -11,11 +11,11 @@ interface AvatarProps {
 const sizes = { sm: "w-8 h-8 text-xs", md: "w-10 h-10 text-sm", lg: "w-12 h-12 text-base" };
 
 const colors = [
-  "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300",
-  "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
-  "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300",
-  "bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-300",
-  "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300",
+  "bg-emerald-500/15 text-emerald-400",
+  "bg-cyan-500/15 text-cyan-400",
+  "bg-violet-500/15 text-violet-400",
+  "bg-amber-500/15 text-amber-400",
+  "bg-rose-500/15 text-rose-400",
 ];
 
 function getInitials(name: string): string {

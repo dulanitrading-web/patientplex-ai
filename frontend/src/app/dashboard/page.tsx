@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
+import { motion, useInView } from "framer-motion";
 import {
   BarChart3,
   Calendar,
@@ -64,6 +65,22 @@ interface TodayAppointment {
   status: string;
 }
 
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+function getDateString(): string {
+  return new Date().toLocaleDateString("en-IN", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
 export default function DashboardPage() {
   const [doctor, setDoctor] = useState<DoctorProfile | null>(null);
   const [campaignOverview, setCampaignOverview] = useState<CampaignOverview | null>(null);
@@ -71,6 +88,9 @@ export default function DashboardPage() {
   const [todayAppts, setTodayAppts] = useState<TodayAppointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [launching, setLaunching] = useState(false);
+
+  const greeting = useMemo(() => getGreeting(), []);
+  const dateStr = useMemo(() => getDateString(), []);
 
   useEffect(() => {
     loadDashboard();
@@ -117,10 +137,29 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      {/* Greeting */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <h1 className="text-2xl font-bold text-white">
+          {greeting}, {doctor?.full_name?.split(" ")[0] || "Doctor"}
+        </h1>
+        <p className="text-sm text-slate-500 mt-0.5">{dateStr}</p>
+      </motion.div>
+
       {/* Launch CTA */}
       {!hasCampaigns && (
-        <div className="relative rounded-xl border border-emerald-500/20 bg-gradient-to-r from-emerald-500/[0.08] to-cyan-500/[0.04] p-6 overflow-hidden">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="relative rounded-xl border border-emerald-500/20 bg-gradient-to-r from-emerald-500/[0.08] to-cyan-500/[0.04] p-6 overflow-hidden group"
+          style={{ boxShadow: "0 0 40px rgba(16,185,129,0.06)" }}
+        >
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_right,rgba(16,185,129,0.08),transparent_60%)]" />
+          <div className="absolute -top-20 -right-20 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/15 transition-colors duration-700" />
           <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <h2 className="text-xl font-bold text-white flex items-center gap-2">
@@ -133,32 +172,42 @@ export default function DashboardPage() {
             <button
               onClick={handleLaunch}
               disabled={launching}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-[#0A0E1A] font-semibold text-sm transition-colors whitespace-nowrap disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-[#0A0E1A] font-semibold text-sm transition-all whitespace-nowrap disabled:opacity-50 hover:shadow-lg hover:shadow-emerald-500/20"
             >
               {launching ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
               Launch Campaigns <ArrowRight className="w-4 h-4" />
             </button>
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard icon={<Eye className="w-5 h-5" />} label="Impressions"
-          value={fmt(campaignOverview?.total_impressions || 0)} color="cyan" />
-        <MetricCard icon={<MousePointerClick className="w-5 h-5" />} label="Clicks"
-          value={fmt(campaignOverview?.total_clicks || 0)}
-          sub={`₹${campaignOverview?.avg_cpc?.toFixed(1) || "0"} avg CPC`} color="emerald" />
-        <MetricCard icon={<MessageCircle className="w-5 h-5" />} label="Enquiries"
-          value={fmt(campaignOverview?.total_conversions || 0)} color="violet" />
-        <MetricCard icon={<Calendar className="w-5 h-5" />} label="Appointments"
-          value={fmt(appointmentStats?.total_booked || 0)}
-          sub={`${appointmentStats?.attendance_rate || 0}% attended`} color="amber" />
+        {[
+          { icon: <Eye className="w-5 h-5" />, label: "Impressions", value: fmt(campaignOverview?.total_impressions || 0), color: "cyan" as const, sub: undefined, trend: undefined },
+          { icon: <MousePointerClick className="w-5 h-5" />, label: "Clicks", value: fmt(campaignOverview?.total_clicks || 0), color: "emerald" as const, sub: `₹${campaignOverview?.avg_cpc?.toFixed(1) || "0"} avg CPC`, trend: "down" as const },
+          { icon: <MessageCircle className="w-5 h-5" />, label: "Enquiries", value: fmt(campaignOverview?.total_conversions || 0), color: "violet" as const, sub: undefined, trend: undefined },
+          { icon: <Calendar className="w-5 h-5" />, label: "Appointments", value: fmt(appointmentStats?.total_booked || 0), color: "amber" as const, sub: `${appointmentStats?.attendance_rate || 0}% attended`, trend: "up" as const },
+        ].map((m, i) => (
+          <motion.div
+            key={m.label}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.15 + i * 0.08 }}
+          >
+            <MetricCard {...m} />
+          </motion.div>
+        ))}
       </div>
 
       {/* Spend + Funnel */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-[#0F172A] rounded-xl p-5 border border-white/5">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.5 }}
+          className="bg-[#0F172A] rounded-xl p-5 border border-white/5 hover:border-white/10 transition-colors duration-300"
+        >
           <h3 className="font-semibold text-white flex items-center gap-2 mb-4">
             <IndianRupee className="w-5 h-5 text-emerald-400" /> Ad spend (30 days)
           </h3>
@@ -169,13 +218,18 @@ export default function DashboardPage() {
           </div>
           <div className="mt-4">
             <Link href="/dashboard/campaigns"
-              className="inline-flex items-center gap-1.5 text-sm text-emerald-400 hover:text-emerald-300 transition-colors">
-              View campaigns <ArrowRight className="w-3.5 h-3.5" />
+              className="group/link inline-flex items-center gap-1.5 text-sm text-emerald-400 hover:text-emerald-300 transition-colors">
+              View campaigns <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-0.5 transition-transform" />
             </Link>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="bg-[#0F172A] rounded-xl p-5 border border-white/5">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.55 }}
+          className="bg-[#0F172A] rounded-xl p-5 border border-white/5 hover:border-white/10 transition-colors duration-300"
+        >
           <h3 className="font-semibold text-white flex items-center gap-2 mb-4">
             <Activity className="w-5 h-5 text-cyan-400" /> Patient funnel (30 days)
           </h3>
@@ -189,12 +243,17 @@ export default function DashboardPage() {
             <FunnelRow label="Attended" value={appointmentStats?.attended || 0}
               total={campaignOverview?.total_clicks || 1} color="bg-emerald-400" />
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Today + Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 bg-[#0F172A] rounded-xl p-5 border border-white/5">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.6 }}
+          className="lg:col-span-2 bg-[#0F172A] rounded-xl p-5 border border-white/5 hover:border-white/10 transition-colors duration-300"
+        >
           <h3 className="font-semibold text-white flex items-center gap-2 mb-4">
             <Calendar className="w-5 h-5 text-cyan-400" /> Today{"'"}s appointments
           </h3>
@@ -203,10 +262,13 @@ export default function DashboardPage() {
           ) : (
             <div className="divide-y divide-white/5">
               {todayAppts.map((a) => (
-                <div key={a.id} className="flex items-center justify-between py-3">
-                  <div>
-                    <div className="font-medium text-sm text-slate-200">{a.patient_name}</div>
-                    <div className="text-xs text-slate-500">{a.treatment}</div>
+                <div key={a.id} className="flex items-center justify-between py-3 group/row">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-0.5 h-8 rounded-full ${statusBarColor(a.status)}`} />
+                    <div>
+                      <div className="font-medium text-sm text-slate-200">{a.patient_name}</div>
+                      <div className="text-xs text-slate-500">{a.treatment}</div>
+                    </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-sm text-slate-400 tabular-nums">{a.time}</span>
@@ -218,13 +280,18 @@ export default function DashboardPage() {
           )}
           <div className="mt-3">
             <Link href="/dashboard/appointments"
-              className="inline-flex items-center gap-1.5 text-sm text-emerald-400 hover:text-emerald-300 transition-colors">
-              View all <ArrowRight className="w-3.5 h-3.5" />
+              className="group/link inline-flex items-center gap-1.5 text-sm text-emerald-400 hover:text-emerald-300 transition-colors">
+              View all <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-0.5 transition-transform" />
             </Link>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="bg-[#0F172A] rounded-xl p-5 border border-white/5">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.65 }}
+          className="bg-[#0F172A] rounded-xl p-5 border border-white/5 hover:border-white/10 transition-colors duration-300"
+        >
           <h3 className="font-semibold text-white mb-4">Quick actions</h3>
           <div className="space-y-1">
             <Link href="/dashboard/campaigns" className="block"><QA icon={<BarChart3 className="w-4 h-4" />} label="Manage campaigns" /></Link>
@@ -244,7 +311,7 @@ export default function DashboardPage() {
               ))}
             </div>
           )}
-        </div>
+        </motion.div>
       </div>
     </div>
   );
@@ -252,8 +319,22 @@ export default function DashboardPage() {
 
 /* ---------- Sub-components ---------- */
 
-function MetricCard({ icon, label, value, sub, color }: {
-  icon: React.ReactNode; label: string; value: string; sub?: string; color: string;
+const borderColors: Record<string, string> = {
+  cyan: "from-cyan-500 to-cyan-400",
+  emerald: "from-emerald-500 to-emerald-400",
+  violet: "from-violet-500 to-violet-400",
+  amber: "from-amber-500 to-amber-400",
+};
+
+const glowShadows: Record<string, string> = {
+  cyan: "shadow-cyan-500/20",
+  emerald: "shadow-emerald-500/20",
+  violet: "shadow-violet-500/20",
+  amber: "shadow-amber-500/20",
+};
+
+function MetricCard({ icon, label, value, sub, color, trend }: {
+  icon: React.ReactNode; label: string; value: string; sub?: string; color: "cyan" | "emerald" | "violet" | "amber"; trend?: "up" | "down";
 }) {
   const cm: Record<string, string> = {
     cyan: "bg-cyan-500/10 text-cyan-400",
@@ -262,13 +343,21 @@ function MetricCard({ icon, label, value, sub, color }: {
     amber: "bg-amber-500/10 text-amber-400",
   };
   return (
-    <div className="bg-[#0F172A] rounded-xl p-4 border border-white/5">
+    <div className="relative bg-[#0F172A] rounded-xl p-4 border border-white/5 hover:border-white/10 hover:bg-white/[0.02] transition-all duration-300 overflow-hidden group/card">
+      {/* Gradient left border */}
+      <div className={`absolute left-0 top-0 bottom-0 w-0.5 bg-gradient-to-b ${borderColors[color]} opacity-40 group-hover/card:opacity-100 transition-opacity duration-300`} />
       <div className="flex items-center gap-2 mb-2">
-        <div className={`p-1.5 rounded-lg ${cm[color]}`}>{icon}</div>
+        <div className={`p-1.5 rounded-lg ${cm[color]} shadow-sm ${glowShadows[color]}`}>{icon}</div>
         <span className="text-sm text-slate-500">{label}</span>
       </div>
       <div className="text-2xl font-bold text-white tabular-nums">{value}</div>
-      {sub && <div className="text-xs text-slate-500 mt-1">{sub}</div>}
+      {sub && (
+        <div className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+          {trend === "up" && <span className="text-emerald-400">↑</span>}
+          {trend === "down" && <span className="text-emerald-400">↓</span>}
+          {sub}
+        </div>
+      )}
     </div>
   );
 }
@@ -277,14 +366,22 @@ function FunnelRow({ label, value, total, color }: {
   label: string; value: number; total: number; color: string;
 }) {
   const pct = total > 0 ? Math.round((value / total) * 100) : 0;
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-40px" });
+
   return (
-    <div>
+    <div ref={ref}>
       <div className="flex justify-between text-sm mb-1">
         <span className="text-slate-400">{label}</span>
         <span className="font-medium text-white tabular-nums">{fmt(value)} ({pct}%)</span>
       </div>
       <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-        <div className={`h-full ${color} rounded-full transition-all duration-500`} style={{ width: `${pct}%` }} />
+        <motion.div
+          className={`h-full ${color} rounded-full`}
+          initial={{ width: 0 }}
+          animate={isInView ? { width: `${pct}%` } : { width: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
+        />
       </div>
     </div>
   );
@@ -292,12 +389,23 @@ function FunnelRow({ label, value, total, color }: {
 
 function QA({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
-    <div className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-white/5 cursor-pointer transition-colors">
-      <div className="text-slate-500">{icon}</div>
+    <div className="group/qa flex items-center gap-3 p-2.5 rounded-lg hover:bg-white/5 cursor-pointer transition-colors">
+      <div className="text-slate-500 group-hover/qa:text-emerald-400 transition-colors">{icon}</div>
       <span className="text-sm text-slate-300">{label}</span>
-      <ArrowRight className="w-3.5 h-3.5 text-slate-600 ml-auto" />
+      <ArrowRight className="w-3.5 h-3.5 text-slate-600 ml-auto group-hover/qa:text-slate-400 group-hover/qa:translate-x-1 transition-all" />
     </div>
   );
+}
+
+function statusBarColor(status: string): string {
+  const m: Record<string, string> = {
+    CONFIRMED: "bg-cyan-400",
+    REMINDED: "bg-amber-400",
+    ATTENDED: "bg-emerald-400",
+    NO_SHOW: "bg-red-400",
+    CANCELLED: "bg-slate-500",
+  };
+  return m[status] || "bg-cyan-400";
 }
 
 function StatusBadge({ status }: { status: string }) {
