@@ -3,9 +3,7 @@
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Zap } from "lucide-react";
-import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
+import { Loader2, CheckCircle2 } from "lucide-react";
 import { signup, ApiError } from "@/lib/api";
 
 export default function SignupPage() {
@@ -53,7 +51,6 @@ export default function SignupPage() {
         password: form.password,
       });
       localStorage.setItem("pp_token", data.access_token);
-      // HttpOnly cookie is now set by the backend response
       if (data.user?.full_name) {
         localStorage.setItem("user_name", data.user.full_name);
       }
@@ -74,84 +71,129 @@ export default function SignupPage() {
     if (errors[field]) setErrors((e) => ({ ...e, [field]: "" }));
   }
 
+  const inputClass =
+    "w-full px-4 py-3 rounded-lg bg-white/[0.05] border border-white/10 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/30 transition-colors";
+
   return (
-    <div className="min-h-screen gradient-hero flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-[#0A0E1A] flex items-center justify-center px-4 py-12 relative overflow-hidden">
+      {/* Gradient orb */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-500/[0.07] rounded-full blur-[120px] pointer-events-none" />
+
+      <div className="w-full max-w-md relative">
         {/* Logo */}
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="w-10 h-10 bg-electric rounded-xl flex items-center justify-center">
-            <Zap className="w-6 h-6 text-white" />
+        <Link href="/" className="flex items-center justify-center gap-2.5 mb-10">
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-400 to-cyan-400 flex items-center justify-center">
+            <span className="text-[#0A0E1A] font-bold text-sm">P</span>
           </div>
-          <span className="text-white text-2xl font-bold">PatientPlex AI</span>
-        </div>
+          <span className="font-semibold text-xl tracking-tight text-white">PatientPlex</span>
+        </Link>
 
         {/* Card */}
-        <div className="card-elevated">
-          <h1 className="text-2xl font-bold text-navy text-center mb-1">
-            Create your account
+        <div className="rounded-xl border border-white/10 bg-[#0F172A] p-8">
+          <h1 className="text-2xl font-bold text-white text-center mb-1">
+            Start your free trial
           </h1>
-          <p className="text-gray-500 text-center mb-6 text-sm">
-            Start getting patients in under 5 minutes
+          <p className="text-slate-500 text-center mb-2 text-sm">
+            Get patients in under 10 minutes
           </p>
 
+          {/* Trust signals */}
+          <div className="flex items-center justify-center gap-4 mb-8">
+            {["14-day free trial", "No credit card"].map((t) => (
+              <span key={t} className="flex items-center gap-1 text-xs text-slate-500">
+                <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                {t}
+              </span>
+            ))}
+          </div>
+
           {apiError && (
-            <div className="bg-coral/10 border border-coral/30 text-coral rounded-lg px-4 py-3 mb-4 text-sm">
+            <div className="bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg px-4 py-3 mb-6 text-sm">
               {apiError}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              label="Full Name"
-              placeholder="Dr. Priya Sharma"
-              value={form.full_name}
-              onChange={(e) => update("full_name", e.target.value)}
-              error={errors.full_name}
-            />
-            <Input
-              label="Email"
-              type="email"
-              placeholder="priya@clinic.com"
-              value={form.email}
-              onChange={(e) => update("email", e.target.value)}
-              error={errors.email}
-            />
-            <Input
-              label="Phone"
-              type="tel"
-              placeholder="9876543210"
-              value={form.phone}
-              onChange={(e) => update("phone", e.target.value)}
-              error={errors.phone}
-            />
-            <Input
-              label="Password"
-              type="password"
-              placeholder="At least 8 characters"
-              value={form.password}
-              onChange={(e) => update("password", e.target.value)}
-              error={errors.password}
-            />
-            <Input
-              label="Confirm Password"
-              type="password"
-              placeholder="Repeat your password"
-              value={form.confirm_password}
-              onChange={(e) => update("confirm_password", e.target.value)}
-              error={errors.confirm_password}
-            />
+            <div>
+              <label className="block text-sm font-medium text-slate-400 mb-1.5">Full name</label>
+              <input
+                type="text"
+                placeholder="Dr. Priya Sharma"
+                value={form.full_name}
+                onChange={(e) => update("full_name", e.target.value)}
+                className={inputClass}
+              />
+              {errors.full_name && <p className="text-red-400 text-xs mt-1.5">{errors.full_name}</p>}
+            </div>
 
-            <Button type="submit" fullWidth loading={loading} size="lg">
-              Create Account
-            </Button>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-slate-400 mb-1.5">Email</label>
+                <input
+                  type="email"
+                  placeholder="priya@clinic.com"
+                  value={form.email}
+                  onChange={(e) => update("email", e.target.value)}
+                  className={inputClass}
+                />
+                {errors.email && <p className="text-red-400 text-xs mt-1.5">{errors.email}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-400 mb-1.5">Phone</label>
+                <input
+                  type="tel"
+                  placeholder="9876543210"
+                  value={form.phone}
+                  onChange={(e) => update("phone", e.target.value)}
+                  className={inputClass}
+                />
+                {errors.phone && <p className="text-red-400 text-xs mt-1.5">{errors.phone}</p>}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-400 mb-1.5">Password</label>
+              <input
+                type="password"
+                placeholder="At least 8 characters"
+                value={form.password}
+                onChange={(e) => update("password", e.target.value)}
+                className={inputClass}
+              />
+              {errors.password && <p className="text-red-400 text-xs mt-1.5">{errors.password}</p>}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-400 mb-1.5">Confirm password</label>
+              <input
+                type="password"
+                placeholder="Repeat your password"
+                value={form.confirm_password}
+                onChange={(e) => update("confirm_password", e.target.value)}
+                className={inputClass}
+              />
+              {errors.confirm_password && <p className="text-red-400 text-xs mt-1.5">{errors.confirm_password}</p>}
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed text-[#0A0E1A] font-semibold text-sm transition-colors flex items-center justify-center gap-2 mt-2"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Creating account...
+                </>
+              ) : (
+                "Create account"
+              )}
+            </button>
           </form>
 
-          <p className="text-center text-sm text-gray-500 mt-6">
+          <p className="text-center text-sm text-slate-500 mt-6">
             Already have an account?{" "}
-            <Link
-              href="/login"
-              className="text-electric font-semibold hover:underline"
-            >
+            <Link href="/login" className="text-emerald-400 font-medium hover:text-emerald-300 transition-colors">
               Sign in
             </Link>
           </p>
