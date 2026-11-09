@@ -174,7 +174,7 @@ const MOCK_QUEUE = [
   { name: "Deepak S.", treatment: "Dental implant consult", time: "5m ago", amount: "₹500" },
 ];
 
-const TECH_STACK = ["WhatsApp Business API", "Google Ads API", "Meta Marketing API", "ChatGPT Ads API", "LinkedIn Marketing API"];
+const TECH_STACK = ["WhatsApp Business API", "Google Ads API", "Meta Marketing API", "ChatGPT Ads API", "LinkedIn Marketing API", "Twilio Voice API"];
 
 const CHANNELS_DATA = [
   { name: "WhatsApp", border: "hover:border-green-300" },
@@ -273,11 +273,17 @@ export default function LandingPage() {
   const [annual, setAnnual] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [heroTab, setHeroTab] = useState(0);
+  const [demoScreen, setDemoScreen] = useState(0);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    const id = setInterval(() => setDemoScreen((p) => (p + 1) % 4), 4000);
+    return () => clearInterval(id);
   }, []);
 
   const pricing = annual ? PRICING_DATA.annual : PRICING_DATA.monthly;
@@ -745,6 +751,7 @@ export default function LandingPage() {
               { name: "Google Calendar", desc: "Appointment sync", logo: <GoogleCalendarLogo size={24} /> },
               { name: "Google My Business", desc: "Review management", logo: <GoogleLogo size={24} /> },
               { name: "Google Reviews", desc: "Automated review collection", logo: <GoogleLogo size={24} /> },
+              { name: "Twilio Voice", desc: "AI phone call receptionist", logo: <Phone className="w-5 h-5 text-red-500" /> },
             ].map((item, i) => (
               <Reveal key={i} delay={i * 0.05}>
                 <motion.div whileHover={{ y: -3 }} className="bg-[#FAFAF8] rounded-2xl border border-slate-200 p-5 flex items-start gap-4 hover:shadow-lg transition-all duration-300 cursor-default">
@@ -774,29 +781,107 @@ export default function LandingPage() {
             </p>
           </Reveal>
           <Reveal delay={0.15}>
-            <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-slate-800 to-slate-900 aspect-video flex items-center justify-center group cursor-pointer shadow-2xl">
-              {/* Grid pattern overlay */}
-              <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle, #fff 1px, transparent 1px)", backgroundSize: "20px 20px" }} />
-              {/* Play button */}
-              <div className="relative z-10 w-20 h-20 rounded-full bg-white/90 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <Play className="w-8 h-8 text-slate-900 ml-1" fill="currentColor" />
-              </div>
-              {/* Duration badge */}
-              <div className="absolute bottom-4 right-4 px-3 py-1 rounded-lg bg-black/60 text-white text-xs font-medium">
-                2:34
-              </div>
-              {/* Decorative elements */}
-              <div className="absolute top-6 left-6 flex items-center gap-2">
+            <div className="relative rounded-2xl overflow-hidden bg-[#1e293b] shadow-2xl">
+              {/* Window chrome */}
+              <div className="flex items-center gap-2 px-5 py-3 bg-[#0f172a] border-b border-slate-700/50">
                 <div className="w-3 h-3 rounded-full bg-red-500/80" />
                 <div className="w-3 h-3 rounded-full bg-amber-500/80" />
                 <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
+                <div className="flex-1 text-center">
+                  <span className="text-xs text-slate-500 font-medium">PatientPlex Dashboard — Live Demo</span>
+                </div>
+              </div>
+              {/* Screen titles */}
+              <div className="flex border-b border-slate-700/30">
+                {["AI Receptionist", "Ad Campaigns", "Smart Booking", "AI Call Agent"].map((label, i) => (
+                  <button key={i} onClick={() => setDemoScreen(i)} className={`flex-1 py-2.5 text-xs font-bold tracking-wide transition-colors ${demoScreen === i ? "text-emerald-400 border-b-2 border-emerald-400 bg-emerald-400/5" : "text-slate-500 hover:text-slate-300"}`}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {/* Screens */}
+              <div className="p-6 min-h-[340px] sm:min-h-[380px]">
+                <AnimatePresence mode="wait">
+                  {demoScreen === 0 && (
+                    <motion.div key="s0" initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-10}} transition={{duration:0.3}} className="space-y-3">
+                      <p className="text-emerald-400 text-xs font-bold uppercase tracking-widest mb-4">WhatsApp AI — Bhardwaj Dental</p>
+                      <div className="flex items-start gap-2"><div className="w-7 h-7 rounded-full bg-green-900/40 flex items-center justify-center shrink-0"><MessageCircle className="w-3.5 h-3.5 text-green-400" /></div><div className="bg-slate-700/50 rounded-xl rounded-tl-sm px-3.5 py-2.5 text-sm text-slate-200 max-w-[75%]">Hi, I need teeth cleaning. Any slots this week?</div></div>
+                      <div className="flex items-start gap-2 justify-end"><div className="bg-emerald-900/30 rounded-xl rounded-tr-sm px-3.5 py-2.5 text-sm text-emerald-100 max-w-[75%] border border-emerald-800/30">Namaste! 🙏 Dr. Bhardwaj has slots on Wed 10am and Fri 3pm. Teeth cleaning costs ₹1,500. Shall I book?</div><div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shrink-0"><Brain className="w-3.5 h-3.5 text-white" /></div></div>
+                      <div className="flex items-start gap-2"><div className="w-7 h-7 rounded-full bg-green-900/40 flex items-center justify-center shrink-0"><MessageCircle className="w-3.5 h-3.5 text-green-400" /></div><div className="bg-slate-700/50 rounded-xl rounded-tl-sm px-3.5 py-2.5 text-sm text-slate-200 max-w-[75%]">Wednesday 10am please!</div></div>
+                      <div className="flex items-start gap-2 justify-end"><div className="bg-emerald-900/30 rounded-xl rounded-tr-sm px-3.5 py-2.5 text-sm text-emerald-100 max-w-[75%] border border-emerald-800/30"><span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Booked! Wed 10am with Dr. Bhardwaj. Confirmation sent. See you! 😊</span></div><div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shrink-0"><Brain className="w-3.5 h-3.5 text-white" /></div></div>
+                      <div className="mt-3 flex items-center gap-2 text-xs text-slate-500"><Clock className="w-3 h-3" /> Response time: 8 seconds &bull; Language: Auto-detected Hindi/English</div>
+                    </motion.div>
+                  )}
+                  {demoScreen === 1 && (
+                    <motion.div key="s1" initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-10}} transition={{duration:0.3}}>
+                      <p className="text-blue-400 text-xs font-bold uppercase tracking-widest mb-4">Google Ads — Live Campaign Metrics</p>
+                      <div className="grid grid-cols-4 gap-3 mb-5">
+                        {[["Daily Budget","₹800","bg-blue-900/20 border-blue-800/30"],["Avg CPC","₹5.20","bg-cyan-900/20 border-cyan-800/30"],["CTR","4.8%","bg-teal-900/20 border-teal-800/30"],["Bookings","24","bg-emerald-900/20 border-emerald-800/30"]].map(([l,v,c],j)=>(
+                          <div key={j} className={`rounded-xl p-3 border ${c}`}><p className="text-[10px] text-slate-400 mb-1">{l}</p><p className="text-lg font-black text-white">{v}</p></div>
+                        ))}
+                      </div>
+                      <div className="space-y-2">
+                        {[{n:"Teeth whitening",cpc:"₹3.20",ctr:"4.8%",s:"Active"},{n:"Dental implants",cpc:"₹5.50",ctr:"3.2%",s:"Active"},{n:"Root canal",cpc:"₹4.80",ctr:"5.4%",s:"Optimizing"},{n:"Braces",cpc:"₹2.80",ctr:"6.1%",s:"Active"}].map((r,j)=>(
+                          <div key={j} className="flex items-center justify-between text-xs bg-slate-800/50 rounded-lg p-3 border border-slate-700/30">
+                            <span className="font-semibold text-slate-200 w-32">{r.n}</span>
+                            <span className="text-slate-400 tabular-nums">{r.cpc}</span>
+                            <span className="text-slate-400 tabular-nums">{r.ctr}</span>
+                            <span className={`font-bold px-2 py-0.5 rounded text-[10px] ${r.s==="Active"?"bg-emerald-900/30 text-emerald-400 border border-emerald-800/30":"bg-amber-900/30 text-amber-400 border border-amber-800/30"}`}>{r.s}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-3 flex items-center gap-2 text-xs text-slate-500"><TrendingUp className="w-3 h-3 text-emerald-400" /> ROAS: 3.8x &bull; Cost per booking: ₹68 avg</div>
+                    </motion.div>
+                  )}
+                  {demoScreen === 2 && (
+                    <motion.div key="s2" initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-10}} transition={{duration:0.3}}>
+                      <p className="text-violet-400 text-xs font-bold uppercase tracking-widest mb-4">Smart Booking — Today{"'"}s Schedule</p>
+                      <div className="space-y-2.5">
+                        {[{t:"9:00 AM",n:"Ravi M.",tx:"Teeth cleaning",st:"Confirmed",c:"emerald"},{t:"10:30 AM",n:"Sunita P.",tx:"Root canal - Session 2",st:"Confirmed",c:"emerald"},{t:"12:00 PM",n:"Deepak S.",tx:"Dental implant consult",st:"Reminder sent",c:"amber"},{t:"2:30 PM",n:"Meera K.",tx:"Teeth whitening",st:"Confirmed",c:"emerald"},{t:"4:00 PM",n:"Arjun T.",tx:"Braces adjustment",st:"Auto-booked via WhatsApp",c:"blue"}].map((a,j)=>(
+                          <div key={j} className="flex items-center gap-4 bg-slate-800/50 rounded-xl p-3.5 border border-slate-700/30">
+                            <div className="text-center w-16 shrink-0"><p className="text-sm font-bold text-white">{a.t}</p></div>
+                            <div className="w-px h-8 bg-slate-700/50" />
+                            <div className="flex-1"><p className="text-sm font-semibold text-slate-200">{a.n} — {a.tx}</p><p className={`text-[10px] mt-0.5 ${a.c==="emerald"?"text-emerald-400":a.c==="amber"?"text-amber-400":"text-blue-400"}`}>{a.st}</p></div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-3 flex items-center gap-2 text-xs text-slate-500"><CheckCircle2 className="w-3 h-3 text-emerald-400" /> Auto-reminders sent 2hrs before &bull; No-show rate: reduced</div>
+                    </motion.div>
+                  )}
+                  {demoScreen === 3 && (
+                    <motion.div key="s3" initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-10}} transition={{duration:0.3}}>
+                      <p className="text-orange-400 text-xs font-bold uppercase tracking-widest mb-4">AI Call Receptionist — Twilio Voice</p>
+                      <div className="bg-slate-800/60 rounded-2xl p-6 border border-slate-700/30 mb-4">
+                        <div className="flex items-center gap-4 mb-5">
+                          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-lg shadow-orange-500/20"><Phone className="w-7 h-7 text-white" /></div>
+                          <div><p className="text-lg font-black text-white">Incoming Call</p><p className="text-sm text-slate-400">+91 98765 XXXXX &bull; New Patient</p></div>
+                          <div className="ml-auto"><span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-900/30 border border-emerald-800/30 text-emerald-400 text-xs font-bold"><span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> AI Answering</span></div>
+                        </div>
+                        <div className="space-y-3 text-sm">
+                          <div className="flex items-start gap-3"><span className="text-orange-400 font-bold w-16 shrink-0">Patient:</span><span className="text-slate-300">{"\""}Hello, I want to book an appointment for teeth cleaning{"\""}  </span></div>
+                          <div className="flex items-start gap-3"><span className="text-emerald-400 font-bold w-16 shrink-0">AI:</span><span className="text-slate-300">{"\""}Namaste! Bhardwaj Dental Clinic. Dr. Bhardwaj has available slots on Wednesday 10am and Friday 3pm. Shall I book for you?{"\""}  </span></div>
+                          <div className="flex items-start gap-3"><span className="text-orange-400 font-bold w-16 shrink-0">Patient:</span><span className="text-slate-300">{"\""}Wednesday morning please{"\""}  </span></div>
+                          <div className="flex items-start gap-3"><span className="text-emerald-400 font-bold w-16 shrink-0">AI:</span><span className="text-slate-300">{"\""}Done! Booked for Wednesday 10am. You{"'"}ll get a WhatsApp confirmation shortly. Thank you!{"\""}  </span></div>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-3">
+                        {[["Calls handled","24/7","text-emerald-400"],["Languages","Hindi + English","text-blue-400"],["Urgent cases","Transfer to doctor","text-orange-400"]].map(([l,v,c],j)=>(
+                          <div key={j} className="bg-slate-800/40 rounded-xl p-3 border border-slate-700/20 text-center"><p className="text-[10px] text-slate-400 mb-1">{l}</p><p className={`text-sm font-bold ${c}`}>{v}</p></div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+              {/* Dot indicators */}
+              <div className="flex items-center justify-center gap-2 pb-5">
+                {[0,1,2,3].map(i=>(
+                  <button key={i} onClick={()=>setDemoScreen(i)} className={`w-2 h-2 rounded-full transition-all ${demoScreen===i?"bg-emerald-400 w-6":"bg-slate-600 hover:bg-slate-500"}`} />
+                ))}
               </div>
             </div>
-            <p className="text-center text-sm text-slate-400 mt-4">
-              Watch the full demo — no signup required
-            </p>
             <div className="flex flex-wrap items-center justify-center gap-6 mt-6 text-sm text-slate-500">
-              <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> See the AI receptionist in action</span>
+              <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> AI WhatsApp & Phone receptionist</span>
               <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> Watch ads get created automatically</span>
               <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> Real clinic dashboard walkthrough</span>
             </div>
@@ -946,7 +1031,7 @@ export default function LandingPage() {
                   <h3 className="text-xl font-black text-slate-900">Before PatientPlex</h3>
                 </div>
                 <ul className="space-y-4">
-                  {["Missed calls & WhatsApp messages after hours", "₹500–1,500+ cost per patient booking with agencies", "No idea which ads actually bring patients", "High patient no-show rate", "Manual everything — reminders, follow-ups, booking"].map((item, i) => (
+                  {["Missed calls & WhatsApp messages after hours", "₹500–1,500+ cost per patient booking with agencies", "No idea which ads actually bring patients", "High patient no-show rate", "Manual everything — calls, reminders, follow-ups, booking"].map((item, i) => (
                     <li key={i} className="flex items-start gap-3 text-sm text-slate-700">
                       <span className="w-2 h-2 rounded-full bg-red-400 mt-1.5 shrink-0" />
                       {item}
@@ -962,7 +1047,7 @@ export default function LandingPage() {
                   <h3 className="text-xl font-black text-slate-900">After PatientPlex</h3>
                 </div>
                 <ul className="space-y-4">
-                  {["24/7 AI WhatsApp receptionist", "₹5–8 per lead, ₹60–80 per booking (Bhardwaj Dental data)", "Full-funnel attribution on every rupee", "Reduced no-shows with auto WhatsApp reminders", "Everything automated — ads, booking, follow-ups"].map((item, i) => (
+                  {["24/7 AI WhatsApp & Phone receptionist (Twilio)", "₹5–8 per lead, ₹60–80 per booking (Bhardwaj Dental data)", "Full-funnel attribution on every rupee", "Reduced no-shows with auto WhatsApp reminders", "Everything automated — calls, ads, booking, follow-ups"].map((item, i) => (
                     <li key={i} className="flex items-start gap-3 text-sm text-slate-700">
                       <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
                       {item}
@@ -1038,7 +1123,7 @@ export default function LandingPage() {
             <div className="hidden md:block absolute top-10 left-[18%] right-[18%] h-px bg-gradient-to-r from-emerald-300 via-teal-300 to-cyan-300" />
             {[
               { step: "01", title: "Tell us about your clinic", desc: "Specialty, location, treatments, budget. Takes about 3 minutes. We generate your landing pages and ad creatives automatically.", icon: Users, color: "bg-emerald-50 text-emerald-600" },
-              { step: "02", title: "Connect WhatsApp & Calendar", desc: "Link your clinic WhatsApp Business number and Google Calendar. The AI receptionist starts handling enquiries immediately.", icon: MessageCircle, color: "bg-teal-50 text-teal-600" },
+              { step: "02", title: "Connect WhatsApp, Phone & Calendar", desc: "Link your WhatsApp Business number, clinic phone (via Twilio), and Google Calendar. The AI receptionist handles calls and messages immediately.", icon: MessageCircle, color: "bg-teal-50 text-teal-600" },
               { step: "03", title: "Patients start booking", desc: "Campaigns go live within hours. The AI qualifies leads, books appointments, and sends reminders. You focus on patient care.", icon: Calendar, color: "bg-cyan-50 text-cyan-600" },
             ].map((s, i) => (
               <Reveal key={i} delay={i * 0.15}>
@@ -1099,11 +1184,11 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <Reveal>
             <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-center mb-4">See what PatientPlex does inside your account</h2>
-            <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">Three autonomous AI agents working 24/7 to grow your clinic.</p>
+            <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">Four autonomous AI agents working 24/7 to grow your clinic.</p>
           </Reveal>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { title: "Autonomous\nAI receptionist", gradient: "from-emerald-400 to-teal-400", bullets: ["24/7 WhatsApp responses", "Multi-language support", "Smart lead qualification", "Instant appointment booking"], icon: Brain,
+              { title: "Autonomous\nAI receptionist", gradient: "from-emerald-400 to-teal-400", bullets: ["24/7 WhatsApp + Phone (Twilio)", "Multi-language: Hindi, English & more", "Smart lead qualification", "Instant appointment booking"], icon: Brain,
                 mockup: (
                   <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 mt-6 space-y-3">
                     <div className="flex items-start gap-2"><div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center shrink-0 mt-0.5"><MessageCircle className="w-3 h-3 text-green-600" /></div><div className="bg-green-50 rounded-lg rounded-tl-sm p-2.5 text-xs text-slate-700 border border-green-100">Hi! I want to book a teeth whitening appointment.</div></div>
@@ -1141,6 +1226,23 @@ export default function LandingPage() {
                         </div>
                       </div>
                     ))}
+                  </div>
+                )},
+              { title: "AI Call\nReceptionist", gradient: "from-orange-400 to-red-400", bullets: ["Twilio-powered voice AI", "Answers calls 24/7", "Hindi + English support", "Transfers urgent to doctor"], icon: Phone,
+                mockup: (
+                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 mt-6 space-y-2.5">
+                    <div className="flex items-center gap-3 bg-white rounded-lg p-3 border border-slate-100">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center"><Phone className="w-4 h-4 text-white" /></div>
+                      <div className="flex-1"><p className="text-xs font-semibold text-slate-700">Incoming: +91 987** *****</p><p className="text-[10px] text-emerald-500 font-medium">AI Answering...</p></div>
+                    </div>
+                    <div className="bg-white rounded-lg p-3 border border-slate-100">
+                      <p className="text-[10px] text-slate-400 mb-1">Transcript</p>
+                      <p className="text-xs text-slate-600 leading-relaxed">{"\""}Namaste! Bhardwaj Dental Clinic. How can I help you today?{"\""}  </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <div className="flex-1 bg-emerald-50 rounded-lg p-2 border border-emerald-100 text-center"><p className="text-[10px] font-bold text-emerald-600">Auto-book</p></div>
+                      <div className="flex-1 bg-orange-50 rounded-lg p-2 border border-orange-100 text-center"><p className="text-[10px] font-bold text-orange-600">Transfer</p></div>
+                    </div>
                   </div>
                 )},
             ].map((feat, i) => (
@@ -1344,7 +1446,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto text-center">
           <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Powered by</p>
           <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10">
-            {["Google Ads API", "Meta Marketing API", "ChatGPT Ads API", "LinkedIn Marketing API", "WhatsApp Business API", "OpenAI"].map((p, i) => (
+            {["Google Ads API", "Meta Marketing API", "ChatGPT Ads API", "LinkedIn Marketing API", "WhatsApp Business API", "Twilio Voice API", "OpenAI"].map((p, i) => (
               <span key={i} className="text-sm sm:text-base font-bold text-slate-300 tracking-tight">{p}</span>
             ))}
           </div>
