@@ -125,10 +125,10 @@ export default function AboutPage() {
                   <a href="mailto:prakash@patientplex.ai" className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition-colors">
                     <Mail className="w-4 h-4" /> Get in touch
                   </a>
-                  <a href="#" className="flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-all">
+                  <a href="https://www.linkedin.com/in/prakashdulani" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-all">
                     <Linkedin className="w-4 h-4" />
                   </a>
-                  <a href="#" className="flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-sky-500 hover:border-sky-200 transition-all">
+                  <a href="https://twitter.com/prakashdulani" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-sky-500 hover:border-sky-200 transition-all">
                     <Twitter className="w-4 h-4" />
                   </a>
                   <a href="https://patientplex-ai.vercel.app" className="flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-emerald-600 hover:border-emerald-200 transition-all">

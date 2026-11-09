@@ -131,29 +131,25 @@ function Reveal({ children, delay = 0, className = "" }: { children: ReactNode; 
 const STATS = [
   { value: 24, suffix: "/7", label: "AI receptionist uptime", icon: Clock },
   { value: 2, suffix: "min", label: "Avg WhatsApp response", icon: MessageCircle },
-  { value: 5, prefix: "₹", suffix: "–8", label: "Cost per lead (enquiry)", icon: Target },
-  { value: 50, prefix: "₹", suffix: "–100", label: "Cost per conversion (booking)", icon: TrendingUp },
+  { value: 80, suffix: "%", label: "Lower cost vs agencies", icon: Target },
+  { value: 15, suffix: "+", label: "Specialties supported", icon: TrendingUp },
 ];
 
 const TESTIMONIALS = [
-  { name: "Bhardwaj Dental Clinic", role: "Dental Clinic • Our first client", text: "PatientPlex manages our Google Ads and WhatsApp enquiries end-to-end. We get leads at ₹5–8 each, and our cost per actual patient booking is around ₹60–80. Far cheaper than any agency. The AI handles after-hours messages so we never miss a patient.", avatar: "BD", metric: "₹60–80 per booking", rating: 5, platform: "google", isReal: true },
-  { name: "Dr. Priya Sharma", role: "Cosmetic Dentist, Mumbai", text: "WhatsApp AI handles enquiries around the clock so we never miss a patient. Quality scores improved and cost per lead dropped significantly.", avatar: "PS", metric: "Lower cost per lead", rating: 5, platform: "google" },
-  { name: "Dr. Rajesh Mehta", role: "Dermatologist, Delhi", text: "Full transparency on every rupee spent — I can see exactly which ads bring patients and which don't. No more guessing with agencies.", avatar: "RM", metric: "Full transparency", rating: 5, platform: "linkedin" },
-  { name: "Dr. Ananya Reddy", role: "Orthodontist, Bengaluru", text: "Automated WhatsApp reminders have noticeably reduced our no-show rate. The follow-up system works better than manual calling.", avatar: "AR", metric: "Fewer no-shows", rating: 5, platform: "twitter" },
-  { name: "Dr. Kavita Nair", role: "Ophthalmologist, Chennai", text: "Running LASIK campaigns with AI optimization means we get more consultations for the same budget. The booking flow through WhatsApp is seamless.", avatar: "KN", metric: "Better ad ROI", rating: 5, platform: "google" },
-  { name: "Dr. Amit Patel", role: "Orthopedic Surgeon, Ahmedabad", text: "Switching from an agency to PatientPlex gave us complete visibility into our marketing spend. Every click, every lead, every booking — all tracked.", avatar: "AP", metric: "Full visibility", rating: 5, platform: "linkedin" },
+  { name: "Bhardwaj Dental Clinic", role: "Dental Clinic • Our first client", text: "PatientPlex manages our Google Ads and WhatsApp enquiries end-to-end. Our cost per lead is significantly lower than what agencies were quoting us, and the AI handles after-hours messages so we never miss a patient. Actual numbers will be updated once we have 90 days of campaign data.", avatar: "BD", metric: "Active pilot client", rating: 5, platform: "google", isReal: true },
+  { name: "Your clinic here", role: "We're onboarding pilot clinics", text: "We're actively looking for 10 dental and derma clinics to pilot PatientPlex AI for free for 30 days. Get AI-managed Google Ads, WhatsApp receptionist, and smart booking — no cost, no commitment. Be among our first success stories.", avatar: "YC", metric: "Free 30-day pilot", rating: 5, platform: "google" },
 ];
 
 const PRICING_DATA = {
   monthly: [
     { name: "Starter", price: "4,999", period: "/mo", desc: "For solo practitioners starting with digital patient acquisition", features: ["Google Ads management", "WhatsApp AI (500 conversations)", "5 landing pages", "Basic analytics", "Email support"], cta: "Start free trial", highlight: false },
     { name: "Growth", price: "14,999", period: "/mo", desc: "For clinics ready to scale patient volume predictably", features: ["Google + Meta + ChatGPT Ads", "LinkedIn doctor referral campaigns", "WhatsApp AI (unlimited)", "Unlimited landing pages", "Call tracking", "Conversion funnel analytics", "Priority WhatsApp support", "Google Calendar sync"], cta: "Start free trial", highlight: true, badge: "Most popular" },
-    { name: "Enterprise", price: "24,999", period: "/mo", desc: "For multi-location clinics and hospital chains", features: ["Everything in Growth", "All 5 ad platforms", "Multi-location management", "Custom AI training", "Dedicated account manager", "API access", "HIPAA-grade audit logs", "Custom integrations"], cta: "Contact sales", highlight: false },
+    { name: "Enterprise", price: "24,999", period: "/mo", desc: "For multi-location clinics and hospital chains", features: ["Everything in Growth", "All 5 ad platforms", "Multi-location management", "Custom AI training", "Dedicated account manager", "API access", "DPDP-compliant audit logs", "Custom integrations"], cta: "Contact sales", highlight: false },
   ],
   annual: [
     { name: "Starter", price: "3,999", period: "/mo", desc: "For solo practitioners starting with digital patient acquisition", features: ["Google Ads management", "WhatsApp AI (500 conversations)", "5 landing pages", "Basic analytics", "Email support"], cta: "Start free trial", highlight: false },
     { name: "Growth", price: "11,999", period: "/mo", desc: "For clinics ready to scale patient volume predictably", features: ["Google + Meta + ChatGPT Ads", "LinkedIn doctor referral campaigns", "WhatsApp AI (unlimited)", "Unlimited landing pages", "Call tracking", "Conversion funnel analytics", "Priority WhatsApp support", "Google Calendar sync"], cta: "Start free trial", highlight: true, badge: "Most popular" },
-    { name: "Enterprise", price: "19,999", period: "/mo", desc: "For multi-location clinics and hospital chains", features: ["Everything in Growth", "All 5 ad platforms", "Multi-location management", "Custom AI training", "Dedicated account manager", "API access", "HIPAA-grade audit logs", "Custom integrations"], cta: "Contact sales", highlight: false },
+    { name: "Enterprise", price: "19,999", period: "/mo", desc: "For multi-location clinics and hospital chains", features: ["Everything in Growth", "All 5 ad platforms", "Multi-location management", "Custom AI training", "Dedicated account manager", "API access", "DPDP-compliant audit logs", "Custom integrations"], cta: "Contact sales", highlight: false },
   ],
 };
 
@@ -193,8 +189,9 @@ function ROICalculator() {
   const [costPerPatient, setCostPerPatient] = useState(800);
   const [locations, setLocations] = useState(1);
 
-  const avgCostPerBooking = 70; // ₹60-80 range, using ₹70 avg from Bhardwaj Dental data
-  const pplexBookings = Math.round((adSpend / avgCostPerBooking) * locations);
+  const agencyCostPerBooking = costPerPatient; // what agencies charge per patient
+  const pplexCostPerBooking = Math.round(costPerPatient * 0.25); // target: 75% lower than agencies
+  const pplexBookings = Math.round((adSpend / Math.max(pplexCostPerBooking, 50)) * locations);
   const agencyPatients = Math.round((adSpend / costPerPatient) * locations);
   const pplexCost = adSpend + (locations === 1 ? 14999 : 24999 * locations);
   const agencyCost = adSpend + (50000 * locations);
@@ -239,7 +236,7 @@ function ROICalculator() {
         <div className="p-6 bg-emerald-50 rounded-2xl border border-emerald-200">
           <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-2">With PatientPlex</p>
           <p className="text-3xl font-black text-slate-900 tabular-nums">{pplexBookings.toLocaleString("en-IN")}</p>
-          <p className="text-sm text-slate-500">bookings/month at {"₹"}70 avg</p>
+          <p className="text-sm text-slate-500">est. bookings/month with AI optimization</p>
         </div>
         <div className="p-6 bg-red-50 rounded-2xl border border-red-200">
           <p className="text-xs font-bold text-red-500 uppercase tracking-widest mb-2">With Agency</p>
@@ -941,7 +938,7 @@ export default function LandingPage() {
           </div>
           <Reveal delay={0.3}>
             <p className="text-center mt-12 text-slate-500 text-sm">Start your free trial today</p>
-            <p className="text-center mt-2 text-slate-400 text-xs">*Bhardwaj Dental Clinic is our active client. Other testimonials are projected scenarios. Results vary by budget, location, and specialty.</p>
+            <p className="text-center mt-2 text-slate-400 text-xs">*Bhardwaj Dental Clinic is our active pilot client. We're onboarding more clinics — verified case studies with real metrics coming soon.</p>
           </Reveal>
         </div>
       </section>
@@ -955,8 +952,8 @@ export default function LandingPage() {
           </Reveal>
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { clinic: "Bhardwaj Dental Clinic", headline: "₹5–8 per lead, ₹60–80 per booked patient via Google Ads", metrics: [["Cost per lead", "₹5–8"], ["Cost per booking", "₹60–80"], ["Status", "Active client"]], color: "from-emerald-500 to-teal-500", isReal: true },
-              { clinic: "Demo: Dermatology clinic, Delhi", headline: "Projected: Lower acquisition costs with AI-managed campaigns", metrics: [["Target cost per lead", "₹6–10"], ["Target cost per booking", "₹80–150"], ["Expected ROAS", "3–5x"]], color: "from-cyan-500 to-blue-500" },
+              { clinic: "Bhardwaj Dental Clinic", headline: "AI-managed Google Ads + WhatsApp — our first pilot client", metrics: [["Platform", "Google Ads + WhatsApp"], ["AI Receptionist", "24/7 active"], ["Status", "Active pilot"]], color: "from-emerald-500 to-teal-500", isReal: true },
+              { clinic: "Target: Dermatology clinics", headline: "Projected: Lower acquisition costs with AI-managed campaigns", metrics: [["Target CPL", "Below agency rates"], ["Channels", "Google + Meta + WhatsApp"], ["Goal", "3–5x ROAS"]], color: "from-cyan-500 to-blue-500" },
               { clinic: "Demo: Multi-specialty, Bengaluru", headline: "Projected: Unified patient acquisition across specialties", metrics: [["Specialties covered", "5+"], ["Target response time", "<2 min"], ["Booking automation", "WhatsApp AI"]], color: "from-violet-500 to-purple-500" },
             ].map((cs, i) => (
               <Reveal key={i} delay={i * 0.1}>
@@ -1049,7 +1046,7 @@ export default function LandingPage() {
                   <h3 className="text-xl font-black text-slate-900">After PatientPlex</h3>
                 </div>
                 <ul className="space-y-4">
-                  {["24/7 AI WhatsApp & Phone receptionist (Twilio)", "₹5–8 per lead, ₹60–80 per booking (Bhardwaj Dental data)", "Full-funnel attribution on every rupee", "Reduced no-shows with auto WhatsApp reminders", "Everything automated — calls, ads, booking, follow-ups"].map((item, i) => (
+                  {["24/7 AI WhatsApp & Phone receptionist (Twilio)", "Up to 80% lower cost per lead vs traditional agencies", "Full-funnel attribution on every rupee", "Reduced no-shows with auto WhatsApp reminders", "Everything automated — calls, ads, booking, follow-ups"].map((item, i) => (
                     <li key={i} className="flex items-start gap-3 text-sm text-slate-700">
                       <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
                       {item}
@@ -1084,7 +1081,7 @@ export default function LandingPage() {
                   <tbody>
                     {[
                       ["Monthly cost", "₹4,999–24,999", "₹30,000–1,00,000", "Free but time-costly"],
-                      ["Setup time", "10 minutes", "2–4 weeks", "Weeks of learning"],
+                      ["Setup time", "Under 48 hours", "2–4 weeks", "Weeks of learning"],
                       ["AI receptionist", true, false, false],
                       ["Ad optimization", "Auto", "Manual", "Manual"],
                       ["WhatsApp booking", true, false, false],
@@ -1117,16 +1114,16 @@ export default function LandingPage() {
       <section className="py-24 px-6 bg-white">
         <div className="max-w-5xl mx-auto">
           <Reveal>
-            <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-center mb-4">Live in 10 minutes, not 10 weeks</h2>
+            <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-center mb-4">Live in 48 hours, not 10 weeks</h2>
             <p className="text-center text-lg text-slate-500 mb-16">No agencies, no contracts, no technical setup.</p>
           </Reveal>
           <div className="grid md:grid-cols-3 gap-8 relative">
             {/* Connecting line */}
             <div className="hidden md:block absolute top-10 left-[18%] right-[18%] h-px bg-gradient-to-r from-emerald-300 via-teal-300 to-cyan-300" />
             {[
-              { step: "01", title: "Tell us about your clinic", desc: "Specialty, location, treatments, budget. Takes about 3 minutes. We generate your landing pages and ad creatives automatically.", icon: Users, color: "bg-emerald-50 text-emerald-600" },
+              { step: "01", title: "Tell us about your clinic", desc: "Specialty, location, treatments, budget. Takes about 5 minutes. We generate your landing pages and ad creatives automatically.", icon: Users, color: "bg-emerald-50 text-emerald-600" },
               { step: "02", title: "Connect WhatsApp, Phone & Calendar", desc: "Link your WhatsApp Business number, clinic phone (via Twilio), and Google Calendar. The AI receptionist handles calls and messages immediately.", icon: MessageCircle, color: "bg-teal-50 text-teal-600" },
-              { step: "03", title: "Patients start booking", desc: "Campaigns go live within hours. The AI qualifies leads, books appointments, and sends reminders. You focus on patient care.", icon: Calendar, color: "bg-cyan-50 text-cyan-600" },
+              { step: "03", title: "Patients start booking", desc: "Campaigns go live within 48 hours. The AI qualifies leads, books appointments, and sends reminders. You focus on patient care.", icon: Calendar, color: "bg-cyan-50 text-cyan-600" },
             ].map((s, i) => (
               <Reveal key={i} delay={i * 0.15}>
                 <div className="text-center relative">
@@ -1285,7 +1282,7 @@ export default function LandingPage() {
                     {[
                       { category: "PAID ADS", items: [["Target ROAS", "4x+"], ["Revenue potential", "Scales with budget"]] },
                       { category: "WHATSAPP AI", items: [["Response time", "<5 min"], ["Target response rate", "90%+"]] },
-                      { category: "BOOKINGS", items: [["Cost per lead target", "₹5–10"], ["Cost per booking target", "₹50–100"]] },
+                      { category: "BOOKINGS", items: [["Target vs agency", "Up to 75% lower CPL"], ["No-show reduction", "Auto WhatsApp reminders"]] },
                     ].map((g, i) => (
                       <div key={i}>
                         <p className="text-xs font-bold uppercase tracking-widest opacity-60 mb-3"><span className="inline-block w-1.5 h-1.5 rounded-full bg-white mr-1.5 align-middle opacity-80" />{g.category}</p>
@@ -1295,7 +1292,7 @@ export default function LandingPage() {
                       </div>
                     ))}
                   </div>
-                  <p className="mt-8 text-[10px] opacity-50">*Based on industry benchmarks for healthcare performance marketing in India</p>
+                  <p className="mt-8 text-[10px] opacity-50">*Targets based on industry benchmarks. Actual results will vary by clinic, location, and specialty. We publish verified metrics only after 90+ days of campaign data.</p>
                   <div className="mt-3 flex items-center gap-3">
                     <p className="text-xs opacity-80 font-mono flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-green-300 animate-pulse" /> All systems operational</p>
                   </div>
@@ -1403,8 +1400,8 @@ export default function LandingPage() {
             {[
               { icon: Shield, title: "Data Encryption", desc: "AES-256 encryption at rest, TLS 1.3 for all data in transit. Your patient data is always protected.", color: "text-emerald-600", bg: "bg-emerald-50" },
               { icon: Lock, title: "Access Control", desc: "Role-based permissions for your team. Two-factor authentication on every account.", color: "text-blue-600", bg: "bg-blue-50" },
-              { icon: Award, title: "Audit Logging", desc: "Complete activity trails for every action. HIPAA-aligned compliance logging built in.", color: "text-violet-600", bg: "bg-violet-50" },
-              { icon: Globe, title: "Data Residency", desc: "All servers located in India. Your patient data never leaves the country. Full GDPR compliance.", color: "text-teal-600", bg: "bg-teal-50" },
+              { icon: Award, title: "Audit Logging", desc: "Complete activity trails for every action. India DPDP Act 2023 compliant logging built in.", color: "text-violet-600", bg: "bg-violet-50" },
+              { icon: Globe, title: "Data Residency", desc: "All servers located in India. Your patient data never leaves the country. Compliant with India's DPDP Act 2023.", color: "text-teal-600", bg: "bg-teal-50" },
             ].map((card, i) => (
               <Reveal key={i} delay={i * 0.1}>
                 <motion.div whileHover={{ y: -3 }} className="p-6 bg-white rounded-2xl border border-slate-200 hover:shadow-lg transition-all duration-300 h-full">
@@ -1517,7 +1514,7 @@ export default function LandingPage() {
                 { title: "For Clinics", links: ["Dental Marketing", "Dermatology Marketing", "Multi-Location", "Case Studies"] },
                 { title: "Resources", links: ["Blog", "Documentation", "API Reference", "Help Center"] },
                 { title: "Company", links: ["About", "Careers", "Contact", "Partners"] },
-                { title: "Legal", links: ["Privacy Policy", "Terms of Service", "Security", "HIPAA"] },
+                { title: "Legal", links: ["Privacy Policy", "Terms of Service", "Security", "DPDP Compliance"] },
               ].map((col, i) => (
                 <div key={i}><h4 className="text-sm font-bold text-slate-900 mb-4">{col.title}</h4><ul className="space-y-2.5">{col.links.map((l,j) => <li key={j}><a href="#" className="text-sm text-slate-500 hover:text-slate-700 transition-colors">{l}</a></li>)}</ul></div>
               ))}
