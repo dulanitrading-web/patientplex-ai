@@ -13,12 +13,14 @@ from app.models.campaign import AdPlatform, Campaign, CampaignStatus
 from app.models.doctor import Doctor
 from app.services.google_ads_engine import GoogleAdsEngine
 from app.services.meta_ads_engine import MetaAdsEngine
+from app.services.chatgpt_ads_engine import ChatGPTAdsEngine
+from app.services.linkedin_ads_engine import LinkedInAdsEngine
 
 router = APIRouter(prefix="/campaigns", tags=["campaigns"])
 
 
 class LaunchRequest(BaseModel):
-    platforms: list[str] = ["GOOGLE", "META"]  # Which platforms to launch on
+    platforms: list[str] = ["GOOGLE", "META", "CHATGPT", "LINKEDIN"]  # Which platforms to launch on
 
 
 class BudgetUpdate(BaseModel):
@@ -57,6 +59,26 @@ async def launch_campaigns(
         engine = MetaAdsEngine(db)
         campaign = await engine.create_campaign_from_onboarding(doctor)
         results["meta"] = {
+            "campaign_id": str(campaign.id),
+            "name": campaign.name,
+            "status": campaign.status.value,
+            "daily_budget": campaign.daily_budget,
+        }
+
+    if "CHATGPT" in body.platforms:
+        engine = ChatGPTAdsEngine(db)
+        campaign = await engine.create_campaign(doctor)
+        results["chatgpt"] = {
+            "campaign_id": str(campaign.id),
+            "name": campaign.name,
+            "status": campaign.status.value,
+            "daily_budget": campaign.daily_budget,
+        }
+
+    if "LINKEDIN" in body.platforms:
+        engine = LinkedInAdsEngine(db)
+        campaign = await engine.create_referral_campaign(doctor)
+        results["linkedin"] = {
             "campaign_id": str(campaign.id),
             "name": campaign.name,
             "status": campaign.status.value,
@@ -179,6 +201,9 @@ async def sync_performance(
         metrics = await engine.sync_performance(campaign)
     elif campaign.platform == AdPlatform.META:
         engine = MetaAdsEngine(db)
+        metrics = await engine.sync_performance(campaign)
+    elif campaign.platform == AdPlatform.LINKEDIN:
+        engine = LinkedInAdsEngine(db)
         metrics = await engine.sync_performance(campaign)
     else:
         metrics = {}
