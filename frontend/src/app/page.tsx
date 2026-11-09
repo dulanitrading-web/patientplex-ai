@@ -448,14 +448,14 @@ export default function LandingPage() {
                         <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shrink-0 shadow-sm"><Brain className="w-4 h-4 text-white" /></div>
                         <div>
                           <p className="text-xs font-bold text-slate-900 mb-1">PatientPlex AI</p>
-                          <div className="bg-slate-50 rounded-xl rounded-tl-sm p-4 text-sm text-slate-700 leading-relaxed border border-slate-100">Got it. I have built a campaign for <strong>SmileCraft Dental</strong> to maximize bookings in Mumbai this month.</div>
+                          <div className="bg-slate-50 rounded-xl rounded-tl-sm p-4 text-sm text-slate-700 leading-relaxed border border-slate-100">Got it. I have built a campaign for <strong>Bhardwaj Dental Clinic</strong> to maximize bookings this month.</div>
                         </div>
                       </div>
                       <div className="bg-gradient-to-br from-slate-50 to-emerald-50/30 rounded-xl p-5 border border-slate-100">
                         <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1">Campaign Setup</p>
-                        <p className="font-black text-slate-900 mb-4">SmileCraft Dental &mdash; Nov bookings</p>
+                        <p className="font-black text-slate-900 mb-4">Bhardwaj Dental &mdash; Nov bookings</p>
                         <div className="grid grid-cols-3 gap-4 mb-4">
-                          {[["Daily budget","₹2,500","₹75,000/mo"],["Est. clicks/mo","1,240","Based on local CPCs"],["Est. bookings","62—85","5—7% conv. rate"]].map(([l,v,s],j) => (
+                          {[["Daily budget","₹800","₹24,000/mo"],["Est. clicks/mo","480","Based on local CPCs"],["Est. bookings","24—38","5—8% conv. rate"]].map(([l,v,s],j) => (
                             <div key={j}><p className="text-[10px] text-slate-400 mb-0.5">{l}</p><p className="text-lg font-black text-slate-900">{v}</p><p className="text-[10px] text-slate-400">{s}</p></div>
                           ))}
                         </div>
@@ -474,7 +474,7 @@ export default function LandingPage() {
                         <p className="text-sm font-bold text-slate-900">Active Campaigns</p>
                         <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">4 running</span>
                       </div>
-                      {[{t:"Teeth whitening",budget:"₹1,200/day",clicks:"342",conv:"28",status:"Active"},{t:"Dental implants",budget:"₹2,000/day",clicks:"189",conv:"15",status:"Active"},{t:"Root canal",budget:"₹800/day",clicks:"256",conv:"22",status:"Optimizing"},{t:"Braces consultation",budget:"₹600/day",clicks:"412",conv:"31",status:"Active"}].map((c,j) => (
+                      {[{t:"Teeth whitening",budget:"₹500/day",clicks:"85",conv:"6",status:"Active"},{t:"Dental implants",budget:"₹800/day",clicks:"42",conv:"3",status:"Active"},{t:"Root canal",budget:"₹400/day",clicks:"68",conv:"5",status:"Optimizing"},{t:"Braces consultation",budget:"₹300/day",clicks:"94",conv:"7",status:"Active"}].map((c,j) => (
                         <div key={j} className="flex items-center justify-between text-xs bg-slate-50 rounded-xl p-3 border border-slate-100">
                           <div className="w-32"><p className="font-semibold text-slate-800">{c.t}</p><p className="text-[10px] text-slate-400">{c.budget}</p></div>
                           <div className="text-center"><p className="font-bold text-slate-800">{c.clicks}</p><p className="text-[10px] text-slate-400">clicks</p></div>
