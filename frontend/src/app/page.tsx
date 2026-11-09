@@ -699,7 +699,7 @@ export default function LandingPage() {
               See PatientPlex in action
             </h2>
             <p className="text-center text-slate-500 mb-12 text-lg">
-              Watch how a clinic goes from zero to 50+ patient bookings in 2 weeks
+              Watch how PatientPlex sets up your clinic for automated patient acquisition
             </p>
           </Reveal>
           <Reveal delay={0.15}>
