@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "@/styles/globals.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
   title: "PatientPlex AI — AI-Powered Patient Acquisition for Indian Clinics",
   description:
-    "Stop paying agencies. PatientPlex AI runs your Google & Meta ads, WhatsApp receptionist, and appointment booking — all on autopilot. Used by 200+ healthcare clinics across 15+ specialties in India.",
+    "Stop paying agencies. PatientPlex AI runs your Google & Meta ads, WhatsApp receptionist, and appointment booking — all on autopilot. Built for healthcare clinics across 15+ specialties in India.",
   keywords: ["patient acquisition", "dental marketing", "dermatology marketing", "ophthalmology marketing", "orthopedic marketing", "gynecology marketing", "IVF clinic marketing", "WhatsApp AI", "clinic marketing India", "healthcare SaaS"],
   openGraph: {
     title: "PatientPlex AI — Stop Paying Agencies. Start Getting Patients.",
-    description: "AI-powered Google & Meta ads, WhatsApp receptionist, and appointment booking for Indian clinics. ₹12 avg cost per booking.",
+    description: "AI-powered Google & Meta ads, WhatsApp receptionist, and appointment booking for Indian clinics. ₹5–8 cost per lead.",
     type: "website",
     url: "https://patientplex-ai.vercel.app",
     siteName: "PatientPlex AI",
@@ -38,6 +39,25 @@ export default function RootLayout({
       </head>
       <body className="font-sans antialiased">
         <Providers>{children}</Providers>
+        {/* Google Analytics 4 */}
+        {process.env.NEXT_PUBLIC_GA4_ID && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA4_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="gtag-init" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${process.env.NEXT_PUBLIC_GA4_ID}', {
+                  page_path: window.location.pathname,
+                });
+              `}
+            </Script>
+          </>
+        )}
       </body>
     </html>
   );

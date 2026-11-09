@@ -8,7 +8,7 @@ import {
   MessageCircle, Calendar, Phone, Globe, Brain, TrendingUp,
   Users, ChevronDown, Target, Award, Lock,
   Instagram, Facebook, Search, BadgeCheck, Mail,
-  Menu, X, Clock, Zap, Activity, Play, TrendingDown,
+  Menu, X, Clock, Zap, Activity, Play, TrendingDown, Eye, Heart, Rocket,
 } from "lucide-react";
 
 import Logo from "@/components/Logo";
@@ -525,6 +525,77 @@ export default function LandingPage() {
                 </div>
               </div>
             </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ MISSION & VISION ═══ */}
+      <section className="py-24 px-6 bg-white relative overflow-hidden">
+        {/* Background accent */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-emerald-50 to-transparent rounded-full blur-3xl opacity-60" />
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-teal-50 to-transparent rounded-full blur-3xl opacity-50" />
+        <div className="max-w-7xl mx-auto relative">
+          <Reveal>
+            <p className="text-center text-xs font-bold uppercase tracking-[0.2em] text-emerald-600 mb-4">Our purpose</p>
+            <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-center mb-16">
+              Why we{"’"}re building{" "}
+              <span className="text-gradient-hero">PatientPlex</span>
+            </h2>
+          </Reveal>
+
+          {/* Mission & Vision cards */}
+          <div className="grid md:grid-cols-2 gap-6 mb-20">
+            <Reveal>
+              <div className="relative p-8 rounded-2xl bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 text-white shadow-xl shadow-emerald-500/15 h-full overflow-hidden">
+                <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+                <div className="relative">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/15 backdrop-blur-sm text-xs font-bold uppercase tracking-widest mb-6">
+                    <Target className="w-3.5 h-3.5" /> Mission
+                  </div>
+                  <p className="text-xl sm:text-2xl font-bold leading-relaxed">
+                    To make world-class digital marketing accessible to every healthcare clinic in India — so no doctor has to lose patients to outdated marketing.
+                  </p>
+                </div>
+              </div>
+            </Reveal>
+            <Reveal delay={0.15}>
+              <div className="relative p-8 rounded-2xl border-2 border-slate-200 bg-[#FAFAF8] h-full overflow-hidden">
+                <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-50 rounded-full -translate-y-1/2 translate-x-1/2" />
+                <div className="relative">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold uppercase tracking-widest mb-6">
+                    <Eye className="w-3.5 h-3.5" /> Vision
+                  </div>
+                  <p className="text-xl sm:text-2xl font-bold leading-relaxed text-slate-800">
+                    A future where every clinic in India — from a solo dental practice to a 50-location hospital chain — has an AI-powered marketing engine that works 24/7, acquires patients at the lowest possible cost, and lets doctors focus on what they do best: <span className="text-emerald-600">treating patients.</span>
+                  </p>
+                </div>
+              </div>
+            </Reveal>
+          </div>
+
+          {/* What we're building */}
+          <Reveal>
+            <h3 className="text-2xl sm:text-3xl font-black text-center mb-4">What we{"’"}re building</h3>
+            <p className="text-center text-slate-500 mb-12 max-w-xl mx-auto">The autonomous marketing stack that every Indian clinic deserves.</p>
+          </Reveal>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            {[
+              { icon: Rocket, title: "Autonomous Ads", desc: "AI runs Google, Meta, ChatGPT & LinkedIn ads without manual work" },
+              { icon: MessageCircle, title: "WhatsApp AI Receptionist", desc: "Never miss an enquiry — responds instantly, 24/7, in any language" },
+              { icon: Calendar, title: "Smart Booking", desc: "Auto-schedule appointments and reduce no-shows with reminders" },
+              { icon: Brain, title: "Marketing Brain", desc: "ML engine that learns from every campaign and optimizes daily" },
+              { icon: Heart, title: "Every Specialty", desc: "Dental, derma, ortho, eye, gynec, cardio, pediatrics and more" },
+            ].map((item, i) => (
+              <Reveal key={i} delay={i * 0.08}>
+                <div className="group p-5 rounded-2xl border border-slate-200 bg-white hover:shadow-lg hover:-translate-y-1 transition-all duration-300 text-center h-full">
+                  <div className="inline-flex p-3 rounded-xl bg-emerald-50 group-hover:bg-emerald-100 transition-colors mb-4">
+                    <item.icon className="w-5 h-5 text-emerald-600" />
+                  </div>
+                  <h4 className="font-bold text-slate-900 text-sm mb-1.5">{item.title}</h4>
+                  <p className="text-xs text-slate-500 leading-relaxed">{item.desc}</p>
+                </div>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>
