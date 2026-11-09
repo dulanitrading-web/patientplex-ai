@@ -938,7 +938,7 @@ export default function LandingPage() {
           </div>
           <Reveal delay={0.3}>
             <p className="text-center mt-12 text-slate-500 text-sm">Start your free trial today</p>
-            <p className="text-center mt-2 text-slate-400 text-xs">*Bhardwaj Dental Clinic is our active pilot client. We're onboarding more clinics — verified case studies with real metrics coming soon.</p>
+            <p className="text-center mt-2 text-slate-400 text-xs">*Bhardwaj Dental Clinic is our active pilot client. We{"’"}re onboarding more clinics — verified case studies with real metrics coming soon.</p>
           </Reveal>
         </div>
       </section>
@@ -994,7 +994,7 @@ export default function LandingPage() {
                     <s.icon className="w-5 h-5 text-emerald-600" />
                   </div>
                   <div className="text-4xl sm:text-5xl font-black text-slate-900 mb-2 tabular-nums">
-                    <Counter target={s.value} suffix={s.suffix} prefix={s.prefix} />
+                    <Counter target={s.value} suffix={s.suffix} prefix={(s as any).prefix} />
                   </div>
                   <p className="text-sm text-slate-500 font-medium">{s.label}</p>
                 </div>
