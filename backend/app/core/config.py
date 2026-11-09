@@ -72,8 +72,19 @@ class Settings(BaseSettings):
     # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
     ENCRYPTION_KEY: str = ""
 
+    # Redis (caching + rate limiting)
+    REDIS_URL: str = "redis://localhost:6379/0"
+
     # Claude API (AI ad copy generation + receptionist)
     CLAUDE_API_KEY: str = ""
+
+    # Google Ads API
+    GOOGLE_ADS_DEVELOPER_TOKEN: str = ""
+    GOOGLE_ADS_LOGIN_CUSTOMER_ID: str = ""
+
+    # Meta Marketing API
+    META_ACCESS_TOKEN: str = ""
+    META_AD_ACCOUNT_ID: str = ""
 
     model_config = {
         "env_file": ".env",

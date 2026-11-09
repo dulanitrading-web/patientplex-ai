@@ -147,19 +147,19 @@ const TESTIMONIALS = [
 const PRICING_DATA = {
   monthly: [
     { name: "Starter", price: "4,999", period: "/mo", desc: "For solo practitioners starting with digital patient acquisition", features: ["Google Ads management", "WhatsApp AI (500 conversations)", "5 landing pages", "Basic analytics", "Email support"], cta: "Start free trial", highlight: false },
-    { name: "Growth", price: "14,999", period: "/mo", desc: "For clinics ready to scale patient volume predictably", features: ["Google + Meta Ads", "WhatsApp AI (unlimited)", "Unlimited landing pages", "Call tracking", "Conversion funnel analytics", "Priority WhatsApp support", "Google Calendar sync"], cta: "Start free trial", highlight: true, badge: "Most popular" },
-    { name: "Enterprise", price: "24,999", period: "/mo", desc: "For multi-location clinics and hospital chains", features: ["Everything in Growth", "Multi-location management", "Custom AI training", "Dedicated account manager", "API access", "HIPAA-grade audit logs", "Custom integrations"], cta: "Contact sales", highlight: false },
+    { name: "Growth", price: "14,999", period: "/mo", desc: "For clinics ready to scale patient volume predictably", features: ["Google + Meta + ChatGPT Ads", "LinkedIn doctor referral campaigns", "WhatsApp AI (unlimited)", "Unlimited landing pages", "Call tracking", "Conversion funnel analytics", "Priority WhatsApp support", "Google Calendar sync"], cta: "Start free trial", highlight: true, badge: "Most popular" },
+    { name: "Enterprise", price: "24,999", period: "/mo", desc: "For multi-location clinics and hospital chains", features: ["Everything in Growth", "All 5 ad platforms", "Multi-location management", "Custom AI training", "Dedicated account manager", "API access", "HIPAA-grade audit logs", "Custom integrations"], cta: "Contact sales", highlight: false },
   ],
   annual: [
     { name: "Starter", price: "3,999", period: "/mo", desc: "For solo practitioners starting with digital patient acquisition", features: ["Google Ads management", "WhatsApp AI (500 conversations)", "5 landing pages", "Basic analytics", "Email support"], cta: "Start free trial", highlight: false },
-    { name: "Growth", price: "11,999", period: "/mo", desc: "For clinics ready to scale patient volume predictably", features: ["Google + Meta Ads", "WhatsApp AI (unlimited)", "Unlimited landing pages", "Call tracking", "Conversion funnel analytics", "Priority WhatsApp support", "Google Calendar sync"], cta: "Start free trial", highlight: true, badge: "Most popular" },
-    { name: "Enterprise", price: "19,999", period: "/mo", desc: "For multi-location clinics and hospital chains", features: ["Everything in Growth", "Multi-location management", "Custom AI training", "Dedicated account manager", "API access", "HIPAA-grade audit logs", "Custom integrations"], cta: "Contact sales", highlight: false },
+    { name: "Growth", price: "11,999", period: "/mo", desc: "For clinics ready to scale patient volume predictably", features: ["Google + Meta + ChatGPT Ads", "LinkedIn doctor referral campaigns", "WhatsApp AI (unlimited)", "Unlimited landing pages", "Call tracking", "Conversion funnel analytics", "Priority WhatsApp support", "Google Calendar sync"], cta: "Start free trial", highlight: true, badge: "Most popular" },
+    { name: "Enterprise", price: "19,999", period: "/mo", desc: "For multi-location clinics and hospital chains", features: ["Everything in Growth", "All 5 ad platforms", "Multi-location management", "Custom AI training", "Dedicated account manager", "API access", "HIPAA-grade audit logs", "Custom integrations"], cta: "Contact sales", highlight: false },
   ],
 };
 
 const FAQS = [
   { q: "How quickly will I see new patients?", a: "Most clinics see their first AI-booked appointment within 48 hours of going live. Campaigns take 3–5 days to optimize fully, and you will typically see consistent patient flow by week two." },
-  { q: "Do I need to manage the ads myself?", a: "No. PatientPlex creates, launches, and optimizes your Google and Meta ad campaigns automatically. You set your budget and target treatments — the AI handles everything else." },
+  { q: "Do I need to manage the ads myself?", a: "No. PatientPlex creates, launches, and optimizes your Google, Meta, ChatGPT, and LinkedIn ad campaigns automatically. You set your budget and target treatments — the AI handles everything else." },
   { q: "What happens when a patient messages on WhatsApp?", a: "Our AI receptionist responds instantly in the patient’s language. It answers treatment questions using your clinic’s actual information, checks your calendar availability, and books the appointment — all without you lifting a finger." },
   { q: "Is my patient data secure?", a: "Yes. All data is encrypted at rest and in transit. We use Fernet symmetric encryption for OAuth tokens, HMAC-SHA256 for webhook verification, and maintain full audit logs. We are built for healthcare compliance from day one." },
   { q: "Can I try it before committing?", a: "Absolutely. Every plan starts with a 14-day free trial. No credit card required. You will have a working campaign with real patient enquiries before you pay anything." },
@@ -587,7 +587,7 @@ export default function LandingPage() {
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <Reveal>
               <h2 className="text-4xl sm:text-5xl font-black tracking-tight leading-tight mb-6">AI to manage patients across every channel</h2>
-              <p className="text-lg text-slate-500 leading-relaxed">WhatsApp, Google, Instagram, phone calls &mdash; PatientPlex captures patients from every touchpoint and funnels them into your calendar.</p>
+              <p className="text-lg text-slate-500 leading-relaxed">WhatsApp, Google, Instagram, ChatGPT, LinkedIn, phone calls &mdash; PatientPlex captures patients from every touchpoint and funnels them into your calendar.</p>
             </Reveal>
             <Reveal delay={0.15}>
               <div className="grid grid-cols-3 gap-4 relative">
@@ -598,6 +598,8 @@ export default function LandingPage() {
                     <GoogleAdsLogo key="ga" size={28} />,
                     <InstagramLogo key="ig" size={28} />,
                     <FacebookLogo key="fb" size={28} />,
+                    <OpenAILogo key="oa" size={28} />,
+                    <LinkedInLogo key="li" size={28} />,
                     <Phone key="ph" className="w-7 h-7 text-violet-600" />,
                     <Globe key="gl" className="w-7 h-7 text-emerald-600" />,
                   ];
@@ -665,11 +667,11 @@ export default function LandingPage() {
             {[
               { name: "Google Ads", desc: "Auto-optimize campaigns", logo: <GoogleAdsLogo size={24} /> },
               { name: "Meta Ads", desc: "Facebook + Instagram ads", logo: <MetaLogo size={24} /> },
+              { name: "ChatGPT Ads", desc: "Sponsored answers in ChatGPT", logo: <OpenAILogo size={24} /> },
+              { name: "LinkedIn Ads", desc: "B2B doctor referral campaigns", logo: <LinkedInLogo size={24} /> },
               { name: "WhatsApp Business", desc: "AI chatbot receptionist", logo: <WhatsAppLogo size={24} /> },
               { name: "Google Calendar", desc: "Appointment sync", logo: <GoogleCalendarLogo size={24} /> },
               { name: "Google My Business", desc: "Review management", logo: <GoogleLogo size={24} /> },
-              { name: "Practo", desc: "Patient referrals", logo: <Users className="w-6 h-6 text-teal-600" /> },
-              { name: "Zoho CRM", desc: "Patient data sync", logo: <BarChart3 className="w-6 h-6 text-violet-600" /> },
               { name: "Google Reviews", desc: "Automated review collection", logo: <GoogleLogo size={24} /> },
             ].map((item, i) => (
               <Reveal key={i} delay={i * 0.05}>
@@ -1270,7 +1272,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto text-center">
           <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Powered by</p>
           <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10">
-            {["Google Ads API", "Meta Marketing API", "WhatsApp Business API", "OpenAI"].map((p, i) => (
+            {["Google Ads API", "Meta Marketing API", "ChatGPT Ads API", "LinkedIn Marketing API", "WhatsApp Business API", "OpenAI"].map((p, i) => (
               <span key={i} className="text-sm sm:text-base font-bold text-slate-300 tracking-tight">{p}</span>
             ))}
           </div>

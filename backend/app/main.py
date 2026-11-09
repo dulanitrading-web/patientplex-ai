@@ -10,9 +10,9 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
 from app.api.v1 import (
-    auth, onboarding, whatsapp, appointments, campaigns, chatgpt_ads,
+    analytics, auth, onboarding, whatsapp, appointments, campaigns, chatgpt_ads,
     landing_pages, intelligence, calls, conversions, bookings, billing,
-    marketing_brain,
+    marketing_brain, webhooks,
 )
 from app.core.config import settings
 
@@ -77,6 +77,8 @@ app.include_router(bookings.router, prefix=settings.API_V1_PREFIX)
 app.include_router(billing.router, prefix=settings.API_V1_PREFIX)
 app.include_router(chatgpt_ads.router, prefix=settings.API_V1_PREFIX)
 app.include_router(marketing_brain.router, prefix=settings.API_V1_PREFIX)
+app.include_router(analytics.router, prefix=settings.API_V1_PREFIX)
+app.include_router(webhooks.router, prefix=settings.API_V1_PREFIX)
 
 
 @app.get("/", tags=["health"])

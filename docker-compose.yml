@@ -4,7 +4,6 @@ services:
   db:
     image: postgres:16-alpine
     environment:
-      # PRODUCTION: Override these in .env — never use defaults in production
       POSTGRES_USER: ${POSTGRES_USER:-cliniccare}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cliniccare_dev_2026}
       POSTGRES_DB: ${POSTGRES_DB:-cliniccare}
@@ -18,30 +17,55 @@ services:
       timeout: 3s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
+    env_file:
+      - ./backend/.env
     environment:
-      # PRODUCTION: Override DATABASE_URL and SECRET_KEY in .env
       DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://cliniccare:cliniccare_dev_2026@db:5432/cliniccare}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
       CLAUDE_API_KEY: ${CLAUDE_API_KEY:-}
       WHATSAPP_API_TOKEN: ${WHATSAPP_API_TOKEN:-}
+      WHATSAPP_VERIFY_TOKEN: ${WHATSAPP_VERIFY_TOKEN:-}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_ADS_DEVELOPER_TOKEN: ${GOOGLE_ADS_DEVELOPER_TOKEN:-}
       META_APP_ID: ${META_APP_ID:-}
       META_APP_SECRET: ${META_APP_SECRET:-}
+      META_ACCESS_TOKEN: ${META_ACCESS_TOKEN:-}
+      META_AD_ACCOUNT_ID: ${META_AD_ACCOUNT_ID:-}
       TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-}
       TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-}
       TWILIO_PHONE_NUMBER: ${TWILIO_PHONE_NUMBER:-}
       TWILIO_WHATSAPP_NUMBER: ${TWILIO_WHATSAPP_NUMBER:-}
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET:-}
       CALCOM_API_KEY: ${CALCOM_API_KEY:-}
       CALCOM_BASE_URL: ${CALCOM_BASE_URL:-https://api.cal.com/v1}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     volumes:
       - ./backend/app:/app/app
@@ -51,12 +75,17 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    env_file:
+      - ./backend/.env
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://cliniccare:cliniccare_dev_2026@db:5432/cliniccare}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       CLAUDE_API_KEY: ${CLAUDE_API_KEY:-}
       WHATSAPP_API_TOKEN: ${WHATSAPP_API_TOKEN:-}
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     volumes:
       - ./backend/app:/app/app
@@ -79,3 +108,4 @@ services:
 
 volumes:
   pgdata:
+  redisdata:
