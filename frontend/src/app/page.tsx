@@ -131,12 +131,12 @@ function Reveal({ children, delay = 0, className = "" }: { children: ReactNode; 
 const STATS = [
   { value: 24, suffix: "/7", label: "AI receptionist uptime", icon: Clock },
   { value: 2, suffix: "min", label: "Avg WhatsApp response", icon: MessageCircle },
-  { value: 5, prefix: "₹", suffix: "-8", label: "Target cost per lead", icon: Target },
-  { value: 15, suffix: "+", label: "Specialties supported", icon: TrendingUp },
+  { value: 5, prefix: "₹", suffix: "–8", label: "Cost per lead (enquiry)", icon: Target },
+  { value: 50, prefix: "₹", suffix: "–100", label: "Cost per conversion (booking)", icon: TrendingUp },
 ];
 
 const TESTIMONIALS = [
-  { name: "Bhardwaj Dental Clinic", role: "Dental Clinic • Our first client", text: "PatientPlex manages our Google Ads and WhatsApp enquiries end-to-end. We are getting consistent patient bookings at ₹5–8 per lead — far lower than what our old agency delivered. The AI handles after-hours messages so we never miss a patient.", avatar: "BD", metric: "₹5–8 per lead", rating: 5, platform: "google", isReal: true },
+  { name: "Bhardwaj Dental Clinic", role: "Dental Clinic • Our first client", text: "PatientPlex manages our Google Ads and WhatsApp enquiries end-to-end. We get leads at ₹5–8 each, and our cost per actual patient booking is around ₹60–80. Far cheaper than any agency. The AI handles after-hours messages so we never miss a patient.", avatar: "BD", metric: "₹60–80 per booking", rating: 5, platform: "google", isReal: true },
   { name: "Dr. Priya Sharma", role: "Cosmetic Dentist, Mumbai", text: "WhatsApp AI handles enquiries around the clock so we never miss a patient. Quality scores improved and cost per lead dropped significantly.", avatar: "PS", metric: "Lower cost per lead", rating: 5, platform: "google" },
   { name: "Dr. Rajesh Mehta", role: "Dermatologist, Delhi", text: "Full transparency on every rupee spent — I can see exactly which ads bring patients and which don't. No more guessing with agencies.", avatar: "RM", metric: "Full transparency", rating: 5, platform: "linkedin" },
   { name: "Dr. Ananya Reddy", role: "Orthodontist, Bengaluru", text: "Automated WhatsApp reminders have noticeably reduced our no-show rate. The follow-up system works better than manual calling.", avatar: "AR", metric: "Fewer no-shows", rating: 5, platform: "twitter" },
@@ -193,8 +193,8 @@ function ROICalculator() {
   const [costPerPatient, setCostPerPatient] = useState(800);
   const [locations, setLocations] = useState(1);
 
-  const avgCostPerLead = 7; // ₹5-8 range, using ₹7 average from Bhardwaj Dental data
-  const pplexLeads = Math.round((adSpend / avgCostPerLead) * locations);
+  const avgCostPerBooking = 70; // ₹60-80 range, using ₹70 avg from Bhardwaj Dental data
+  const pplexBookings = Math.round((adSpend / avgCostPerBooking) * locations);
   const agencyPatients = Math.round((adSpend / costPerPatient) * locations);
   const pplexCost = adSpend + (locations === 1 ? 14999 : 24999 * locations);
   const agencyCost = adSpend + (50000 * locations);
@@ -238,8 +238,8 @@ function ROICalculator() {
       <div className="grid grid-cols-2 gap-4">
         <div className="p-6 bg-emerald-50 rounded-2xl border border-emerald-200">
           <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-2">With PatientPlex</p>
-          <p className="text-3xl font-black text-slate-900 tabular-nums">{pplexLeads.toLocaleString("en-IN")}</p>
-          <p className="text-sm text-slate-500">leads/month at {"₹"}7 avg</p>
+          <p className="text-3xl font-black text-slate-900 tabular-nums">{pplexBookings.toLocaleString("en-IN")}</p>
+          <p className="text-sm text-slate-500">bookings/month at {"₹"}70 avg</p>
         </div>
         <div className="p-6 bg-red-50 rounded-2xl border border-red-200">
           <p className="text-xs font-bold text-red-500 uppercase tracking-widest mb-2">With Agency</p>
@@ -797,8 +797,8 @@ export default function LandingPage() {
           </Reveal>
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { clinic: "Bhardwaj Dental Clinic", headline: "Consistent patient bookings at ₹5–8 per lead via Google Ads", metrics: [["Cost per lead", "₹5–8"], ["Platform", "Google Ads + WhatsApp"], ["Status", "Active client"]], color: "from-emerald-500 to-teal-500", isReal: true },
-              { clinic: "Demo: Dermatology clinic, Delhi", headline: "Projected: 3x more consultations with AI-managed campaigns", metrics: [["Target cost per lead", "₹6–10"], ["Channels", "Google + Meta + WhatsApp"], ["Expected ROAS", "3–5x"]], color: "from-cyan-500 to-blue-500" },
+              { clinic: "Bhardwaj Dental Clinic", headline: "₹5–8 per lead, ₹60–80 per booked patient via Google Ads", metrics: [["Cost per lead", "₹5–8"], ["Cost per booking", "₹60–80"], ["Status", "Active client"]], color: "from-emerald-500 to-teal-500", isReal: true },
+              { clinic: "Demo: Dermatology clinic, Delhi", headline: "Projected: Lower acquisition costs with AI-managed campaigns", metrics: [["Target cost per lead", "₹6–10"], ["Target cost per booking", "₹80–150"], ["Expected ROAS", "3–5x"]], color: "from-cyan-500 to-blue-500" },
               { clinic: "Demo: Multi-specialty, Bengaluru", headline: "Projected: Unified patient acquisition across specialties", metrics: [["Specialties covered", "5+"], ["Target response time", "<2 min"], ["Booking automation", "WhatsApp AI"]], color: "from-violet-500 to-purple-500" },
             ].map((cs, i) => (
               <Reveal key={i} delay={i * 0.1}>
@@ -875,7 +875,7 @@ export default function LandingPage() {
                   <h3 className="text-xl font-black text-slate-900">Before PatientPlex</h3>
                 </div>
                 <ul className="space-y-4">
-                  {["Missed calls & WhatsApp messages after hours", "₹500–1,000+ cost per new patient with agencies", "No idea which ads actually bring patients", "High patient no-show rate", "Manual everything — reminders, follow-ups, booking"].map((item, i) => (
+                  {["Missed calls & WhatsApp messages after hours", "₹500–1,500+ cost per patient booking with agencies", "No idea which ads actually bring patients", "High patient no-show rate", "Manual everything — reminders, follow-ups, booking"].map((item, i) => (
                     <li key={i} className="flex items-start gap-3 text-sm text-slate-700">
                       <span className="w-2 h-2 rounded-full bg-red-400 mt-1.5 shrink-0" />
                       {item}
@@ -891,7 +891,7 @@ export default function LandingPage() {
                   <h3 className="text-xl font-black text-slate-900">After PatientPlex</h3>
                 </div>
                 <ul className="space-y-4">
-                  {["24/7 AI WhatsApp receptionist", "₹5–8 average cost per lead (Bhardwaj Dental data)", "Full-funnel attribution on every rupee", "Reduced no-shows with auto WhatsApp reminders", "Everything automated — ads, booking, follow-ups"].map((item, i) => (
+                  {["24/7 AI WhatsApp receptionist", "₹5–8 per lead, ₹60–80 per booking (Bhardwaj Dental data)", "Full-funnel attribution on every rupee", "Reduced no-shows with auto WhatsApp reminders", "Everything automated — ads, booking, follow-ups"].map((item, i) => (
                     <li key={i} className="flex items-start gap-3 text-sm text-slate-700">
                       <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
                       {item}
@@ -1110,7 +1110,7 @@ export default function LandingPage() {
                     {[
                       { category: "PAID ADS", items: [["Target ROAS", "4x+"], ["Revenue potential", "Scales with budget"]] },
                       { category: "WHATSAPP AI", items: [["Response time", "<5 min"], ["Target response rate", "90%+"]] },
-                      { category: "BOOKINGS", items: [["No-show reduction target", "Up to 60%"], ["Cost per lead target", "₹5–10"]] },
+                      { category: "BOOKINGS", items: [["Cost per lead target", "₹5–10"], ["Cost per booking target", "₹50–100"]] },
                     ].map((g, i) => (
                       <div key={i}>
                         <p className="text-xs font-bold uppercase tracking-widest opacity-60 mb-3"><span className="inline-block w-1.5 h-1.5 rounded-full bg-white mr-1.5 align-middle opacity-80" />{g.category}</p>
