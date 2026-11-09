@@ -12,7 +12,7 @@ from slowapi.util import get_remote_address
 from app.api.v1 import (
     analytics, auth, onboarding, whatsapp, appointments, campaigns, chatgpt_ads,
     landing_pages, intelligence, calls, conversions, bookings, billing,
-    marketing_brain, ml, webhooks,
+    marketing_brain, ml, webhooks, payments,
 )
 from app.core.config import settings
 
@@ -80,6 +80,7 @@ app.include_router(marketing_brain.router, prefix=settings.API_V1_PREFIX)
 app.include_router(ml.router, prefix=settings.API_V1_PREFIX)
 app.include_router(analytics.router, prefix=settings.API_V1_PREFIX)
 app.include_router(webhooks.router, prefix=settings.API_V1_PREFIX)
+app.include_router(payments.router, prefix=settings.API_V1_PREFIX)
 
 
 @app.get("/", tags=["health"])
