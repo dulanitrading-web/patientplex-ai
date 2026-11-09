@@ -160,7 +160,7 @@ class GoogleCalendarService:
         if not doctor.google_calendar_connected or not doctor.google_calendar_token:
             return []
 
-        service = self._build_service(doctor.google_calendar_token)
+        service = await self._build_service(doctor.google_calendar_token, db=db, doctor_id=str(doctor.id))
         calendar_id = doctor.google_calendar_id or "primary"
 
         # Define working hours: 9:00 AM to 8:00 PM IST (UTC+5:30)
@@ -252,7 +252,7 @@ class GoogleCalendarService:
         if not doctor.google_calendar_connected or not doctor.google_calendar_token:
             raise ValueError("Google Calendar is not connected for this doctor.")
 
-        service = self._build_service(doctor.google_calendar_token)
+        service = await self._build_service(doctor.google_calendar_token, db=db, doctor_id=str(doctor.id))
         calendar_id = doctor.google_calendar_id or "primary"
 
         slot_end = slot_start + timedelta(minutes=30)

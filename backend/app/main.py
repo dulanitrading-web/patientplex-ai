@@ -52,6 +52,7 @@ ALLOWED_ORIGINS = [
     "https://patientplex.ai",
     "https://app.patientplex.ai",
     "https://www.patientplex.ai",
+    "https://patientplex-ai.vercel.app",
 ]
 app.add_middleware(
     CORSMiddleware,
