@@ -312,6 +312,7 @@ export default function LandingPage() {
             <a href="#features" className="hover:text-slate-900 transition-colors">Features</a>
             <a href="#pricing" className="hover:text-slate-900 transition-colors">Pricing</a>
             <a href="#faq" className="hover:text-slate-900 transition-colors">FAQ</a>
+            <a href="/about" className="hover:text-slate-900 transition-colors">About</a>
           </div>
           <div className="flex items-center gap-3">
             <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors hidden sm:block">Sign in</Link>
@@ -330,6 +331,7 @@ export default function LandingPage() {
                 <a href="#features" onClick={() => setMobileMenu(false)} className="block text-sm font-medium text-slate-600 hover:text-slate-900 py-2">Features</a>
                 <a href="#pricing" onClick={() => setMobileMenu(false)} className="block text-sm font-medium text-slate-600 hover:text-slate-900 py-2">Pricing</a>
                 <a href="#faq" onClick={() => setMobileMenu(false)} className="block text-sm font-medium text-slate-600 hover:text-slate-900 py-2">FAQ</a>
+                <a href="/about" onClick={() => setMobileMenu(false)} className="block text-sm font-medium text-slate-600 hover:text-slate-900 py-2">About</a>
                 <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
                   <Link href="/login" className="text-sm font-medium text-slate-600 py-2">Sign in</Link>
                   <Link href="/signup" className="text-sm font-semibold px-5 py-2.5 rounded-xl bg-slate-900 text-white text-center">Get started</Link>
@@ -559,7 +561,7 @@ export default function LandingPage() {
                     <Target className="w-3.5 h-3.5" /> Mission
                   </div>
                   <p className="text-xl sm:text-2xl font-bold leading-relaxed">
-                    To make world-class digital marketing accessible to every healthcare clinic in India — so no doctor has to lose patients to outdated marketing.
+                    To make world-class performance marketing accessible to every healthcare clinic in India — so no doctor has to lose patients to outdated marketing.
                   </p>
                 </div>
               </div>
@@ -1293,7 +1295,7 @@ export default function LandingPage() {
                       </div>
                     ))}
                   </div>
-                  <p className="mt-8 text-[10px] opacity-50">*Based on industry benchmarks for healthcare digital marketing in India</p>
+                  <p className="mt-8 text-[10px] opacity-50">*Based on industry benchmarks for healthcare performance marketing in India</p>
                   <div className="mt-3 flex items-center gap-3">
                     <p className="text-xs opacity-80 font-mono flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-green-300 animate-pulse" /> All systems operational</p>
                   </div>
