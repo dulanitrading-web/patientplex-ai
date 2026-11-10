@@ -184,10 +184,16 @@ class BillingService:
 
         # Check trial expiry
         if subscription.status == SubscriptionStatus.TRIAL:
-            if subscription.trial_ends_at and subscription.trial_ends_at < datetime.now(timezone.utc):
-                subscription.status = SubscriptionStatus.EXPIRED
-                await self.db.commit()
-                return {"allowed": False, "reason": "Trial expired", "upgrade_to": "STARTER"}
+            if subscription.trial_ends_at:
+                trial_end = subscription.trial_ends_at
+                now = datetime.now(timezone.utc)
+                # Handle naive datetimes (e.g. from SQLite)
+                if trial_end.tzinfo is None:
+                    trial_end = trial_end.replace(tzinfo=timezone.utc)
+                if trial_end < now:
+                    subscription.status = SubscriptionStatus.EXPIRED
+                    await self.db.commit()
+                    return {"allowed": False, "reason": "Trial expired", "upgrade_to": "STARTER"}
 
         if subscription.status not in (SubscriptionStatus.TRIAL, SubscriptionStatus.ACTIVE):
             return {"allowed": False, "reason": f"Subscription {subscription.status.value}", "upgrade_to": "STARTER"}

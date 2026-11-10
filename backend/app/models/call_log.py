@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from sqlalchemy import (
     Boolean, DateTime, Enum, Float, ForeignKey, Integer, JSON, String, Text,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from app.db.types import PortableUUID as UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -55,8 +55,8 @@ class CallLog(Base):
 
     __tablename__ = "call_logs"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    doctor_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("doctors.id"), index=True)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(), primary_key=True, default=uuid.uuid4)
+    doctor_id: Mapped[uuid.UUID] = mapped_column(UUID(), ForeignKey("doctors.id"), index=True)
 
     # Call details
     caller_phone: Mapped[str] = mapped_column(String(20), index=True)
@@ -81,10 +81,10 @@ class CallLog(Base):
     # What happened after the call
     whatsapp_followup_sent: Mapped[bool] = mapped_column(Boolean, default=False)
     conversation_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("conversations.id"), nullable=True
+        UUID(), ForeignKey("conversations.id"), nullable=True
     )
     appointment_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("appointments.id"), nullable=True
+        UUID(), ForeignKey("appointments.id"), nullable=True
     )
 
     # Source tracking
@@ -104,8 +104,8 @@ class ConversionEvent(Base):
 
     __tablename__ = "conversion_events"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    doctor_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("doctors.id"), index=True)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(), primary_key=True, default=uuid.uuid4)
+    doctor_id: Mapped[uuid.UUID] = mapped_column(UUID(), ForeignKey("doctors.id"), index=True)
 
     # Patient identifier (phone or session)
     patient_phone: Mapped[str | None] = mapped_column(String(20), index=True, nullable=True)
@@ -124,10 +124,10 @@ class ConversionEvent(Base):
     utm_content: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     # Linked records
-    campaign_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("campaigns.id"), nullable=True)
-    conversation_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("conversations.id"), nullable=True)
-    appointment_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("appointments.id"), nullable=True)
-    call_log_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("call_logs.id"), nullable=True)
+    campaign_id: Mapped[uuid.UUID | None] = mapped_column(UUID(), ForeignKey("campaigns.id"), nullable=True)
+    conversation_id: Mapped[uuid.UUID | None] = mapped_column(UUID(), ForeignKey("conversations.id"), nullable=True)
+    appointment_id: Mapped[uuid.UUID | None] = mapped_column(UUID(), ForeignKey("appointments.id"), nullable=True)
+    call_log_id: Mapped[uuid.UUID | None] = mapped_column(UUID(), ForeignKey("call_logs.id"), nullable=True)
 
     # Value
     treatment: Mapped[str | None] = mapped_column(String(255), nullable=True)

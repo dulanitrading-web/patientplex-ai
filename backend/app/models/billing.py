@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from sqlalchemy import (
     Boolean, DateTime, Enum, Float, ForeignKey, Integer, JSON, String, Text,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from app.db.types import PortableUUID as UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -80,8 +80,8 @@ class Subscription(Base):
 
     __tablename__ = "subscriptions"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    doctor_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("doctors.id"), unique=True, index=True)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(), primary_key=True, default=uuid.uuid4)
+    doctor_id: Mapped[uuid.UUID] = mapped_column(UUID(), ForeignKey("doctors.id"), unique=True, index=True)
 
     # Plan
     plan: Mapped[PlanTier] = mapped_column(Enum(PlanTier, name="plan_tier_enum"), default=PlanTier.FREE_TRIAL)
@@ -129,9 +129,9 @@ class Invoice(Base):
 
     __tablename__ = "invoices"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    doctor_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("doctors.id"), index=True)
-    subscription_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("subscriptions.id"))
+    id: Mapped[uuid.UUID] = mapped_column(UUID(), primary_key=True, default=uuid.uuid4)
+    doctor_id: Mapped[uuid.UUID] = mapped_column(UUID(), ForeignKey("doctors.id"), index=True)
+    subscription_id: Mapped[uuid.UUID] = mapped_column(UUID(), ForeignKey("subscriptions.id"))
 
     razorpay_payment_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     razorpay_invoice_id: Mapped[str | None] = mapped_column(String(255), nullable=True)

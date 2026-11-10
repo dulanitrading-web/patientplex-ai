@@ -18,7 +18,13 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
+import os
+_testing = os.environ.get("TESTING", "").lower() == "true"
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["100/minute"],
+    enabled=not _testing,
+)
 
 
 @asynccontextmanager

@@ -3,6 +3,7 @@
 import hashlib
 import hmac
 import logging
+import os
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -15,7 +16,7 @@ from slowapi.util import get_remote_address
 from app.api.v1.auth import get_current_doctor
 from app.core.config import settings
 
-limiter = Limiter(key_func=get_remote_address)
+limiter = Limiter(key_func=get_remote_address, enabled=os.environ.get("TESTING", "").lower() != "true")
 from app.db.session import get_db
 from app.models.conversation import Appointment, Conversation, ConversationStatus
 from app.models.doctor import Doctor

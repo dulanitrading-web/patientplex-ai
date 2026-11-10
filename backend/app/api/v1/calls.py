@@ -14,13 +14,14 @@ from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from twilio.request_validator import RequestValidator
 
+import os
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 from app.api.v1.auth import get_current_doctor
 from app.core.config import settings
 
-limiter = Limiter(key_func=get_remote_address)
+limiter = Limiter(key_func=get_remote_address, enabled=os.environ.get("TESTING", "").lower() != "true")
 from app.db.session import get_db
 from app.models.call_log import CallLog, CallStatus
 from app.models.doctor import Doctor

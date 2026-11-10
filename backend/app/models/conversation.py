@@ -7,7 +7,7 @@ from datetime import date, datetime, time, timezone
 from sqlalchemy import (
     Boolean, Date, DateTime, Enum, ForeignKey, Integer, JSON, String, Text, Time,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from app.db.types import PortableUUID as UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -36,8 +36,8 @@ class Conversation(Base):
 
     __tablename__ = "conversations"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    doctor_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("doctors.id"), index=True)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(), primary_key=True, default=uuid.uuid4)
+    doctor_id: Mapped[uuid.UUID] = mapped_column(UUID(), ForeignKey("doctors.id"), index=True)
     patient_phone: Mapped[str] = mapped_column(String(20), index=True)
     patient_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     treatment_interest: Mapped[str | None] = mapped_column(String(255), nullable=True)
@@ -68,9 +68,9 @@ class Appointment(Base):
 
     __tablename__ = "appointments"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    doctor_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("doctors.id"), index=True)
-    conversation_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("conversations.id"), nullable=True)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(), primary_key=True, default=uuid.uuid4)
+    doctor_id: Mapped[uuid.UUID] = mapped_column(UUID(), ForeignKey("doctors.id"), index=True)
+    conversation_id: Mapped[uuid.UUID] = mapped_column(UUID(), ForeignKey("conversations.id"), nullable=True)
     patient_name: Mapped[str] = mapped_column(String(255))
     patient_phone: Mapped[str] = mapped_column(String(20))
     treatment: Mapped[str] = mapped_column(String(255))

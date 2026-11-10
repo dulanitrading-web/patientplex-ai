@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from sqlalchemy import (
     Boolean, DateTime, Enum, Float, ForeignKey, Integer, JSON, String, Text,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from app.db.types import PortableUUID as UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -33,8 +33,8 @@ class Campaign(Base):
 
     __tablename__ = "campaigns"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    doctor_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("doctors.id"), index=True)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(), primary_key=True, default=uuid.uuid4)
+    doctor_id: Mapped[uuid.UUID] = mapped_column(UUID(), ForeignKey("doctors.id"), index=True)
 
     # Platform info
     platform: Mapped[AdPlatform] = mapped_column(Enum(AdPlatform, name="ad_platform_enum"))

@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from sqlalchemy import (
     Boolean, DateTime, Enum, Float, ForeignKey, Integer, JSON, String, Text,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from app.db.types import PortableUUID as UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -40,8 +40,8 @@ class OptimizationRun(Base):
 
     __tablename__ = "optimization_runs"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    doctor_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("doctors.id"), index=True)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(), primary_key=True, default=uuid.uuid4)
+    doctor_id: Mapped[uuid.UUID] = mapped_column(UUID(), ForeignKey("doctors.id"), index=True)
 
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -74,9 +74,9 @@ class OptimizationActionRecord(Base):
 
     __tablename__ = "optimization_actions"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    run_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("optimization_runs.id"), index=True)
-    campaign_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("campaigns.id"), nullable=True)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(), primary_key=True, default=uuid.uuid4)
+    run_id: Mapped[uuid.UUID] = mapped_column(UUID(), ForeignKey("optimization_runs.id"), index=True)
+    campaign_id: Mapped[uuid.UUID | None] = mapped_column(UUID(), ForeignKey("campaigns.id"), nullable=True)
 
     action_type: Mapped[OptimizationActionType] = mapped_column(
         Enum(OptimizationActionType, name="optimization_action_type_enum"),

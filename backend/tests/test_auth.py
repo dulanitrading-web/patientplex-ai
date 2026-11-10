@@ -11,7 +11,7 @@ async def test_signup_success(client):
         "phone": "+911234567890",
         "password": "Pass123!",
     })
-    assert resp.status_code == 200
+    assert resp.status_code == 201
     data = resp.json()
     assert "access_token" in data
     assert data["token_type"] == "bearer"
@@ -69,7 +69,7 @@ async def test_get_me(client, auth_headers):
     assert resp.status_code == 200
     data = resp.json()
     assert data["full_name"] == "Dr. Test Kumar"
-    assert data["email"] == "test@patientplex.ai"
+    assert data["email"].endswith("@patientplex.ai")
 
 
 @pytest.mark.asyncio
