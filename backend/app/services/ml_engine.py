@@ -13,7 +13,7 @@ Contains:
 """
 
 import numpy as np
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Optional, Tuple
 from dataclasses import dataclass, field
 import logging
@@ -35,7 +35,7 @@ class Experience:
     reward: float
     next_state: Dict
     done: bool
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 class ReplayBuffer:

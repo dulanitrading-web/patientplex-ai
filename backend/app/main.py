@@ -66,7 +66,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -82,14 +82,15 @@ app.include_router(calls.router, prefix=settings.API_V1_PREFIX)
 app.include_router(conversions.router, prefix=settings.API_V1_PREFIX)
 app.include_router(bookings.router, prefix=settings.API_V1_PREFIX)
 app.include_router(billing.router, prefix=settings.API_V1_PREFIX)
-app.include_router(chatgpt_ads.router, prefix=settings.API_V1_PREFIX)
-app.include_router(marketing_brain.router, prefix=settings.API_V1_PREFIX)
+# SHELVED for V1 — re-enable when APIs are wired:
+# app.include_router(chatgpt_ads.router, prefix=settings.API_V1_PREFIX)
+# app.include_router(marketing_brain.router, prefix=settings.API_V1_PREFIX)
+# app.include_router(signals.router, prefix=settings.API_V1_PREFIX)
+# app.include_router(ehr.router, prefix=settings.API_V1_PREFIX)
 app.include_router(ml.router, prefix=settings.API_V1_PREFIX)
 app.include_router(analytics.router, prefix=settings.API_V1_PREFIX)
 app.include_router(webhooks.router, prefix=settings.API_V1_PREFIX)
 app.include_router(payments.router, prefix=settings.API_V1_PREFIX)
-app.include_router(signals.router, prefix=settings.API_V1_PREFIX)
-app.include_router(ehr.router, prefix=settings.API_V1_PREFIX)
 app.include_router(compliance.router, prefix=settings.API_V1_PREFIX)
 app.include_router(knowledge.router, prefix=settings.API_V1_PREFIX)
 
