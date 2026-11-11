@@ -1,4 +1,7 @@
-"""Agent Registry — All 14 PatientPlex AI Agents"""
+"""PatientPlex AI Agent Registry.
+
+Imports all 14 agents and provides lookup helpers.
+"""
 from app.services.agents.night_owl import NightOwl
 from app.services.agents.lead_hunter import LeadHunter
 from app.services.agents.sales_prep import SalesPrep
@@ -14,7 +17,7 @@ from app.services.agents.devops_agent import DevOpsAgent
 from app.services.agents.ml_trainer import MLTrainer
 from app.services.agents.dashboard_agent import DashboardAgent
 
-AGENT_REGISTRY = {
+AGENT_REGISTRY: dict[str, type] = {
     "night_owl": NightOwl,
     "lead_hunter": LeadHunter,
     "sales_prep": SalesPrep,
@@ -33,11 +36,14 @@ AGENT_REGISTRY = {
 
 
 def get_agent(name: str):
+    """Instantiate and return a named agent."""
     cls = AGENT_REGISTRY.get(name)
-    if not cls:
-        raise ValueError(f"Agent '{name}' not found. Available: {list(AGENT_REGISTRY.keys())}")
+    if cls is None:
+        available = ", ".join(sorted(AGENT_REGISTRY.keys()))
+        raise ValueError(f"Unknown agent '{name}'. Available: {available}")
     return cls()
 
 
-def get_all_agents():
+def get_all_agents() -> dict:
+    """Return info dict for every registered agent."""
     return {name: cls().get_info() for name, cls in AGENT_REGISTRY.items()}

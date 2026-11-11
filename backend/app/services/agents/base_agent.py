@@ -1,4 +1,9 @@
-"""Base Agent — Foundation class for all PatientPlex AI agents."""
+"""PatientPlex AI — Base Agent class.
+
+All 14 agents extend this. Uses the real repo's config (CLAUDE_API_KEY, not
+ANTHROPIC_API_KEY) and defaults DEMO_MODE to True until real API credentials
+are configured.
+"""
 import logging
 import time
 from abc import abstractmethod
@@ -11,41 +16,49 @@ logger = logging.getLogger(__name__)
 
 
 class BaseAgent:
-    """Base class that every PatientPlex agent extends."""
+    """Base class for all PatientPlex AI agents."""
 
-    name: str = "base_agent"
+    name: str = "base"
     display_name: str = "Base Agent"
     schedule: str = "on_demand"
-    description: str = "Base agent class"
+    description: str = ""
 
     def __init__(self):
-        self.demo_mode: bool = settings.DEMO_MODE
-        self._start_time: Optional[float] = None
+        # Real config uses CLAUDE_API_KEY.  DEMO_MODE may not be in settings;
+        # default to True so agents return sample data until real credentials
+        # and database are connected.
+        self.demo_mode: bool = getattr(settings, "DEMO_MODE", True)
+        self._start_time: float = 0.0
 
-    # ── Logging helpers ──
+    # ── Logging helpers ──────────────────────────────────────────────
 
     def log_start(self):
         self._start_time = time.time()
-        logger.info(f"[{self.name}] Starting run (demo_mode={self.demo_mode})")
+        logger.info(f"[{self.display_name}] Run started")
 
     def log_complete(self, tasks: int = 0):
-        elapsed = round(time.time() - (self._start_time or time.time()), 2)
-        logger.info(f"[{self.name}] Completed — {tasks} tasks in {elapsed}s")
+        elapsed = round(time.time() - self._start_time, 2)
+        logger.info(
+            f"[{self.display_name}] Completed — {tasks} tasks in {elapsed}s"
+        )
 
     def log_error(self, error: Exception):
-        logger.error(f"[{self.name}] Error: {error}", exc_info=True)
+        logger.error(f"[{self.display_name}] Error: {error}", exc_info=True)
 
-    # ── Claude API helper ──
+    # ── Claude API helper ────────────────────────────────────────────
 
-    async def call_claude(self, prompt: str, max_tokens: int = 4096) -> dict:
-        """Call Anthropic Claude API for AI-powered analysis."""
+    async def call_claude(
+        self, prompt: str, max_tokens: int = 4096
+    ) -> dict:
+        """Call Claude API.  Returns canned response in demo mode."""
         if self.demo_mode:
-            return {"response": f"[DEMO] Claude response for: {prompt[:80]}..."}
-
+            return {"response": f"[DEMO] Prompt received ({len(prompt)} chars)"}
         try:
             import anthropic
 
-            client = anthropic.AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
+            client = anthropic.AsyncAnthropic(
+                api_key=settings.CLAUDE_API_KEY  # matches real config
+            )
             message = await client.messages.create(
                 model="claude-sonnet-4-20250514",
                 max_tokens=max_tokens,
@@ -53,49 +66,39 @@ class BaseAgent:
             )
             return {"response": message.content[0].text}
         except Exception as e:
-            logger.error(f"[{self.name}] Claude API error: {e}")
+            logger.error(f"Claude API error: {e}")
             return {"error": str(e)}
 
-    # ── Execution wrapper ──
+    # ── Execution wrapper ────────────────────────────────────────────
 
     async def execute(self, triggered_by: str = "manual", **kwargs) -> dict:
-        """Wrapper that tracks timing and creates an AgentRun record."""
-        start = datetime.now()
-        status = "completed"
-        result_data: Any = None
-        error_count = 0
-        task_count = 0
-
+        """Run the agent, time it, return a structured result."""
+        self.log_start()
+        start = time.time()
         try:
-            result_data = await self.run(**kwargs)
-            if isinstance(result_data, dict):
-                task_count = result_data.get("tasks_completed", 1)
-        except Exception as exc:
-            status = "failed"
-            error_count = 1
-            result_data = {"error": str(exc)}
-            raise
-        finally:
-            elapsed = (datetime.now() - start).total_seconds()
-            run_record = {
-                "agent_name": self.name,
-                "status": status,
-                "started_at": start.isoformat(),
-                "completed_at": datetime.now().isoformat(),
-                "duration_seconds": round(elapsed, 2),
-                "tasks_completed": task_count,
-                "errors": error_count,
-                "result_summary": str(result_data)[:500] if result_data else None,
-                "result_data": result_data,
+            result = await self.run(**kwargs)
+            elapsed = round(time.time() - start, 2)
+            return {
+                "agent": self.name,
+                "status": "completed",
                 "triggered_by": triggered_by,
+                "duration_seconds": elapsed,
+                "result": result,
             }
-            logger.info(f"[{self.name}] Run record: {status} in {elapsed:.1f}s")
-            # In production, persist run_record to AgentRun table
-        return result_data
+        except Exception as e:
+            self.log_error(e)
+            raise
 
-    # ── Abstract run method ──
+    def get_info(self) -> dict:
+        return {
+            "name": self.name,
+            "display_name": self.display_name,
+            "schedule": self.schedule,
+            "description": self.description,
+            "demo_mode": self.demo_mode,
+        }
 
     @abstractmethod
     async def run(self, **kwargs) -> dict:
-        """Override in each agent with the actual logic."""
-        raise NotImplementedError
+        """Subclasses implement the actual work here."""
+        ...

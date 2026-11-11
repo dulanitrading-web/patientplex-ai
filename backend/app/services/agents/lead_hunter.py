@@ -1,192 +1,110 @@
-"""Lead Hunter Agent — Google Maps Scraping + ICP Scoring + SPIN Outreach"""
+"""Lead Hunter — Prospect research and ICP scoring.
+
+Finds clinics on Google Maps, scores them against the Ideal Customer Profile,
+and drafts outreach messages. All claims in outreach must be from real data.
+"""
 import logging
 from datetime import datetime
 from app.services.agents.base_agent import BaseAgent
-from app.core.knowledge_base import get_benchmark, get_city_tier
 
 logger = logging.getLogger(__name__)
 
 
 class LeadHunter(BaseAgent):
-    """Scrapes Google Maps for clinics, scores them against ICP,
-    drafts SPIN Selling outreach messages."""
-
     name = "lead_hunter"
     display_name = "Lead Hunter"
     schedule = "0 9 * * 1-5"  # 9 AM weekdays
-    description = "Scrape Google Maps, ICP score 0-100, draft SPIN outreach."
+    description = "Finds clinics on Google Maps, scores ICP fit, drafts personalised outreach."
 
-    async def run(self, city: str = "hyderabad", specialty: str = "dental_general", limit: int = 20) -> dict:
+    async def run(self, city: str = "hyderabad", specialty: str = "dental", limit: int = 5) -> dict:
         self.log_start()
         try:
             if self.demo_mode:
-                return await self._demo_run(city, specialty)
+                return self._demo_run(city, specialty, limit)
 
-            # Production: SerpAPI Google Maps search
-            raw_results = await self._scrape_google_maps(city, specialty, limit)
-            scored = [self._score_icp(r) for r in raw_results]
-            scored.sort(key=lambda x: x["icp_score"], reverse=True)
-
-            for prospect in scored[:10]:
-                prospect["outreach"] = await self._draft_outreach(prospect, specialty)
-
-            self.log_complete(tasks=len(scored))
-            return {"prospects_found": len(scored), "prospects": scored[:10]}
+            # Production: use SerpAPI / Google Maps to find clinics
+            # TODO: wire to real search + scoring pipeline
+            return {"status": "no_credentials", "message": "SerpAPI key not configured yet"}
         except Exception as e:
             self.log_error(e)
             raise
 
-    async def _scrape_google_maps(self, city, specialty, limit):
-        return []
-
-    def _score_icp(self, clinic: dict) -> dict:
-        """Score a clinic 0-100 based on ICP fit."""
+    @staticmethod
+    def score_icp(clinic: dict) -> int:
+        """Score 0-100 based on observable signals."""
         score = 0
         rating = clinic.get("google_rating", 0)
         reviews = clinic.get("review_count", 0)
 
-        # Google rating (0-20): 3.5-4.5 is ideal (room to grow)
-        if 3.5 <= rating <= 4.5:
+        # Google presence
+        if rating >= 4.0:
             score += 20
-        elif rating > 4.5:
-            score += 12
-        elif rating > 3.0:
-            score += 8
-
-        # Review count (0-20): 50-500 is ideal (established but not massive)
-        if 50 <= reviews <= 500:
-            score += 20
-        elif reviews > 500:
+        elif rating >= 3.5:
             score += 10
-        elif reviews > 20:
-            score += 12
+        if reviews >= 50:
+            score += 15
+        elif reviews >= 20:
+            score += 10
 
-        # Website quality (0-20)
+        # Digital presence
         if clinic.get("has_website"):
             score += 15
-            if not clinic.get("website_mobile_friendly"):
-                score += 5  # more room for us to help
-        else:
-            score += 10  # no website = needs digital help
-
-        # Social media (0-15)
         if clinic.get("has_social_media"):
             score += 10
-        else:
-            score += 15  # no social = bigger opportunity
 
-        # Not running Google Ads (0-25) — biggest opportunity signal
+        # NOT running ads = bigger opportunity
         if not clinic.get("running_google_ads"):
-            score += 25
+            score += 20
+
+        # Location tier
+        tier = clinic.get("city_tier", "tier_2")
+        if tier == "tier_1":
+            score += 20
+        elif tier == "tier_2":
+            score += 15
         else:
-            score += 5
+            score += 10
 
-        clinic["icp_score"] = min(100, score)
-        return clinic
+        return min(score, 100)
 
-    async def _draft_outreach(self, prospect, specialty):
-        benchmark = get_benchmark(specialty)
-        return {
-            "subject": f"Getting {prospect.get('name', 'your clinic')} 20+ new patients/month",
-            "message": f"Hi Dr. {prospect.get('doctor_name', 'Doctor')}, "
-                       f"I noticed {prospect.get('name')} has great reviews but isn't running Google Ads. "
-                       f"Clinics like yours in {prospect.get('city', 'your city')} typically get "
-                       f"patients at ₹{benchmark['avg_cpl']['avg']}/lead with our system.",
-        }
-
-    async def _demo_run(self, city, specialty) -> dict:
-        benchmark = get_benchmark(specialty)
-        tier = get_city_tier(city)
+    def _demo_run(self, city: str, specialty: str, limit: int) -> dict:
         return {
             "agent": self.name,
             "run_at": datetime.now().isoformat(),
-            "search": {"city": city, "specialty": specialty, "tier": tier["tier"]},
-            "summary": {
-                "total_scraped": 45,
-                "icp_qualified": 18,
-                "outreach_drafted": 5,
-                "avg_icp_score": 72,
-            },
-            "top_prospects": [
+            "mode": "demo",
+            "search": {"city": city, "specialty": specialty},
+            "prospects_found": 3,
+            "prospects": [
                 {
-                    "name": "Bright Smile Dental",
-                    "doctor": "Dr. Rajesh Kumar",
+                    "name": f"Sample {specialty.title()} Clinic 1",
                     "city": city.title(),
-                    "area": "Banjara Hills",
-                    "google_rating": 4.2,
-                    "review_count": 156,
+                    "rating": 4.2,
+                    "reviews": 87,
                     "has_website": True,
-                    "has_social_media": True,
                     "running_google_ads": False,
-                    "icp_score": 85,
-                    "outreach": {
-                        "subject": "Getting Bright Smile Dental 20+ new patients/month",
-                        "message": f"Hi Dr. Rajesh, I noticed Bright Smile has 156 great reviews (4.2★) but isn't running Google Ads. Similar {benchmark['name'].lower()} clinics in {city.title()} get patients at ₹{benchmark['avg_cpl']['avg']}/lead. One implant patient (₹35,000) pays for 7 months of our service. Can I show you in 15 minutes?",
-                    },
+                    "icp_score": 75,
+                    "outreach_angle": "Good reviews but no online ads — missing patients searching Google",
                 },
                 {
-                    "name": "Pearl Dental Care",
-                    "doctor": "Dr. Sneha Reddy",
+                    "name": f"Sample {specialty.title()} Clinic 2",
                     "city": city.title(),
-                    "area": "Jubilee Hills",
-                    "google_rating": 3.8,
-                    "review_count": 89,
-                    "has_website": True,
-                    "has_social_media": False,
-                    "running_google_ads": False,
-                    "icp_score": 82,
-                    "outreach": {
-                        "subject": "Pearl Dental Care — patients are searching but can't find you",
-                        "message": f"Hi Dr. Sneha, 'dentist near Jubilee Hills' gets 2,400 searches/month. Your clinic has 89 positive reviews but no Google Ads presence. I can get you in front of those patients at ₹{benchmark['avg_cpl']['avg']}/lead. 14-day free trial — zero risk.",
-                    },
-                },
-                {
-                    "name": "Dento Care Clinic",
-                    "doctor": "Dr. Anil Sharma",
-                    "city": city.title(),
-                    "area": "Madhapur",
-                    "google_rating": 4.5,
-                    "review_count": 312,
-                    "has_website": True,
-                    "has_social_media": True,
-                    "running_google_ads": True,
-                    "icp_score": 52,
-                    "outreach": {
-                        "subject": "Dento Care — your Google Ads could perform 3x better",
-                        "message": f"Hi Dr. Anil, I see you're already running Google Ads — smart move. But most agencies can't tell you which ad brought which patient. Our AI tracks every rupee to every booking. Current benchmark: ₹{benchmark['avg_cpl']['avg']} CPL, {benchmark['avg_roas']}x ROAS.",
-                    },
-                },
-                {
-                    "name": "Healthy Teeth Clinic",
-                    "doctor": "Dr. Priya Nair",
-                    "city": city.title(),
-                    "area": "Kondapur",
-                    "google_rating": 4.0,
-                    "review_count": 67,
+                    "rating": 3.8,
+                    "reviews": 42,
                     "has_website": False,
-                    "has_social_media": False,
                     "running_google_ads": False,
-                    "icp_score": 78,
-                    "outreach": {
-                        "subject": "Dr. Priya — your patients can't find you online",
-                        "message": f"Hi Dr. Priya, Healthy Teeth has 67 reviews (4.0★) but no website or social media. You're invisible to the 3,000+ people searching for dentists in Kondapur every month. We'll set up everything in 48 hours. 14-day free trial.",
-                    },
+                    "icp_score": 60,
+                    "outreach_angle": "No website, no ads — likely relying on walk-ins and referrals only",
                 },
                 {
-                    "name": "SmileZone Dental Studio",
-                    "doctor": "Dr. Vikram Rao",
+                    "name": f"Sample {specialty.title()} Clinic 3",
                     "city": city.title(),
-                    "area": "Gachibowli",
-                    "google_rating": 3.6,
-                    "review_count": 43,
+                    "rating": 4.5,
+                    "reviews": 210,
                     "has_website": True,
-                    "has_social_media": True,
-                    "running_google_ads": False,
-                    "icp_score": 74,
-                    "outreach": {
-                        "subject": "SmileZone — from 43 reviews to 200+ in 6 months",
-                        "message": f"Hi Dr. Vikram, SmileZone has a great setup but needs more patient flow. Our AI-powered Google Ads + WhatsApp system brings 25-35 leads/month at ₹{benchmark['avg_cpl']['avg']} each. Your first implant patient covers 7 months of our service.",
-                    },
+                    "running_google_ads": True,
+                    "icp_score": 45,
+                    "outreach_angle": "Already running ads — pitch better ROI and AI receptionist",
                 },
             ],
+            "note": "Demo data — not connected to Google Maps API yet.",
         }
