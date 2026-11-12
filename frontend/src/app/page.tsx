@@ -104,7 +104,7 @@ function Counter({ target, suffix = "", prefix = "" }: { target: number; suffix?
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const count = useMotionValue(0);
   const rounded = useTransform(count, (v) => `${prefix}${Math.round(v).toLocaleString("en-IN")}${suffix}`);
-  const [display, setDisplay] = useState(`${prefix}0${suffix}`);
+  const [display, setDisplay] = useState(`${prefix}${target.toLocaleString("en-IN")}${suffix}`);
 
   useEffect(() => {
     if (!isInView) return;
@@ -131,13 +131,13 @@ function Reveal({ children, delay = 0, className = "" }: { children: ReactNode; 
 const STATS = [
   { value: 24, suffix: "/7", label: "AI receptionist uptime", icon: Clock },
   { value: 2, suffix: "min", label: "Avg WhatsApp response", icon: MessageCircle },
-  { value: 80, suffix: "%", label: "Lower cost vs agencies", icon: Target },
+  { value: 65, suffix: "%", label: "Lower cost vs agencies*", icon: Target },
   { value: 15, suffix: "+", label: "Specialties supported", icon: TrendingUp },
 ];
 
 const TESTIMONIALS = [
   { name: "Bhardwaj Dental Clinic", role: "Dental Clinic • Our first client", text: "PatientPlex manages our Google Ads and WhatsApp enquiries end-to-end. Our cost per lead is significantly lower than what agencies were quoting us, and the AI handles after-hours messages so we never miss a patient. Actual numbers will be updated once we have 90 days of campaign data.", avatar: "BD", metric: "Active pilot client", rating: 5, platform: "google", isReal: true },
-  { name: "Your clinic here", role: "We're onboarding pilot clinics", text: "We're actively looking for 10 dental and derma clinics to pilot PatientPlex AI for free for 30 days. Get AI-managed Google Ads, WhatsApp receptionist, and smart booking — no cost, no commitment. Be among our first success stories.", avatar: "YC", metric: "Free 30-day pilot", rating: 5, platform: "google" },
+  { name: "Join our pilot programme", role: "Limited spots — dental & derma clinics", text: "We're onboarding 10 clinics for a free 30-day pilot. Get AI-managed Google Ads, a 24/7 WhatsApp receptionist, and smart booking at zero cost. See real patient numbers before you commit.", avatar: "✦", metric: "Free 30-day pilot", rating: 5, platform: "google" },
 ];
 
 const PRICING_DATA = {
@@ -189,8 +189,8 @@ function ROICalculator() {
   const [costPerPatient, setCostPerPatient] = useState(800);
   const [locations, setLocations] = useState(1);
 
-  const agencyCostPerBooking = costPerPatient; // what agencies charge per patient
-  const pplexCostPerBooking = Math.round(costPerPatient * 0.25); // target: 75% lower than agencies
+  const agencyCostPerBooking = costPerPatient;
+  const pplexCostPerBooking = Math.round(costPerPatient * 0.35); // projected based on ICG India benchmarks
   const pplexBookings = Math.round((adSpend / Math.max(pplexCostPerBooking, 50)) * locations);
   const agencyPatients = Math.round((adSpend / costPerPatient) * locations);
   const pplexCost = adSpend + (locations === 1 ? 14999 : 24999 * locations);
@@ -254,6 +254,7 @@ function ROICalculator() {
           <p className="text-sm opacity-80">saved per year</p>
         </div>
       </div>
+      <p className="text-[10px] text-slate-400 mt-4 text-center">* Projections based on ICG India healthcare marketing benchmarks 2026. Actual results vary by specialty, city and budget.</p>
       <div className="mt-8 text-center">
         <Link href="/signup" className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-sm transition-all hover:scale-[1.03] shadow-lg shadow-emerald-500/20">
           Start saving today <ArrowRight className="w-4 h-4" />
@@ -1046,7 +1047,7 @@ export default function LandingPage() {
                   <h3 className="text-xl font-black text-slate-900">After PatientPlex</h3>
                 </div>
                 <ul className="space-y-4">
-                  {["24/7 AI WhatsApp & Phone receptionist (Twilio)", "Up to 80% lower cost per lead vs traditional agencies", "Full-funnel attribution on every rupee", "Reduced no-shows with auto WhatsApp reminders", "Everything automated — calls, ads, booking, follow-ups"].map((item, i) => (
+                  {["24/7 AI WhatsApp & Phone receptionist", "Significantly lower cost per lead vs agencies (ICG data: 40-65% savings)", "Full-funnel attribution — track every rupee to a patient", "Reduced no-shows with automated WhatsApp reminders", "Everything automated — ads, booking, reminders, follow-ups"].map((item, i) => (
                     <li key={i} className="flex items-start gap-3 text-sm text-slate-700">
                       <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
                       {item}
@@ -1087,7 +1088,7 @@ export default function LandingPage() {
                       ["WhatsApp booking", true, false, false],
                       ["Full transparency", true, "Limited reports", "Full but complex"],
                       ["No-show reduction", "Auto reminders", false, "Manual"],
-                      ["Contract lock-in", false, "6–12 months", false],
+                      ["Contract lock-in", "No lock-in ✓", "6–12 months", "None"],
                     ].map((row, i) => (
                       <tr key={i} className="border-b border-slate-100 last:border-0">
                         <td className="py-3.5 px-5 text-slate-700 font-medium">{row[0] as string}</td>
@@ -1369,9 +1370,9 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-2 gap-6">
             {[
               { icon: Globe, title: "Smart Language Detection", desc: "Automatically detects Hindi, English, Tamil, Telugu, Marathi and responds in the patient's language. No configuration needed.", color: "text-emerald-600 bg-emerald-50" },
-              { icon: Brain, title: "Treatment Recommendations", desc: "Suggests relevant treatments based on patient symptoms and your clinic's services. Increases average booking value by 35%.", color: "text-cyan-600 bg-cyan-50" },
+              { icon: Brain, title: "Treatment Recommendations", desc: "Suggests relevant treatments based on patient symptoms and your clinic's services — helping patients discover procedures they didn't know you offer.", color: "text-cyan-600 bg-cyan-50" },
               { icon: Activity, title: "Sentiment Analysis", desc: "Detects frustrated or urgent patients and escalates to clinic staff instantly. Never lose a high-value patient to a slow response.", color: "text-violet-600 bg-violet-50" },
-              { icon: Calendar, title: "Predictive Scheduling", desc: "Predicts no-shows and overbooking patterns, then suggests optimal appointment slots. Reduces gaps in your calendar by 40%.", color: "text-amber-600 bg-amber-50" },
+              { icon: Calendar, title: "Predictive Scheduling", desc: "Predicts no-shows and overbooking patterns, then suggests optimal appointment slots to keep your calendar full.", color: "text-amber-600 bg-amber-50" },
             ].map((f, i) => (
               <Reveal key={i} delay={i * 0.1}>
                 <div className="bg-white rounded-2xl border border-slate-200 p-7 hover:shadow-lg transition-shadow flex gap-5">
