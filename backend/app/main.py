@@ -13,7 +13,7 @@ from app.api.v1 import (
     analytics, auth, onboarding, whatsapp, appointments, campaigns, chatgpt_ads,
     landing_pages, intelligence, calls, conversions, bookings, billing,
     marketing_brain, ml, webhooks, payments, signals, ehr, compliance,
-    knowledge,
+    knowledge, google_my_business, ga4,
 )
 from app.api.v1.agents_router import router as agents_router
 from app.core.config import settings
@@ -65,7 +65,11 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    description="Healthcare Patient Acquisition SaaS — automates Google/Meta/LinkedIn ads for doctors and books appointments directly into their calendars.",
+    description=(
+        "Healthcare Patient Acquisition SaaS — automates Google Ads, Meta Ads, "
+        "LinkedIn Ads, ChatGPT Ads, Google My Business, WhatsApp AI receptionist, "
+        "and smart appointment booking for healthcare clinics across India."
+    ),
     version="0.1.0",
     lifespan=lifespan,
 )
@@ -102,6 +106,11 @@ app.include_router(calls.router, prefix=settings.API_V1_PREFIX)
 app.include_router(conversions.router, prefix=settings.API_V1_PREFIX)
 app.include_router(bookings.router, prefix=settings.API_V1_PREFIX)
 app.include_router(billing.router, prefix=settings.API_V1_PREFIX)
+app.include_router(chatgpt_ads.router, prefix=settings.API_V1_PREFIX)
+app.include_router(marketing_brain.router, prefix=settings.API_V1_PREFIX)
+app.include_router(signals.router, prefix=settings.API_V1_PREFIX)
+app.include_router(google_my_business.router, prefix=settings.API_V1_PREFIX)
+app.include_router(ga4.router, prefix=settings.API_V1_PREFIX)
 app.include_router(ml.router, prefix=settings.API_V1_PREFIX)
 app.include_router(analytics.router, prefix=settings.API_V1_PREFIX)
 app.include_router(webhooks.router, prefix=settings.API_V1_PREFIX)
@@ -112,10 +121,7 @@ app.include_router(knowledge.router, prefix=settings.API_V1_PREFIX)
 # AI Agents — list, trigger, monitor
 app.include_router(agents_router, prefix=settings.API_V1_PREFIX)
 
-# SHELVED for V1 — re-enable when APIs are wired:
-# app.include_router(chatgpt_ads.router, prefix=settings.API_V1_PREFIX)
-# app.include_router(marketing_brain.router, prefix=settings.API_V1_PREFIX)
-# app.include_router(signals.router, prefix=settings.API_V1_PREFIX)
+# EHR — enable when integration is wired:
 # app.include_router(ehr.router, prefix=settings.API_V1_PREFIX)
 
 

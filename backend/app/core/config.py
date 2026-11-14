@@ -86,6 +86,22 @@ class Settings(BaseSettings):
     META_ACCESS_TOKEN: str = ""
     META_AD_ACCOUNT_ID: str = ""
 
+    # Google My Business API
+    GOOGLE_GMB_API_KEY: str = ""
+
+    # LinkedIn Marketing API
+    LINKEDIN_CLIENT_ID: str = ""
+    LINKEDIN_CLIENT_SECRET: str = ""
+    LINKEDIN_ACCESS_TOKEN: str = ""
+
+    # ChatGPT Ads (OpenAI Sponsored Answers)
+    CHATGPT_ADS_API_KEY: str = ""
+
+    # Google Analytics 4
+    GA4_MEASUREMENT_ID: str = ""      # G-XXXXXXXXXX
+    GA4_API_SECRET: str = ""          # Measurement Protocol API secret
+    GA4_PROPERTY_ID: str = ""         # GA4 property ID for Data API reporting
+
     model_config = {
         "env_file": ".env",
         "env_file_encoding": "utf-8",

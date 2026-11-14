@@ -6,6 +6,7 @@ import clsx from "clsx";
 import {
   LayoutDashboard, BarChart3, Calendar, MessageCircle, Globe,
   Phone, TrendingUp, Settings, CreditCard, LogOut, Menu, X, Users,
+  MapPin, LineChart,
 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/context/auth";
@@ -22,6 +23,8 @@ const NAV_ITEMS = [
   { href: "/dashboard/conversations", label: "WhatsApp", icon: MessageCircle },
   { href: "/dashboard/calls", label: "Calls", icon: Phone },
   { href: "/dashboard/conversions", label: "Funnel", icon: BarChart3 },
+  { href: "/dashboard/google-business", label: "Google Business", icon: MapPin },
+  { href: "/dashboard/ga4", label: "GA4 Analytics", icon: LineChart },
   { href: "/dashboard/landing-pages", label: "Landing Pages", icon: Globe },
   { href: "/dashboard/billing", label: "Billing", icon: CreditCard },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },

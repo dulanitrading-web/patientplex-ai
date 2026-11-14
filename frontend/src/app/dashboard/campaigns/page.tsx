@@ -71,7 +71,7 @@ export default function CampaignsPage() {
   async function handleLaunch() {
     setLoading(true);
     try {
-      await launchCampaigns(["GOOGLE", "META"]);
+      await launchCampaigns(["GOOGLE", "META", "CHATGPT", "LINKEDIN"]);
       await loadCampaigns();
     } finally {
       setLoading(false);
@@ -82,6 +82,7 @@ export default function CampaignsPage() {
     if (p === "GOOGLE") return "🔍";
     if (p === "META") return "📘";
     if (p === "LINKEDIN") return "💼";
+    if (p === "CHATGPT") return "🤖";
     return "📢";
   };
 
@@ -117,7 +118,7 @@ export default function CampaignsPage() {
         <div className="bg-white rounded-xl p-8 border border-slate-200 text-center">
           <AlertCircle className="w-12 h-12 text-slate-600 mx-auto mb-3" />
           <h2 className="text-lg font-semibold text-slate-900 mb-1">No campaigns yet</h2>
-          <p className="text-slate-500 text-sm mb-4">Launch your first AI-powered campaigns on Google and Meta.</p>
+          <p className="text-slate-500 text-sm mb-4">Launch your first AI-powered campaigns on Google, Meta, ChatGPT, and LinkedIn.</p>
           <button
             onClick={handleLaunch}
             className="px-5 py-2.5 rounded-lg bg-emerald-500 hover:bg-slate-800 text-[#0A0E1A] text-sm font-medium transition-colors"
