@@ -1,7 +1,7 @@
 """PatientPlex AI FastAPI application entry point."""
-
 import logging
 from contextlib import asynccontextmanager
+import os
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,11 +15,12 @@ from app.api.v1 import (
     marketing_brain, ml, webhooks, payments, signals, ehr, compliance,
     knowledge,
 )
+from app.api.v1.agents_router import router as agents_router
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-import os
+# --- Rate Limiting ---
 _testing = os.environ.get("TESTING", "").lower() == "true"
 limiter = Limiter(
     key_func=get_remote_address,
@@ -27,26 +28,44 @@ limiter = Limiter(
     enabled=not _testing,
 )
 
+# --- Agent Scheduler ---
+_scheduler = None
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Application lifespan: runs startup and shutdown hooks."""
+    global _scheduler
+    # Startup
     if settings.SECRET_KEY == "change-this-to-a-random-secret-key-in-production":
-        logger.warning(
-            "⚠️  SECRET_KEY is set to the default value. "
-            "Generate a secure key: python -c \"import secrets; print(secrets.token_hex(32))\""
-        )
-    logger.info("PatientPlex AI API started")
+        logger.warning("SECRET_KEY is set to the default value.")
+    logger.info(f"{settings.PROJECT_NAME} API starting up")
+
+    # Start agent scheduler
+    try:
+        from apscheduler.schedulers.asyncio import AsyncIOScheduler
+        from app.services.agent_scheduler import setup_agent_scheduler
+
+        _scheduler = AsyncIOScheduler()
+        count = setup_agent_scheduler(_scheduler)
+        _scheduler.start()
+        logger.info(f"Agent scheduler started with {count} scheduled agents")
+    except ImportError:
+        logger.warning("APScheduler not installed — agent scheduling disabled")
+    except Exception as e:
+        logger.error(f"Failed to start agent scheduler: {e}")
+
     yield
-    logger.info("PatientPlex AI API shutting down")
+
+    # Shutdown
+    if _scheduler:
+        _scheduler.shutdown(wait=False)
+        logger.info("Agent scheduler stopped")
+    logger.info(f"{settings.PROJECT_NAME} API shutting down")
 
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    description=(
-        "Healthcare Patient Acquisition SaaS — automates Google/Meta/LinkedIn ads "
-        "for doctors and books appointments directly into their calendars."
-    ),
+    description="Healthcare Patient Acquisition SaaS — automates Google/Meta/LinkedIn ads for doctors and books appointments directly into their calendars.",
     version="0.1.0",
     lifespan=lifespan,
 )
@@ -54,23 +73,24 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# CORS — restrict origins in production, allow all in dev
-ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "https://patientplex.ai",
-    "https://app.patientplex.ai",
-    "https://www.patientplex.ai",
-    "https://patientplex-ai.vercel.app",
-]
+# --- CORS ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "https://patientplex.ai",
+        "https://www.patientplex.ai",
+        "https://app.patientplex.ai",
+        "https://patientplex-ai.vercel.app",
+        "https://patientplex-mission-control.lovable.app",
+    ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
-# Routers
+# --- Routers ---
 app.include_router(auth.router, prefix=settings.API_V1_PREFIX)
 app.include_router(onboarding.router, prefix=settings.API_V1_PREFIX)
 app.include_router(whatsapp.router, prefix=settings.API_V1_PREFIX)
@@ -82,11 +102,6 @@ app.include_router(calls.router, prefix=settings.API_V1_PREFIX)
 app.include_router(conversions.router, prefix=settings.API_V1_PREFIX)
 app.include_router(bookings.router, prefix=settings.API_V1_PREFIX)
 app.include_router(billing.router, prefix=settings.API_V1_PREFIX)
-# SHELVED for V1 — re-enable when APIs are wired:
-# app.include_router(chatgpt_ads.router, prefix=settings.API_V1_PREFIX)
-# app.include_router(marketing_brain.router, prefix=settings.API_V1_PREFIX)
-# app.include_router(signals.router, prefix=settings.API_V1_PREFIX)
-# app.include_router(ehr.router, prefix=settings.API_V1_PREFIX)
 app.include_router(ml.router, prefix=settings.API_V1_PREFIX)
 app.include_router(analytics.router, prefix=settings.API_V1_PREFIX)
 app.include_router(webhooks.router, prefix=settings.API_V1_PREFIX)
@@ -94,8 +109,24 @@ app.include_router(payments.router, prefix=settings.API_V1_PREFIX)
 app.include_router(compliance.router, prefix=settings.API_V1_PREFIX)
 app.include_router(knowledge.router, prefix=settings.API_V1_PREFIX)
 
+# AI Agents — list, trigger, monitor
+app.include_router(agents_router, prefix=settings.API_V1_PREFIX)
+
+# SHELVED for V1 — re-enable when APIs are wired:
+# app.include_router(chatgpt_ads.router, prefix=settings.API_V1_PREFIX)
+# app.include_router(marketing_brain.router, prefix=settings.API_V1_PREFIX)
+# app.include_router(signals.router, prefix=settings.API_V1_PREFIX)
+# app.include_router(ehr.router, prefix=settings.API_V1_PREFIX)
+
 
 @app.get("/", tags=["health"])
 async def health_check() -> dict:
-    """Basic health-check endpoint."""
-    return {"status": "healthy", "service": settings.PROJECT_NAME}
+    """System health check."""
+    jobs = 0
+    if _scheduler and _scheduler.running:
+        jobs = len(_scheduler.get_jobs())
+    return {
+        "status": "healthy",
+        "service": settings.PROJECT_NAME,
+        "agents_scheduled": jobs,
+    }
