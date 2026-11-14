@@ -11,9 +11,9 @@ async def test_list_plans(client):
     assert len(plans) == 3  # STARTER, GROWTH, ENTERPRISE
     # Verify pricing
     prices = {p["id"]: p["price_inr"] for p in plans}
-    assert prices["STARTER"] == 4999
-    assert prices["GROWTH"] == 9999
-    assert prices["ENTERPRISE"] == 24999
+    assert prices["STARTER"] == 9999
+    assert prices["GROWTH"] == 24999
+    assert prices["ENTERPRISE"] == 49999
 
 
 @pytest.mark.asyncio
@@ -53,4 +53,4 @@ async def test_upgrade_plan(client, auth_headers):
     resp = await client.post("/api/v1/billing/subscribe", headers=auth_headers, json={"plan": "GROWTH"})
     assert resp.status_code == 200
     assert resp.json()["plan"] == "GROWTH"
-    assert resp.json()["price_inr"] == 9999
+    assert resp.json()["price_inr"] == 24999

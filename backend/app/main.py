@@ -13,7 +13,7 @@ from app.api.v1 import (
     analytics, auth, onboarding, whatsapp, appointments, campaigns, chatgpt_ads,
     landing_pages, intelligence, calls, conversions, bookings, billing,
     marketing_brain, ml, webhooks, payments, signals, ehr, compliance,
-    knowledge, google_my_business, ga4,
+    knowledge, google_my_business, ga4, seo,
 )
 from app.api.v1.agents_router import router as agents_router
 from app.core.config import settings
@@ -111,6 +111,7 @@ app.include_router(marketing_brain.router, prefix=settings.API_V1_PREFIX)
 app.include_router(signals.router, prefix=settings.API_V1_PREFIX)
 app.include_router(google_my_business.router, prefix=settings.API_V1_PREFIX)
 app.include_router(ga4.router, prefix=settings.API_V1_PREFIX)
+app.include_router(seo.router, prefix=settings.API_V1_PREFIX)
 app.include_router(ml.router, prefix=settings.API_V1_PREFIX)
 app.include_router(analytics.router, prefix=settings.API_V1_PREFIX)
 app.include_router(webhooks.router, prefix=settings.API_V1_PREFIX)

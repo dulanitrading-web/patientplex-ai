@@ -17,45 +17,45 @@ logger = logging.getLogger(__name__)
 PLANS = {
     "starter": {
         "name": "Starter",
-        "amount": 499900,  # ₹4,999 in paise
+        "amount": 999900,  # ₹9,999 in paise
         "currency": "INR",
         "period": "monthly",
-        "description": "PatientPlex Starter — 1 location, Google + WhatsApp",
+        "description": "PatientPlex Starter — Google Ads + WhatsApp + Phone AI + GMB",
     },
     "growth": {
         "name": "Growth",
-        "amount": 1499900,  # ₹14,999 in paise
-        "currency": "INR",
-        "period": "monthly",
-        "description": "PatientPlex Growth — 3 locations, all platforms, AI receptionist",
-    },
-    "enterprise": {
-        "name": "Enterprise",
         "amount": 2499900,  # ₹24,999 in paise
         "currency": "INR",
         "period": "monthly",
-        "description": "PatientPlex Enterprise — unlimited locations, dedicated manager",
+        "description": "PatientPlex Growth — 4 ad platforms, unlimited AI, ML optimization",
+    },
+    "enterprise": {
+        "name": "Enterprise",
+        "amount": 4999900,  # ₹49,999 in paise
+        "currency": "INR",
+        "period": "monthly",
+        "description": "PatientPlex Enterprise — 10 locations, dedicated manager, API access",
     },
 }
 
 ANNUAL_PLANS = {
     "starter_annual": {
         "name": "Starter Annual",
-        "amount": 399900,  # ₹3,999/mo billed annually
+        "amount": 799900,  # ₹7,999/mo billed annually (save 20%)
         "currency": "INR",
         "period": "yearly",
         "description": "PatientPlex Starter Annual — save 20%",
     },
     "growth_annual": {
         "name": "Growth Annual",
-        "amount": 1199900,  # ₹11,999/mo billed annually
+        "amount": 1999900,  # ₹19,999/mo billed annually (save 20%)
         "currency": "INR",
         "period": "yearly",
         "description": "PatientPlex Growth Annual — save 20%",
     },
     "enterprise_annual": {
         "name": "Enterprise Annual",
-        "amount": 1999900,  # ₹19,999/mo billed annually
+        "amount": 3999900,  # ₹39,999/mo billed annually (save 20%)
         "currency": "INR",
         "period": "yearly",
         "description": "PatientPlex Enterprise Annual — save 20%",
