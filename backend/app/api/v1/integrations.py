@@ -537,15 +537,27 @@ async def import_google_ads_campaigns(
         }
 
     # Fetch campaigns from Google Ads API
-    metrics_data = await engine.get_campaign_metrics(customer_id, days=90)
+    # Strip dashes from customer ID (Google Ads API requires plain numbers)
+    customer_id = customer_id.replace("-", "").strip()
+
+    # Fetch campaigns from Google Ads API (use LAST_30_DAYS — valid GAQL range)
+    metrics_data = await engine.get_campaign_metrics(customer_id, days=30)
 
     if metrics_data.get("status") == "demo_mode":
-        # No real API — create draft campaigns from onboarding data
+        # Determine what's missing for a helpful error
+        from app.services.google_ads_engine import GOOGLE_ADS_SDK_AVAILABLE
+        if not GOOGLE_ADS_SDK_AVAILABLE:
+            detail = "Google Ads SDK not installed on server. Contact support."
+        elif not engine.is_connected:
+            detail = "Google Ads API client could not connect. Please click 'Connect' on Google Ads first to authorize your account."
+        else:
+            detail = "Google Ads API returned demo mode."
+        # Create draft campaigns from onboarding data as fallback
         campaign = await engine.create_campaign_from_onboarding(doctor)
         await db.commit()
         return {
             "status": "draft_mode",
-            "message": "Google Ads API not connected with real credentials. Created draft campaign from clinic data.",
+            "message": f"{detail} Created draft campaign from clinic data.",
             "imported": 1,
             "campaigns": [{"name": campaign.name, "status": campaign.status.value}],
         }
