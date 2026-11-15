@@ -50,7 +50,7 @@ async def get_current_doctor(
 
 
 @router.post("/signup", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
-@limiter.limit("3/minute")
+@limiter.limit("20/minute")
 async def signup(request: Request, body: DoctorCreate, db: AsyncSession = Depends(get_db)) -> TokenResponse:
     """Register a new doctor account and return a JWT.
 
@@ -94,7 +94,7 @@ async def signup(request: Request, body: DoctorCreate, db: AsyncSession = Depend
 
 
 @router.post("/login", response_model=TokenResponse)
-@limiter.limit("5/minute")
+@limiter.limit("20/minute")
 async def login(request: Request, body: DoctorLogin, db: AsyncSession = Depends(get_db)) -> TokenResponse:
     """Authenticate a doctor by email/password and return a JWT.
 
