@@ -15,7 +15,7 @@ import {
   XCircle,
   Clock,
 } from "lucide-react";
-import { getMe, getSubscription } from "@/lib/api";
+import { getMe, getSubscription, getIntegrationStatus } from "@/lib/api";
 
 interface DoctorProfile {
   id: string;
@@ -51,20 +51,32 @@ interface SubscriptionData {
   campaigns_limit: number;
 }
 
+interface IntegrationInfo {
+  status: string;
+  detail: string;
+  has_campaigns?: boolean;
+  credentials_configured?: boolean;
+  number?: string;
+  verified?: boolean;
+}
+
 export default function SettingsPage() {
   const [doctor, setDoctor] = useState<DoctorProfile | null>(null);
   const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
+  const [integrations, setIntegrations] = useState<Record<string, IntegrationInfo> | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        const [profile, subRes] = await Promise.allSettled([
+        const [profile, subRes, intRes] = await Promise.allSettled([
           getMe(),
           getSubscription(),
+          getIntegrationStatus(),
         ]);
         if (profile.status === "fulfilled") setDoctor(profile.value);
         if (subRes.status === "fulfilled") setSubscription(subRes.value.subscription);
+        if (intRes.status === "fulfilled") setIntegrations(intRes.value);
       } catch {
         /* use defaults */
       } finally {
@@ -132,26 +144,50 @@ export default function SettingsPage() {
           <IntegrationRow
             icon={<Calendar className="w-4 h-4" />}
             name="Google Calendar"
-            status={doctor?.google_calendar_connected ? "connected" : "not_connected"}
-            detail={doctor?.google_calendar_connected ? "Syncing appointments" : "Connect to sync appointments"}
+            status={mapIntegrationStatus(integrations?.google_calendar?.status)}
+            detail={integrations?.google_calendar?.detail || (doctor?.google_calendar_connected ? "Syncing appointments" : "Connect to sync appointments")}
           />
           <IntegrationRow
             icon={<MessageCircle className="w-4 h-4" />}
             name="WhatsApp"
-            status={doctor?.whatsapp_number ? (doctor?.whatsapp_verified ? "connected" : "pending") : "not_connected"}
-            detail={doctor?.whatsapp_number ? `${doctor.whatsapp_number}${doctor.whatsapp_verified ? "" : " (verification pending)"}` : "No number configured"}
+            status={mapIntegrationStatus(integrations?.whatsapp?.status)}
+            detail={integrations?.whatsapp?.detail || (doctor?.whatsapp_number || "No number configured")}
           />
           <IntegrationRow
             icon={<BarChart3 className="w-4 h-4" />}
             name="Google Ads"
-            status="coming_soon"
-            detail="Direct account linking coming soon"
+            status={mapIntegrationStatus(integrations?.google_ads?.status)}
+            detail={integrations?.google_ads?.detail || "Checking..."}
           />
           <IntegrationRow
             icon={<BarChart3 className="w-4 h-4" />}
             name="Meta Ads"
-            status="coming_soon"
-            detail="Direct account linking coming soon"
+            status={mapIntegrationStatus(integrations?.meta_ads?.status)}
+            detail={integrations?.meta_ads?.detail || "Checking..."}
+          />
+          <IntegrationRow
+            icon={<BarChart3 className="w-4 h-4" />}
+            name="ChatGPT Ads"
+            status={mapIntegrationStatus(integrations?.chatgpt_ads?.status)}
+            detail={integrations?.chatgpt_ads?.detail || "Checking..."}
+          />
+          <IntegrationRow
+            icon={<BarChart3 className="w-4 h-4" />}
+            name="LinkedIn Ads"
+            status={mapIntegrationStatus(integrations?.linkedin_ads?.status)}
+            detail={integrations?.linkedin_ads?.detail || "Checking..."}
+          />
+          <IntegrationRow
+            icon={<MessageCircle className="w-4 h-4" />}
+            name="WhatsApp Ads (CTWA)"
+            status={mapIntegrationStatus(integrations?.whatsapp_ads?.status)}
+            detail={integrations?.whatsapp_ads?.detail || "Checking..."}
+          />
+          <IntegrationRow
+            icon={<BarChart3 className="w-4 h-4" />}
+            name="Twilio Call Tracking"
+            status={mapIntegrationStatus(integrations?.twilio_calls?.status)}
+            detail={integrations?.twilio_calls?.detail || "Checking..."}
           />
         </div>
       </div>
@@ -209,17 +245,27 @@ function InfoField({ label, value, className }: { label: string; value?: string 
   );
 }
 
+function mapIntegrationStatus(s?: string): "connected" | "pending" | "not_connected" | "ready" | "active_draft" {
+  if (!s) return "not_connected";
+  if (s === "connected") return "connected";
+  if (s === "pending") return "pending";
+  if (s === "ready") return "ready";
+  if (s === "active_draft") return "active_draft";
+  return "not_connected";
+}
+
 function IntegrationRow({ icon, name, status, detail }: {
   icon: React.ReactNode;
   name: string;
-  status: "connected" | "pending" | "not_connected" | "coming_soon";
+  status: "connected" | "pending" | "not_connected" | "ready" | "active_draft";
   detail: string;
 }) {
   const statusConfig = {
     connected: { icon: <CheckCircle2 className="w-4 h-4 text-emerald-600" />, label: "Connected", cls: "bg-emerald-50 text-emerald-600" },
+    ready: { icon: <CheckCircle2 className="w-4 h-4 text-cyan-600" />, label: "Ready", cls: "bg-cyan-50 text-cyan-600" },
+    active_draft: { icon: <Clock className="w-4 h-4 text-amber-600" />, label: "Draft Mode", cls: "bg-amber-50 text-amber-600" },
     pending: { icon: <Clock className="w-4 h-4 text-amber-600" />, label: "Pending", cls: "bg-amber-50 text-amber-600" },
     not_connected: { icon: <XCircle className="w-4 h-4 text-slate-600" />, label: "Not Connected", cls: "bg-white/5 text-slate-600" },
-    coming_soon: { icon: <Clock className="w-4 h-4 text-cyan-600" />, label: "Coming Soon", cls: "bg-cyan-50 text-cyan-600" },
   };
   const cfg = statusConfig[status];
 

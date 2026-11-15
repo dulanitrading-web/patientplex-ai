@@ -95,23 +95,19 @@ async def launch_campaigns(
 
         existing_campaigns = existing_by_platform.get(platform_key, [])
 
-        # Find the best existing campaign (non-ERROR, most recent)
-        usable = [
-            c for c in existing_campaigns
-            if c.status not in (CampaignStatus.ERROR, CampaignStatus.COMPLETED)
-        ]
+        # AI Decision: evaluate existing campaigns and decide action
+        decision = _ai_campaign_decision(existing_campaigns, doctor)
 
-        if usable:
-            # Existing campaign found → optimize it instead of creating new
-            campaign = usable[0]  # Most recent usable
-            action = "optimized"
+        if decision["action"] == "optimize":
+            # Existing campaign is good → optimize it
+            campaign = decision["campaign"]
 
             # Sync latest performance
             if config["sync"]:
                 try:
                     await config["sync"](campaign)
                 except Exception:
-                    pass  # Don't fail the whole launch if sync fails
+                    pass
 
             # Run optimization if available
             optimization_result = None
@@ -126,26 +122,42 @@ async def launch_campaigns(
                 "name": campaign.name,
                 "status": campaign.status.value,
                 "daily_budget": campaign.daily_budget,
-                "action": action,
+                "action": "optimized",
+                "reason": decision["reason"],
+                "health_score": decision["score"],
                 "optimization": optimization_result,
             }
-        else:
-            # No usable campaign → create new one
+
+        elif decision["action"] == "rebuild":
+            # Existing campaign is broken → create fresh
             try:
                 campaign = await config["create"]()
-                action = "created"
                 results[platform_key.lower()] = {
                     "campaign_id": str(campaign.id),
                     "name": campaign.name,
                     "status": campaign.status.value,
                     "daily_budget": campaign.daily_budget,
-                    "action": action,
+                    "action": "rebuilt",
+                    "reason": decision["reason"],
+                    "health_score": decision["score"],
                 }
             except Exception as exc:
+                results[platform_key.lower()] = {"action": "error", "error": str(exc)}
+
+        else:
+            # No campaign exists → create new
+            try:
+                campaign = await config["create"]()
                 results[platform_key.lower()] = {
-                    "action": "error",
-                    "error": str(exc),
+                    "campaign_id": str(campaign.id),
+                    "name": campaign.name,
+                    "status": campaign.status.value,
+                    "daily_budget": campaign.daily_budget,
+                    "action": "created",
+                    "reason": "No existing campaign for this platform",
                 }
+            except Exception as exc:
+                results[platform_key.lower()] = {"action": "error", "error": str(exc)}
 
     await db.commit()
 
@@ -323,6 +335,130 @@ async def _get_campaign(campaign_id: UUID, doctor_id, db: AsyncSession) -> Campa
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
     return campaign
+
+
+def _ai_campaign_decision(
+    existing_campaigns: list[Campaign], doctor: Doctor
+) -> dict:
+    """PatientPlex AI brain — decides whether to optimize or rebuild campaigns.
+
+    Scoring system (0-100):
+    - 0-30: Campaign infrastructure is broken → REBUILD
+    - 31-70: Campaign needs optimization → OPTIMIZE
+    - 71-100: Campaign is healthy → OPTIMIZE (light touch)
+
+    Factors evaluated:
+    1. Status: ERROR/COMPLETED = bad, ACTIVE/PENDING = good
+    2. Keywords: Does it have relevant keywords for the doctor's specialty?
+    3. Targeting: Does location match the doctor's current city/radius?
+    4. Budget: Is daily budget reasonable for the monthly budget?
+    5. Ad copy: Does it have headlines/descriptions?
+    6. Performance: If running, is CPC/CTR in acceptable range?
+    """
+    if not existing_campaigns:
+        return {"action": "create", "score": 0, "reason": "No existing campaign", "campaign": None}
+
+    # Filter out COMPLETED campaigns — they're done
+    active = [c for c in existing_campaigns if c.status != CampaignStatus.COMPLETED]
+    if not active:
+        return {"action": "create", "score": 0, "reason": "All campaigns completed", "campaign": None}
+
+    # Evaluate the most recent campaign
+    campaign = active[0]
+    score = 0
+    issues: list[str] = []
+
+    # 1. Status check (0-20 points)
+    if campaign.status == CampaignStatus.ERROR:
+        score += 0
+        issues.append("Campaign in ERROR state")
+    elif campaign.status == CampaignStatus.ACTIVE:
+        score += 20
+    elif campaign.status in (CampaignStatus.PENDING_REVIEW, CampaignStatus.DRAFT):
+        score += 15
+    elif campaign.status == CampaignStatus.PAUSED:
+        score += 10
+        issues.append("Campaign is paused")
+
+    # 2. Keywords check (0-20 points)
+    keywords = campaign.keywords or []
+    if len(keywords) >= 10:
+        score += 20
+    elif len(keywords) >= 5:
+        score += 15
+    elif len(keywords) > 0:
+        score += 10
+        issues.append(f"Only {len(keywords)} keywords — needs more")
+    else:
+        issues.append("No keywords set")
+
+    # 3. Location targeting (0-15 points)
+    if campaign.target_location and doctor.city and doctor.city.lower() in campaign.target_location.lower():
+        score += 15
+    elif campaign.target_location:
+        score += 5
+        issues.append("Location may not match current clinic city")
+    else:
+        issues.append("No location targeting")
+
+    # 4. Budget alignment (0-15 points)
+    expected_daily = round(doctor.monthly_budget / 30.4) if doctor.monthly_budget > 0 else 0
+    if expected_daily > 0 and campaign.daily_budget > 0:
+        ratio = campaign.daily_budget / expected_daily
+        if 0.5 <= ratio <= 2.0:
+            score += 15
+        elif 0.3 <= ratio <= 3.0:
+            score += 10
+            issues.append("Budget may need adjustment")
+        else:
+            score += 5
+            issues.append("Budget significantly misaligned")
+    elif campaign.daily_budget > 0:
+        score += 10
+    else:
+        issues.append("No budget set")
+
+    # 5. Ad copy (0-15 points)
+    has_headlines = bool(campaign.headlines and len(campaign.headlines) >= 3)
+    has_descriptions = bool(campaign.descriptions and len(campaign.descriptions) >= 2)
+    has_ad_copy = bool(campaign.ad_copy)
+    if has_headlines and has_descriptions:
+        score += 15
+    elif has_headlines or has_ad_copy:
+        score += 10
+        issues.append("Ad copy incomplete")
+    else:
+        issues.append("No ad copy")
+
+    # 6. Performance signals (0-15 points) — only if campaign has data
+    if campaign.impressions > 0:
+        if campaign.ctr > 2.0:
+            score += 15  # Great CTR
+        elif campaign.ctr > 1.0:
+            score += 10  # Decent CTR
+        elif campaign.clicks > 0:
+            score += 5
+            issues.append("Low CTR — needs optimization")
+        else:
+            issues.append("Impressions but no clicks")
+    elif campaign.status == CampaignStatus.ACTIVE:
+        score += 5  # Active but no data yet — give it time
+
+    # Decision
+    if score <= 30:
+        return {
+            "action": "rebuild",
+            "score": score,
+            "reason": f"Campaign health score {score}/100 — rebuilding. Issues: {'; '.join(issues)}",
+            "campaign": campaign,
+        }
+    else:
+        return {
+            "action": "optimize",
+            "score": score,
+            "reason": f"Campaign health score {score}/100 — optimizing. {'; '.join(issues) if issues else 'Looking good'}",
+            "campaign": campaign,
+        }
 
 
 def _serialize_campaign(c: Campaign, detailed: bool = False) -> dict:

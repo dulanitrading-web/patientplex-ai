@@ -129,3 +129,88 @@ async def login(request: Request, body: DoctorLogin, db: AsyncSession = Depends(
 async def get_me(doctor: Doctor = Depends(get_current_doctor)) -> DoctorResponse:
     """Return the profile of the currently authenticated doctor."""
     return DoctorResponse.model_validate(doctor)
+
+
+@router.get("/integrations")
+async def get_integration_status(
+    doctor: Doctor = Depends(get_current_doctor),
+    db: AsyncSession = Depends(get_db),
+):
+    """Return real-time connection status of all integrations.
+
+    Checks actual API keys/credentials configured on the backend
+    and whether campaigns exist for each platform.
+    """
+    from app.models.campaign import Campaign, AdPlatform
+
+    # Check which platforms have campaigns
+    result = await db.execute(
+        select(Campaign.platform).where(Campaign.doctor_id == doctor.id).distinct()
+    )
+    active_platforms = {row[0].value for row in result.all()}
+
+    # Check backend credentials
+    google_ads_configured = bool(settings.GOOGLE_ADS_DEVELOPER_TOKEN)
+    meta_ads_configured = bool(settings.META_APP_ID and settings.META_APP_SECRET)
+    chatgpt_ads_configured = bool(settings.CHATGPT_ADS_API_KEY)
+    linkedin_configured = bool(settings.LINKEDIN_ACCESS_TOKEN)
+    twilio_configured = bool(settings.TWILIO_ACCOUNT_SID and settings.TWILIO_AUTH_TOKEN)
+    whatsapp_api_configured = bool(settings.WHATSAPP_API_TOKEN)
+
+    def _status(platform_key: str, credentials_ok: bool) -> str:
+        """Determine integration status: connected, active, pending, not_connected."""
+        has_campaigns = platform_key in active_platforms
+        if has_campaigns and credentials_ok:
+            return "connected"
+        if has_campaigns and not credentials_ok:
+            return "active_draft"  # Campaigns exist but in draft/demo mode
+        if credentials_ok:
+            return "ready"  # Credentials set, no campaigns yet
+        return "not_connected"
+
+    return {
+        "google_calendar": {
+            "status": "connected" if doctor.google_calendar_connected else "not_connected",
+            "detail": "Syncing appointments" if doctor.google_calendar_connected else "Connect to sync appointments",
+        },
+        "whatsapp": {
+            "status": "connected" if (doctor.whatsapp_number and doctor.whatsapp_verified) else ("pending" if doctor.whatsapp_number else "not_connected"),
+            "detail": f"{doctor.whatsapp_number}" if doctor.whatsapp_number else "No number configured",
+            "number": doctor.whatsapp_number,
+            "verified": doctor.whatsapp_verified if doctor.whatsapp_number else False,
+        },
+        "google_ads": {
+            "status": _status("GOOGLE", google_ads_configured),
+            "detail": "Connected — MCC linked" if google_ads_configured else "Add Google Ads Developer Token to connect",
+            "has_campaigns": "GOOGLE" in active_platforms,
+            "credentials_configured": google_ads_configured,
+        },
+        "meta_ads": {
+            "status": _status("META", meta_ads_configured),
+            "detail": "Connected — App configured" if meta_ads_configured else "Add Meta App ID & Secret to connect",
+            "has_campaigns": "META" in active_platforms,
+            "credentials_configured": meta_ads_configured,
+        },
+        "chatgpt_ads": {
+            "status": _status("CHATGPT", chatgpt_ads_configured),
+            "detail": "Connected" if chatgpt_ads_configured else "Add ChatGPT Ads API key to connect",
+            "has_campaigns": "CHATGPT" in active_platforms,
+            "credentials_configured": chatgpt_ads_configured,
+        },
+        "linkedin_ads": {
+            "status": _status("LINKEDIN", linkedin_configured),
+            "detail": "Connected" if linkedin_configured else "Add LinkedIn access token to connect",
+            "has_campaigns": "LINKEDIN" in active_platforms,
+            "credentials_configured": linkedin_configured,
+        },
+        "whatsapp_ads": {
+            "status": _status("WHATSAPP", meta_ads_configured),
+            "detail": "Click-to-WhatsApp via Meta" if meta_ads_configured else "Requires Meta Ads connection",
+            "has_campaigns": "WHATSAPP" in active_platforms,
+        },
+        "twilio_calls": {
+            "status": "connected" if twilio_configured else "not_connected",
+            "detail": "Call tracking active" if twilio_configured else "Add Twilio credentials for call tracking",
+            "credentials_configured": twilio_configured,
+        },
+    }

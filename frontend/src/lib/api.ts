@@ -220,6 +220,11 @@ export async function getMe() {
   return res.json();
 }
 
+export async function getIntegrationStatus() {
+  const res = await fetchWithAuth("/auth/integrations");
+  return res.json();
+}
+
 // Call Logs
 export async function getCallStats(days = 30) {
   const res = await fetchWithAuth(`/calls/stats?days=${days}`);
