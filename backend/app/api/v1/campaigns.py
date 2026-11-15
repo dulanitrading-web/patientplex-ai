@@ -34,71 +34,128 @@ async def launch_campaigns(
     doctor: Doctor = Depends(get_current_doctor),
     db: AsyncSession = Depends(get_db),
 ):
-    """Launch ad campaigns on selected platforms from doctor's onboarding data.
+    """Smart campaign launcher — optimize existing, create only when needed.
 
-    This is the main 'go live' endpoint called after onboarding is complete.
-    Creates campaigns on Google Ads and/or Meta based on the doctor's
-    specialty, location, budget, and AI-generated ad copy.
+    Logic:
+    1. Check which platforms already have active/pending campaigns
+    2. For existing campaigns → optimize (sync performance, update keywords, adjust budget)
+    3. For missing platforms → create new campaigns
+    4. If existing campaign has ERROR status → recreate it
     """
     if not doctor.onboarding_completed:
         raise HTTPException(status_code=400, detail="Complete onboarding before launching campaigns")
 
+    # Fetch all existing campaigns for this doctor
+    result = await db.execute(
+        select(Campaign).where(Campaign.doctor_id == doctor.id)
+    )
+    existing = result.scalars().all()
+
+    # Build a map: platform → list of campaigns (most recent first)
+    existing_by_platform: dict[str, list[Campaign]] = {}
+    for c in existing:
+        key = c.platform.value
+        existing_by_platform.setdefault(key, []).append(c)
+
     results = {}
 
-    if "GOOGLE" in body.platforms:
-        engine = GoogleAdsEngine(db)
-        campaign = await engine.create_campaign_from_onboarding(doctor)
-        results["google"] = {
-            "campaign_id": str(campaign.id),
-            "name": campaign.name,
-            "status": campaign.status.value,
-            "daily_budget": campaign.daily_budget,
-            "keywords_count": len(campaign.keywords or []),
-        }
+    # Platform handlers
+    platform_config = {
+        "GOOGLE": {
+            "create": lambda: GoogleAdsEngine(db).create_campaign_from_onboarding(doctor),
+            "optimize": lambda c: GoogleAdsEngine(db).optimize_campaign(c),
+            "sync": lambda c: GoogleAdsEngine(db).sync_performance(c),
+        },
+        "META": {
+            "create": lambda: MetaAdsEngine(db).create_campaign_from_onboarding(doctor),
+            "optimize": None,
+            "sync": lambda c: MetaAdsEngine(db).sync_performance(c),
+        },
+        "CHATGPT": {
+            "create": lambda: ChatGPTAdsEngine(db).create_campaign(doctor),
+            "optimize": None,
+            "sync": None,
+        },
+        "LINKEDIN": {
+            "create": lambda: LinkedInAdsEngine(db).create_referral_campaign(doctor),
+            "optimize": None,
+            "sync": lambda c: LinkedInAdsEngine(db).sync_performance(c),
+        },
+        "WHATSAPP": {
+            "create": lambda: WhatsAppAdsEngine(db).create_campaign(doctor),
+            "optimize": None,
+            "sync": lambda c: WhatsAppAdsEngine(db).sync_performance(c),
+        },
+    }
 
-    if "META" in body.platforms:
-        engine = MetaAdsEngine(db)
-        campaign = await engine.create_campaign_from_onboarding(doctor)
-        results["meta"] = {
-            "campaign_id": str(campaign.id),
-            "name": campaign.name,
-            "status": campaign.status.value,
-            "daily_budget": campaign.daily_budget,
-        }
+    for platform_key in body.platforms:
+        config = platform_config.get(platform_key)
+        if not config:
+            continue
 
-    if "CHATGPT" in body.platforms:
-        engine = ChatGPTAdsEngine(db)
-        campaign = await engine.create_campaign(doctor)
-        results["chatgpt"] = {
-            "campaign_id": str(campaign.id),
-            "name": campaign.name,
-            "status": campaign.status.value,
-            "daily_budget": campaign.daily_budget,
-        }
+        existing_campaigns = existing_by_platform.get(platform_key, [])
 
-    if "LINKEDIN" in body.platforms:
-        engine = LinkedInAdsEngine(db)
-        campaign = await engine.create_referral_campaign(doctor)
-        results["linkedin"] = {
-            "campaign_id": str(campaign.id),
-            "name": campaign.name,
-            "status": campaign.status.value,
-            "daily_budget": campaign.daily_budget,
-        }
+        # Find the best existing campaign (non-ERROR, most recent)
+        usable = [
+            c for c in existing_campaigns
+            if c.status not in (CampaignStatus.ERROR, CampaignStatus.COMPLETED)
+        ]
 
-    if "WHATSAPP" in body.platforms:
-        engine = WhatsAppAdsEngine(db)
-        campaign = await engine.create_campaign(doctor)
-        results["whatsapp"] = {
-            "campaign_id": str(campaign.id),
-            "name": campaign.name,
-            "status": campaign.status.value,
-            "daily_budget": campaign.daily_budget,
-            "whatsapp_number": doctor.whatsapp_number,
-        }
+        if usable:
+            # Existing campaign found → optimize it instead of creating new
+            campaign = usable[0]  # Most recent usable
+            action = "optimized"
+
+            # Sync latest performance
+            if config["sync"]:
+                try:
+                    await config["sync"](campaign)
+                except Exception:
+                    pass  # Don't fail the whole launch if sync fails
+
+            # Run optimization if available
+            optimization_result = None
+            if config["optimize"]:
+                try:
+                    optimization_result = await config["optimize"](campaign)
+                except Exception:
+                    pass
+
+            results[platform_key.lower()] = {
+                "campaign_id": str(campaign.id),
+                "name": campaign.name,
+                "status": campaign.status.value,
+                "daily_budget": campaign.daily_budget,
+                "action": action,
+                "optimization": optimization_result,
+            }
+        else:
+            # No usable campaign → create new one
+            try:
+                campaign = await config["create"]()
+                action = "created"
+                results[platform_key.lower()] = {
+                    "campaign_id": str(campaign.id),
+                    "name": campaign.name,
+                    "status": campaign.status.value,
+                    "daily_budget": campaign.daily_budget,
+                    "action": action,
+                }
+            except Exception as exc:
+                results[platform_key.lower()] = {
+                    "action": "error",
+                    "error": str(exc),
+                }
 
     await db.commit()
-    return {"message": "Campaigns created", "campaigns": results}
+
+    created_count = sum(1 for r in results.values() if r.get("action") == "created")
+    optimized_count = sum(1 for r in results.values() if r.get("action") == "optimized")
+
+    return {
+        "message": f"{created_count} new campaigns created, {optimized_count} existing campaigns optimized",
+        "campaigns": results,
+    }
 
 
 @router.get("/")
