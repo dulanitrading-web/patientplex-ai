@@ -445,3 +445,164 @@ async def verify_razorpay_payment(
     except Exception as exc:
         logger.error("Payment verification failed: %s", exc)
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+# ---------------------------------------------------------------------------
+# Google Ads — Import existing campaigns
+# ---------------------------------------------------------------------------
+
+@router.post("/google-ads/import-campaigns")
+async def import_google_ads_campaigns(
+    doctor: Doctor = Depends(get_current_doctor),
+    db: AsyncSession = Depends(get_db),
+):
+    """Import existing Google Ads campaigns into PatientPlex.
+
+    Pulls all campaigns from the doctor's connected Google Ads account
+    and creates corresponding Campaign records in our database.
+    This lets PatientPlex track and optimize campaigns the clinic already has.
+    """
+    from app.models.campaign import AdPlatform, Campaign, CampaignStatus
+    from app.services.google_ads_engine import GoogleAdsEngine
+    import os
+
+    if not getattr(doctor, 'google_ads_connected', False) and not settings.GOOGLE_ADS_DEVELOPER_TOKEN:
+        raise HTTPException(status_code=400, detail="Google Ads not connected. Connect first in Settings.")
+
+    engine = GoogleAdsEngine(db)
+
+    # Get the customer ID
+    customer_id = getattr(doctor, 'google_ads_customer_id', None) or os.getenv("GOOGLE_ADS_LOGIN_CUSTOMER_ID", "")
+    if not customer_id:
+        return {
+            "status": "no_customer_id",
+            "message": "No Google Ads customer ID found. The clinic may not have a Google Ads account yet.",
+            "imported": 0,
+        }
+
+    # Fetch campaigns from Google Ads API
+    metrics_data = await engine.get_campaign_metrics(customer_id, days=90)
+
+    if metrics_data.get("status") == "demo_mode":
+        # No real API — create draft campaigns from onboarding data
+        campaign = await engine.create_campaign_from_onboarding(doctor)
+        await db.commit()
+        return {
+            "status": "draft_mode",
+            "message": "Google Ads API not connected with real credentials. Created draft campaign from clinic data.",
+            "imported": 1,
+            "campaigns": [{"name": campaign.name, "status": campaign.status.value}],
+        }
+
+    if metrics_data.get("status") != "success":
+        return {
+            "status": "error",
+            "message": metrics_data.get("message", "Failed to fetch campaigns from Google Ads"),
+            "imported": 0,
+        }
+
+    # Import each campaign
+    imported = []
+    from sqlalchemy import select
+    for gads_campaign in metrics_data.get("campaigns", []):
+        # Check if already imported
+        existing = await db.execute(
+            select(Campaign).where(
+                Campaign.doctor_id == doctor.id,
+                Campaign.platform == AdPlatform.GOOGLE,
+                Campaign.platform_campaign_id == str(gads_campaign["campaign_id"]),
+            )
+        )
+        if existing.scalar_one_or_none():
+            continue  # Already imported
+
+        # Create local record
+        campaign = Campaign(
+            doctor_id=doctor.id,
+            platform=AdPlatform.GOOGLE,
+            platform_campaign_id=str(gads_campaign["campaign_id"]),
+            name=gads_campaign.get("name", "Imported Campaign"),
+            campaign_type="SEARCH",
+            status=CampaignStatus.ACTIVE if gads_campaign.get("status") == "ENABLED" else CampaignStatus.PAUSED,
+            impressions=gads_campaign.get("impressions", 0),
+            clicks=gads_campaign.get("clicks", 0),
+            conversions=int(gads_campaign.get("conversions", 0)),
+            spend=int(gads_campaign.get("cost_inr", 0) * 100),  # Store in paise
+            cpc=gads_campaign.get("avg_cpc_inr", 0),
+            ctr=gads_campaign.get("ctr", 0),
+            target_location=f"{doctor.city}, {doctor.state}" if doctor.city else None,
+            target_radius_km=doctor.geo_radius_km,
+            currency="INR",
+        )
+        db.add(campaign)
+        imported.append({"name": campaign.name, "status": campaign.status.value, "google_id": gads_campaign["campaign_id"]})
+
+    await db.commit()
+
+    return {
+        "status": "success",
+        "message": f"Imported {len(imported)} campaigns from Google Ads",
+        "imported": len(imported),
+        "campaigns": imported,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Twilio — Provision tracking number for a clinic
+# ---------------------------------------------------------------------------
+
+@router.post("/twilio/provision")
+async def provision_twilio_number(
+    doctor: Doctor = Depends(get_current_doctor),
+    db: AsyncSession = Depends(get_db),
+):
+    """Provision a Twilio virtual number for this clinic's call tracking.
+
+    The virtual number is used in Google Ads call extensions.
+    When patients call it, PatientPlex captures their real phone number
+    (which Google would normally blur) and forwards to the doctor.
+    """
+    from app.services.call_tracking import call_tracking_service
+
+    if not call_tracking_service.is_connected:
+        return {
+            "status": "not_configured",
+            "message": "Twilio credentials not set on server. Add TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN in Render.",
+        }
+
+    # Check if doctor already has a number
+    existing_number = getattr(doctor, 'twilio_phone_number', None)
+    if existing_number:
+        return {
+            "status": "already_provisioned",
+            "phone_number": existing_number,
+            "message": f"Clinic already has tracking number: {existing_number}",
+        }
+
+    result = await call_tracking_service.provision_number(country_code="IN")
+
+    if result.get("status") == "provisioned":
+        doctor.twilio_phone_number = result["phone_number"]
+        await db.commit()
+        return {
+            "status": "provisioned",
+            "phone_number": result["phone_number"],
+            "message": f"Tracking number {result['phone_number']} provisioned! Use this in Google Ads call extensions.",
+            "webhook_url": result.get("webhook_url"),
+        }
+    else:
+        return result
+
+
+@router.get("/twilio/status")
+async def twilio_status(
+    doctor: Doctor = Depends(get_current_doctor),
+):
+    """Get Twilio call tracking status for this clinic."""
+    from app.services.call_tracking import call_tracking_service
+
+    return {
+        "connected": call_tracking_service.is_connected,
+        "clinic_tracking_number": getattr(doctor, 'twilio_phone_number', None),
+        "whatsapp_number": doctor.whatsapp_number,
+    }

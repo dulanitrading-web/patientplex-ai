@@ -295,6 +295,23 @@ export async function verifyWhatsApp() {
   return res.json();
 }
 
+// Google Ads — Import existing campaigns
+export async function importGoogleAdsCampaigns() {
+  const res = await fetchWithAuth("/integrations/google-ads/import-campaigns", { method: "POST" });
+  return res.json();
+}
+
+// Twilio — Provision tracking number
+export async function provisionTwilioNumber() {
+  const res = await fetchWithAuth("/integrations/twilio/provision", { method: "POST" });
+  return res.json();
+}
+
+export async function getTwilioStatus() {
+  const res = await fetchWithAuth("/integrations/twilio/status");
+  return res.json();
+}
+
 // Razorpay Payments
 export async function createRazorpayOrder(plan: string) {
   const res = await fetchWithAuth("/integrations/razorpay/create-order", {

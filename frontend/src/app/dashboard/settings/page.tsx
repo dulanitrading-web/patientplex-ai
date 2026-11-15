@@ -25,6 +25,8 @@ import {
   connectMetaAds,
   disconnectMetaAds,
   verifyWhatsApp,
+  importGoogleAdsCampaigns,
+  provisionTwilioNumber,
 } from "@/lib/api";
 
 interface DoctorProfile {
@@ -75,6 +77,8 @@ export default function SettingsPage() {
   const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
   const [integrations, setIntegrations] = useState<Record<string, IntegrationInfo> | null>(null);
   const [loading, setLoading] = useState(true);
+  const [importingCampaigns, setImportingCampaigns] = useState(false);
+  const [provisioningTwilio, setProvisioningTwilio] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -195,6 +199,23 @@ export default function SettingsPage() {
                 window.location.reload();
               }
             }}
+            extraAction={mapIntegrationStatus(integrations?.google_ads?.status) === "connected" ? (
+              <button
+                onClick={async () => {
+                  setImportingCampaigns(true);
+                  try {
+                    const result = await importGoogleAdsCampaigns();
+                    alert(result.message || `Imported ${result.imported} campaigns`);
+                    window.location.reload();
+                  } catch { alert("Failed to import campaigns"); }
+                  finally { setImportingCampaigns(false); }
+                }}
+                disabled={importingCampaigns}
+                className="px-3 py-1 rounded-lg text-xs font-medium bg-cyan-500 text-white hover:bg-cyan-600 transition-colors disabled:opacity-50"
+              >
+                {importingCampaigns ? "Importing…" : "Import Campaigns"}
+              </button>
+            ) : undefined}
           />
           <IntegrationRow
             icon={<BarChart3 className="w-4 h-4" />}
@@ -237,6 +258,23 @@ export default function SettingsPage() {
             name="Twilio Call Tracking"
             status={mapIntegrationStatus(integrations?.twilio_calls?.status)}
             detail={integrations?.twilio_calls?.detail || "Call tracking & recording"}
+            extraAction={mapIntegrationStatus(integrations?.twilio_calls?.status) === "connected" ? (
+              <button
+                onClick={async () => {
+                  setProvisioningTwilio(true);
+                  try {
+                    const result = await provisionTwilioNumber();
+                    alert(result.message || `Number: ${result.phone_number}`);
+                    window.location.reload();
+                  } catch { alert("Failed to provision Twilio number"); }
+                  finally { setProvisioningTwilio(false); }
+                }}
+                disabled={provisioningTwilio}
+                className="px-3 py-1 rounded-lg text-xs font-medium bg-cyan-500 text-white hover:bg-cyan-600 transition-colors disabled:opacity-50"
+              >
+                {provisioningTwilio ? "Provisioning…" : "Provision Number"}
+              </button>
+            ) : undefined}
           />
         </div>
       </div>
@@ -303,7 +341,7 @@ function mapIntegrationStatus(s?: string): "connected" | "pending" | "not_connec
   return "not_connected";
 }
 
-function IntegrationRow({ icon, name, status, detail, onConnect, onDisconnect, connectLabel }: {
+function IntegrationRow({ icon, name, status, detail, onConnect, onDisconnect, connectLabel, extraAction }: {
   icon: React.ReactNode;
   name: string;
   status: "connected" | "pending" | "not_connected" | "ready" | "active_draft";
@@ -311,6 +349,7 @@ function IntegrationRow({ icon, name, status, detail, onConnect, onDisconnect, c
   onConnect?: () => void;
   onDisconnect?: () => void;
   connectLabel?: string;
+  extraAction?: React.ReactNode;
 }) {
   const statusConfig = {
     connected: { icon: <CheckCircle2 className="w-4 h-4 text-emerald-600" />, label: "Connected", cls: "bg-emerald-50 text-emerald-600" },
@@ -334,6 +373,7 @@ function IntegrationRow({ icon, name, status, detail, onConnect, onDisconnect, c
         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${cfg.cls}`}>
           {cfg.icon} {cfg.label}
         </span>
+        {extraAction}
         {status !== "connected" && onConnect && (
           <button
             onClick={onConnect}
