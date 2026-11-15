@@ -97,22 +97,42 @@ class CallTrackingService:
 
             # Try Indian numbers first
             if country_code == "IN":
-                available = self.client.available_phone_numbers("IN").local.list(
-                    voice_enabled=True, limit=5
-                )
-                if not available:
-                    # Fallback to toll-free or mobile numbers
-                    available = self.client.available_phone_numbers("IN").mobile.list(
+                try:
+                    available = self.client.available_phone_numbers("IN").local.list(
                         voice_enabled=True, limit=5
                     )
+                except Exception:
+                    available = []
+                if not available:
+                    # Fallback to Indian mobile numbers
+                    try:
+                        available = self.client.available_phone_numbers("IN").mobile.list(
+                            voice_enabled=True, limit=5
+                        )
+                    except Exception:
+                        available = []
+                if not available:
+                    # India numbers require regulatory bundle approval in Twilio.
+                    # Fall back to a US number for call tracking — it still works for
+                    # Google Ads call extensions (call forwarding) globally.
+                    logger.warning(
+                        "No Indian numbers available on this Twilio account "
+                        "(regulatory bundle required). Provisioning a US number instead."
+                    )
+                    try:
+                        available = self.client.available_phone_numbers("US").local.list(
+                            voice_enabled=True, limit=5
+                        )
+                    except Exception:
+                        available = []
 
             if not available:
                 return {
                     "status": "no_numbers",
                     "message": (
-                        "No Indian numbers available. This usually means the Twilio "
-                        "regulatory bundle needs to be submitted. You can buy an Indian "
-                        "number at twilio.com/console/phone-numbers."
+                        "No phone numbers available. Indian DID numbers require a "
+                        "regulatory bundle approval at twilio.com/console/phone-numbers. "
+                        "Contact support@patientplex.ai to provision a tracking number manually."
                     ),
                 }
 
