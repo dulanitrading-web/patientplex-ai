@@ -40,6 +40,23 @@ async def lifespan(app: FastAPI):
         logger.warning("SECRET_KEY is set to the default value.")
     logger.info(f"{settings.PROJECT_NAME} API starting up")
 
+    # Create database tables if they don't exist
+    try:
+        from app.db.session import engine
+        from app.db.base import Base
+        # Import all models so they register with Base
+        from app.models.doctor import Doctor  # noqa: F401
+        from app.models.conversation import Conversation, Appointment  # noqa: F401
+        from app.models.campaign import Campaign  # noqa: F401
+        from app.models.call_log import CallLog, ConversionEvent  # noqa: F401
+        from app.models.billing import Subscription, Invoice  # noqa: F401
+
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        logger.info("Database tables verified/created")
+    except Exception as e:
+        logger.error(f"Failed to create database tables: {e}")
+
     # Start agent scheduler
     try:
         from apscheduler.schedulers.asyncio import AsyncIOScheduler
