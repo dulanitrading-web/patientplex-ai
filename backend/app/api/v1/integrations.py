@@ -735,19 +735,122 @@ async def provision_twilio_number(
     # Provide user-friendly error messages for common Twilio issues
     error_msg = result.get("message", "")
     if "Trial" in error_msg or "trial" in error_msg or "verify" in error_msg.lower():
-        return {
-            "status": "trial_account",
-            "message": (
-                "Your Twilio account is on a free trial. To provision a number:\n"
-                "1. Go to twilio.com/console\n"
-                "2. Click 'Phone Numbers' \u2192 'Verified Caller IDs'\n"
-                "3. Verify your phone number\n"
-                "OR upgrade to a paid Twilio account.\n"
-                "Then try again."
-            ),
-        }
+        # On trial, automatically try to verify the clinic's own number as a caller ID
+        try:
+            from twilio.rest import Client as TwilioClient
+            twilio_client = TwilioClient(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+
+            phone = doctor.phone
+            if not phone.startswith("+"):
+                phone = f"+91{phone}" if len(phone) == 10 else f"+{phone}"
+
+            # Check if already verified
+            existing = twilio_client.outgoing_caller_ids.list(phone_number=phone)
+            if existing:
+                doctor.twilio_phone_number = phone
+                await db.commit()
+                return {
+                    "status": "success",
+                    "phone_number": phone,
+                    "message": f"Your number {phone} is already verified with Twilio! Call tracking is active.",
+                }
+
+            # Initiate verification call
+            validation = twilio_client.validation_requests.create(
+                friendly_name=f"PatientPlex - {doctor.clinic_name or doctor.full_name}",
+                phone_number=phone,
+            )
+
+            return {
+                "status": "verification_sent",
+                "phone_number": phone,
+                "validation_code": validation.validation_code,
+                "message": f"Twilio is calling {phone} now! Answer and enter code: {validation.validation_code}. After verification, click Provision Number again.",
+            }
+        except Exception as verify_exc:
+            logger.warning("Auto-verify caller ID failed: %s", verify_exc)
+            return {
+                "status": "trial_account",
+                "message": (
+                    "Your Twilio account is on a free trial. To provision a number:\n"
+                    "1. Go to twilio.com/console\n"
+                    "2. Click 'Phone Numbers' \u2192 'Verified Caller IDs'\n"
+                    "3. Verify your phone number\n"
+                    "OR upgrade to a paid Twilio account.\n"
+                    "Then try again."
+                ),
+            }
 
     return result
+
+
+@router.post("/twilio/verify-caller-id")
+async def verify_twilio_caller_id(
+    doctor: Doctor = Depends(get_current_doctor),
+    db: AsyncSession = Depends(get_db),
+):
+    """Verify the doctor's phone number as a Twilio Outgoing Caller ID.
+
+    On trial accounts, Twilio can't provision new numbers but CAN verify
+    existing numbers as caller IDs. This sends a verification call to the
+    doctor's phone with a 6-digit code.
+    """
+    from twilio.rest import Client as TwilioClient
+
+    if not settings.TWILIO_ACCOUNT_SID or not settings.TWILIO_AUTH_TOKEN:
+        raise HTTPException(status_code=400, detail="Twilio credentials not configured")
+
+    # Use doctor's clinic phone or whatsapp number
+    phone = doctor.phone or (doctor.whatsapp_number if doctor.whatsapp_number else None)
+    if not phone:
+        raise HTTPException(status_code=400, detail="No phone number found for this clinic")
+
+    # Ensure proper format
+    if not phone.startswith("+"):
+        phone = f"+91{phone}" if len(phone) == 10 else f"+{phone}"
+
+    try:
+        client = TwilioClient(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+
+        # Check if already verified
+        existing = client.outgoing_caller_ids.list(phone_number=phone)
+        if existing:
+            # Already verified — store it
+            doctor.twilio_phone_number = phone
+            await db.commit()
+            return {
+                "status": "already_verified",
+                "phone_number": phone,
+                "message": f"Phone number {phone} is already verified as a Twilio Caller ID! Call tracking is now active.",
+            }
+
+        # Initiate verification — Twilio will call this number with a code
+        validation_request = client.validation_requests.create(
+            friendly_name=f"PatientPlex - {doctor.clinic_name or doctor.full_name}",
+            phone_number=phone,
+        )
+
+        return {
+            "status": "verification_sent",
+            "phone_number": phone,
+            "validation_code": validation_request.validation_code,
+            "message": f"Twilio is calling {phone} now! When you answer, enter the code: {validation_request.validation_code}",
+        }
+
+    except Exception as exc:
+        error_msg = str(exc)
+        logger.error("Twilio verify caller ID failed: %s", error_msg)
+
+        if "upgrade" in error_msg.lower() or "trial" in error_msg.lower():
+            return {
+                "status": "trial_limit",
+                "message": "Twilio trial account has reached its limits. Please upgrade at twilio.com/console.",
+            }
+
+        return {
+            "status": "error",
+            "message": f"Verification failed: {error_msg}",
+        }
 
 
 @router.get("/twilio/status")
