@@ -1,5 +1,7 @@
 """Google Calendar integration for reading availability and booking appointments."""
 
+import logging
+import time
 from datetime import datetime, timedelta, timezone
 
 from google.oauth2.credentials import Credentials
@@ -12,7 +14,13 @@ from app.core.config import settings
 from app.core.encryption import decrypt_json, encrypt_json
 from app.models.doctor import Doctor
 
+logger = logging.getLogger(__name__)
+
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
+
+# Store PKCE code_verifiers keyed by doctor_id (in production use Redis)
+_pkce_store: dict[str, dict] = {}
+_PKCE_TTL = 600  # 10 minutes
 
 
 class GoogleCalendarService:
@@ -90,6 +98,21 @@ class GoogleCalendarService:
             prompt="consent",
             state=doctor_id,
         )
+
+        # Store the PKCE code_verifier so handle_callback can use it
+        code_verifier = getattr(flow, "code_verifier", None)
+        if code_verifier:
+            logger.info("Storing PKCE code_verifier for doctor %s", doctor_id)
+            # Cleanup expired entries
+            now = time.time()
+            expired = [k for k, v in _pkce_store.items() if v["expires"] < now]
+            for k in expired:
+                del _pkce_store[k]
+            _pkce_store[doctor_id] = {
+                "code_verifier": code_verifier,
+                "expires": now + _PKCE_TTL,
+            }
+
         return auth_url
 
     async def handle_callback(
@@ -106,6 +129,13 @@ class GoogleCalendarService:
             A dict with ``calendar_id`` and ``connected`` status.
         """
         flow = self._get_flow()
+
+        # Restore the PKCE code_verifier from the auth URL step
+        pkce_entry = _pkce_store.pop(doctor_id, None)
+        if pkce_entry and pkce_entry.get("code_verifier"):
+            flow.code_verifier = pkce_entry["code_verifier"]
+            logger.info("Restored PKCE code_verifier for doctor %s", doctor_id)
+
         flow.fetch_token(code=code)
         credentials = flow.credentials
 
