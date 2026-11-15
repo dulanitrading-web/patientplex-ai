@@ -183,10 +183,13 @@ async def get_integration_status(
             "verified": doctor.whatsapp_verified if doctor.whatsapp_number else False,
         },
         "google_ads": {
-            "status": _status("GOOGLE", google_ads_configured, getattr(doctor, 'google_ads_connected', False)),
+            "status": (
+                "connected" if getattr(doctor, 'google_ads_connected', False)
+                else ("ready" if google_ads_configured else "not_connected")
+            ),
             "detail": (
                 f"Connected — Account {getattr(doctor, 'google_ads_customer_id', '')}" if getattr(doctor, 'google_ads_connected', False)
-                else ("Connected — MCC linked" if settings.GOOGLE_ADS_DEVELOPER_TOKEN else "Click Connect to link your Google Ads account")
+                else ("MCC linked — Click Connect to link your Google Ads account" if settings.GOOGLE_ADS_DEVELOPER_TOKEN else "Click Connect to link your Google Ads account")
             ),
             "has_campaigns": "GOOGLE" in active_platforms,
             "credentials_configured": google_ads_configured,
