@@ -53,7 +53,9 @@ function setStoredToken(token: string | null) {
   try {
     if (token) {
       localStorage.setItem("pp_token", token);
-      document.cookie = `pp_token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+      // Max-age matches JWT expiry (24 hours) — cookie should not outlive the token
+      const isSecure = window.location.protocol === "https:";
+      document.cookie = `pp_token=${token}; path=/; max-age=${60 * 60 * 24}; SameSite=Lax${isSecure ? "; Secure" : ""}`;
     } else {
       localStorage.removeItem("pp_token");
       document.cookie = "pp_token=; path=/; max-age=0";

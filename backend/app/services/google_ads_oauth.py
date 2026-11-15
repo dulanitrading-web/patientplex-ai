@@ -35,11 +35,11 @@ GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo"
 
 
-def get_google_ads_auth_url(doctor_id: str, redirect_uri: str) -> str:
+def get_google_ads_auth_url(state: str, redirect_uri: str) -> str:
     """Generate Google OAuth consent URL for Google Ads access.
 
     Args:
-        doctor_id: UUID of the doctor, passed as state parameter
+        state: Opaque state token for CSRF protection (created by caller)
         redirect_uri: Where Google sends the user after consent
 
     Returns:
@@ -52,7 +52,7 @@ def get_google_ads_auth_url(doctor_id: str, redirect_uri: str) -> str:
         "scope": " ".join(GOOGLE_ADS_SCOPES),
         "access_type": "offline",  # Gets us a refresh_token
         "prompt": "consent",  # Always show consent screen (ensures refresh_token)
-        "state": f"google_ads:{doctor_id}",
+        "state": state,
         "include_granted_scopes": "true",
     }
     return f"{GOOGLE_AUTH_URL}?{urlencode(params)}"

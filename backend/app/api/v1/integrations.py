@@ -5,6 +5,7 @@ PatientPlex manages campaigns on their behalf.
 """
 
 import logging
+import secrets
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -21,9 +22,52 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/integrations", tags=["integrations"])
 
-# Base URL for OAuth callbacks
-BACKEND_BASE = "https://patientplex-ai-g7ce.onrender.com"
-FRONTEND_BASE = "https://patientplex-ai.vercel.app"
+# Base URLs for OAuth callbacks — loaded from config (env vars)
+BACKEND_BASE = settings.BACKEND_BASE_URL.rstrip("/")
+FRONTEND_BASE = settings.FRONTEND_BASE_URL.rstrip("/")
+
+# In-memory OAuth state store (maps random token → {provider, doctor_id, expires})
+# In production, replace with Redis for multi-instance support.
+import time
+_oauth_states: dict[str, dict] = {}
+_OAUTH_STATE_TTL = 600  # 10 minutes
+
+
+def _create_oauth_state(provider: str, doctor_id: str) -> str:
+    """Create a cryptographically random OAuth state token."""
+    token = secrets.token_urlsafe(32)
+    _oauth_states[token] = {
+        "provider": provider,
+        "doctor_id": doctor_id,
+        "expires": time.time() + _OAUTH_STATE_TTL,
+    }
+    # Cleanup expired states
+    now = time.time()
+    expired = [k for k, v in _oauth_states.items() if v["expires"] < now]
+    for k in expired:
+        del _oauth_states[k]
+    return f"{provider}:{token}"
+
+
+def _verify_oauth_state(state: str, expected_provider: str) -> str:
+    """Verify and consume an OAuth state token. Returns doctor_id or raises."""
+    parts = state.split(":", 1)
+    if len(parts) != 2 or parts[0] != expected_provider:
+        raise HTTPException(status_code=400, detail="Invalid OAuth state")
+
+    token = parts[1]
+    entry = _oauth_states.pop(token, None)
+
+    if not entry:
+        raise HTTPException(status_code=400, detail="OAuth state expired or invalid. Please try connecting again.")
+
+    if entry["expires"] < time.time():
+        raise HTTPException(status_code=400, detail="OAuth state expired. Please try connecting again.")
+
+    if entry["provider"] != expected_provider:
+        raise HTTPException(status_code=400, detail="OAuth state mismatch")
+
+    return entry["doctor_id"]
 
 
 async def _get_access_token_from_refresh(refresh_token: str) -> str | None:
@@ -66,7 +110,8 @@ async def google_ads_connect(
     from app.services.google_ads_oauth import get_google_ads_auth_url
 
     redirect_uri = f"{BACKEND_BASE}/api/v1/integrations/google-ads/callback"
-    auth_url = get_google_ads_auth_url(str(doctor.id), redirect_uri)
+    state = _create_oauth_state("google_ads", str(doctor.id))
+    auth_url = get_google_ads_auth_url(state, redirect_uri)
 
     return {"auth_url": auth_url}
 
@@ -81,12 +126,8 @@ async def google_ads_callback(
     from sqlalchemy import select
     from app.services.google_ads_oauth import exchange_google_ads_code
 
-    # Parse state: "google_ads:<doctor_id>"
-    parts = state.split(":", 1)
-    if len(parts) != 2 or parts[0] != "google_ads":
-        raise HTTPException(status_code=400, detail="Invalid OAuth state")
-
-    doctor_id = parts[1]
+    # Verify and consume the OAuth state token (CSRF protection)
+    doctor_id = _verify_oauth_state(state, "google_ads")
 
     redirect_uri = f"{BACKEND_BASE}/api/v1/integrations/google-ads/callback"
 
@@ -98,13 +139,16 @@ async def google_ads_callback(
             url=f"{FRONTEND_BASE}/dashboard/settings?google_ads=error&message={str(exc)}"
         )
 
-    # Store the refresh token
+    # Store the refresh token (encrypted at rest)
+    from app.core.encryption import encrypt_value
+
     result = await db.execute(select(Doctor).where(Doctor.id == doctor_id))
     doctor = result.scalar_one_or_none()
     if not doctor:
         raise HTTPException(status_code=404, detail="Doctor not found")
 
-    doctor.google_ads_refresh_token = tokens.get("refresh_token")
+    refresh_token = tokens.get("refresh_token")
+    doctor.google_ads_refresh_token = encrypt_value(refresh_token) if refresh_token else None
     doctor.google_ads_connected = True
 
     # Try to get their customer ID
@@ -160,12 +204,13 @@ async def meta_ads_connect(
         )
 
     redirect_uri = f"{BACKEND_BASE}/api/v1/integrations/meta-ads/callback"
+    state = _create_oauth_state("meta_ads", str(doctor.id))
     params = {
         "client_id": settings.META_APP_ID,
         "redirect_uri": redirect_uri,
         "scope": META_SCOPES,
         "response_type": "code",
-        "state": f"meta_ads:{doctor.id}",
+        "state": state,
     }
     auth_url = f"{META_AUTH_URL}?{urlencode(params)}"
 
@@ -182,11 +227,8 @@ async def meta_ads_callback(
     import httpx
     from sqlalchemy import select
 
-    parts = state.split(":", 1)
-    if len(parts) != 2 or parts[0] != "meta_ads":
-        raise HTTPException(status_code=400, detail="Invalid OAuth state")
-
-    doctor_id = parts[1]
+    # Verify and consume the OAuth state token (CSRF protection)
+    doctor_id = _verify_oauth_state(state, "meta_ads")
     redirect_uri = f"{BACKEND_BASE}/api/v1/integrations/meta-ads/callback"
 
     try:
@@ -233,13 +275,15 @@ async def meta_ads_callback(
             url=f"{FRONTEND_BASE}/dashboard/settings?meta_ads=error"
         )
 
-    # Store token
+    # Store token (encrypted at rest)
+    from app.core.encryption import encrypt_value
+
     result = await db.execute(select(Doctor).where(Doctor.id == doctor_id))
     doctor = result.scalar_one_or_none()
     if not doctor:
         raise HTTPException(status_code=404, detail="Doctor not found")
 
-    doctor.meta_ads_access_token = long_token
+    doctor.meta_ads_access_token = encrypt_value(long_token) if long_token else None
     doctor.meta_ads_connected = True
     if ad_accounts:
         doctor.meta_ads_account_id = ad_accounts[0]["id"]
@@ -301,7 +345,12 @@ async def verify_whatsapp(
 
     try:
         # Send test message via Meta Cloud API
-        phone_number_id = settings.WHATSAPP_API_TOKEN.split(":")[0] if ":" in settings.WHATSAPP_API_TOKEN else ""
+        phone_number_id = settings.WHATSAPP_PHONE_NUMBER_ID
+        if not phone_number_id:
+            raise HTTPException(
+                status_code=400,
+                detail="WHATSAPP_PHONE_NUMBER_ID not configured. Set it in Render environment variables (find it in Meta Business Suite → WhatsApp → API Setup).",
+            )
         async with httpx.AsyncClient() as client:
             resp = await client.post(
                 f"{settings.WHATSAPP_API_URL}/{phone_number_id}/messages",
@@ -504,15 +553,17 @@ async def import_google_ads_campaigns(
 
     # If the global client isn't connected, try using the doctor's per-clinic refresh token
     if not engine.is_connected:
+        from app.core.encryption import decrypt_value
         doctor_refresh = getattr(doctor, 'google_ads_refresh_token', None)
         if doctor_refresh:
-            await engine.connect_with_refresh_token(doctor_refresh)
+            await engine.connect_with_refresh_token(decrypt_value(doctor_refresh))
 
     # Get the customer ID — auto-detect if missing
     customer_id = getattr(doctor, 'google_ads_customer_id', None) or os.getenv("GOOGLE_ADS_LOGIN_CUSTOMER_ID", "")
     if not customer_id:
         # Try to detect from the refresh token
-        refresh_token = getattr(doctor, 'google_ads_refresh_token', None)
+        raw_refresh = getattr(doctor, 'google_ads_refresh_token', None)
+        refresh_token = decrypt_value(raw_refresh) if raw_refresh else None
         if refresh_token and settings.GOOGLE_ADS_DEVELOPER_TOKEN:
             try:
                 import httpx

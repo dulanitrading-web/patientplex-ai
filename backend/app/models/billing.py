@@ -104,6 +104,8 @@ class Subscription(Base):
     razorpay_subscription_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     razorpay_customer_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     razorpay_plan_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    razorpay_order_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    razorpay_payment_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     # Billing
     price_inr: Mapped[int] = mapped_column(Integer, default=0)

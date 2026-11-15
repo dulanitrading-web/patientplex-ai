@@ -23,8 +23,18 @@ logger = logging.getLogger(__name__)
 
 # --- Rate Limiting ---
 _testing = os.environ.get("TESTING", "").lower() == "true"
+
+
+def _get_real_client_ip(request: Request) -> str:
+    """Extract the real client IP from X-Forwarded-For (behind Render proxy)."""
+    forwarded = request.headers.get("X-Forwarded-For", "")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return get_remote_address(request)
+
+
 limiter = Limiter(
-    key_func=get_remote_address,
+    key_func=_get_real_client_ip,
     default_limits=["100/minute"],
     enabled=not _testing,
 )
@@ -54,17 +64,10 @@ async def lifespan(app: FastAPI):
 
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
-            # Add new enum values if they don't exist (for platform expansion)
-            for new_val in ("CHATGPT", "INSTAGRAM", "GMB", "WHATSAPP"):
-                try:
-                    await conn.execute(
-                        sa.text(f"ALTER TYPE ad_platform_enum ADD VALUE IF NOT EXISTS '{new_val}'")
-                    )
-                except Exception:
-                    pass  # Already exists or enum not yet created
-
-            # Add new columns to existing tables (create_all doesn't do this)
-            new_columns = [
+            # Safety net: ensure columns exist even if Alembic migration 004
+            # hasn't been run yet.  The canonical source of truth is the
+            # migration file; this block is a fallback for existing deployments.
+            _safety_columns = [
                 ("doctors", "google_ads_customer_id", "VARCHAR(20)"),
                 ("doctors", "google_ads_refresh_token", "TEXT"),
                 ("doctors", "google_ads_connected", "BOOLEAN DEFAULT FALSE"),
@@ -73,14 +76,25 @@ async def lifespan(app: FastAPI):
                 ("doctors", "meta_ads_page_id", "VARCHAR(100)"),
                 ("doctors", "meta_ads_connected", "BOOLEAN DEFAULT FALSE"),
                 ("doctors", "twilio_phone_number", "VARCHAR(20)"),
+                ("subscriptions", "razorpay_order_id", "VARCHAR(255)"),
+                ("subscriptions", "razorpay_payment_id", "VARCHAR(255)"),
             ]
-            for table, col, col_type in new_columns:
+            for table, col, col_type in _safety_columns:
                 try:
                     await conn.execute(
                         sa.text(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {col} {col_type}")
                     )
                 except Exception:
-                    pass  # Column already exists
+                    pass
+
+            # Enum expansion safety net
+            for new_val in ("CHATGPT", "INSTAGRAM", "GMB", "WHATSAPP"):
+                try:
+                    await conn.execute(
+                        sa.text(f"ALTER TYPE ad_platform_enum ADD VALUE IF NOT EXISTS '{new_val}'")
+                    )
+                except Exception:
+                    pass
 
         logger.info("Database tables verified/created")
     except Exception as e:
@@ -133,7 +147,6 @@ app.add_middleware(
         "https://www.patientplex.ai",
         "https://app.patientplex.ai",
         "https://patientplex-ai.vercel.app",
-        "https://patientplex-mission-control.lovable.app",
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],

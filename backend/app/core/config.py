@@ -18,6 +18,10 @@ class Settings(BaseSettings):
     API_V1_PREFIX: str = "/api/v1"
     ENVIRONMENT: str = "development"
 
+    # Deployment URLs (used for OAuth callbacks and redirects)
+    BACKEND_BASE_URL: str = "https://patientplex-ai-g7ce.onrender.com"
+    FRONTEND_BASE_URL: str = "https://patientplex-ai.vercel.app"
+
     # Database
     DATABASE_URL: str = "postgresql+asyncpg://cliniccare:cliniccare@localhost:5432/cliniccare"
 
@@ -39,6 +43,7 @@ class Settings(BaseSettings):
     WHATSAPP_API_URL: str = "https://graph.facebook.com/v18.0"
     WHATSAPP_API_TOKEN: str = ""
     WHATSAPP_VERIFY_TOKEN: str = ""
+    WHATSAPP_PHONE_NUMBER_ID: str = ""  # Meta Cloud API phone number ID
 
     # Twilio (Voice calls + SMS + WhatsApp)
     TWILIO_ACCOUNT_SID: str = ""

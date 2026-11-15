@@ -4,11 +4,13 @@ import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
-import { login, ApiError } from "@/lib/api";
+import { login as apiLogin, ApiError } from "@/lib/api";
+import { useAuth } from "@/context/auth";
 import Logo from "@/components/Logo";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login: authLogin } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -30,22 +32,10 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      const data = await login(email, password);
-      // Store token in both localStorage and cookie (middleware reads cookie)
-      localStorage.setItem("pp_token", data.access_token);
-      document.cookie = `pp_token=${data.access_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
-      if (data.user?.full_name) {
-        localStorage.setItem("user_name", data.user.full_name);
-      }
-      // Hard redirect so the browser sends the cookie on the next request
-      const redirect = new URLSearchParams(window.location.search).get("redirect");
-      if (data.user?.onboarding_completed) {
-        window.location.href = redirect || "/dashboard";
-      } else {
-        window.location.href = "/onboarding";
-      }
+      // AuthProvider.login handles token storage, user fetch, and redirect
+      await authLogin(email, password);
     } catch (err) {
-      if (err instanceof ApiError) {
+      if (err instanceof Error) {
         setApiError(err.message);
       } else {
         setApiError("Something went wrong. Please try again.");

@@ -85,9 +85,8 @@ class CallTrackingService:
                 "sid": "demo",
             }
 
-        base_url = webhook_base_url or os.getenv(
-            "BACKEND_URL", "https://patientplex-ai-g7ce.onrender.com"
-        )
+        from app.core.config import settings as _settings
+        base_url = webhook_base_url or _settings.BACKEND_BASE_URL
 
         try:
             # Search for available numbers
@@ -206,9 +205,8 @@ class CallTrackingService:
                 "message": "Twilio not configured",
             }
 
-        base_url = os.getenv(
-            "BACKEND_URL", "https://patientplex-ai-g7ce.onrender.com"
-        )
+        from app.core.config import settings as _settings
+        base_url = _settings.BACKEND_BASE_URL
 
         try:
             call = self.client.calls.create(

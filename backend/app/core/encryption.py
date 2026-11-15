@@ -13,6 +13,26 @@ def get_fernet():
     return Fernet(key.encode() if isinstance(key, str) else key)
 
 
+def encrypt_value(value: str) -> str:
+    """Encrypt a single string value. Returns base64-encoded ciphertext."""
+    f = get_fernet()
+    if not f:
+        return value  # Fallback: no encryption when key not set
+    return f.encrypt(value.encode()).decode()
+
+
+def decrypt_value(value: str) -> str:
+    """Decrypt a single string value. Handles pre-encryption plaintext gracefully."""
+    f = get_fernet()
+    if not f:
+        return value
+    try:
+        return f.decrypt(value.encode()).decode()
+    except Exception:
+        # Pre-encryption plaintext — return as-is
+        return value
+
+
 def encrypt_json(data: dict) -> str:
     f = get_fernet()
     if not f:

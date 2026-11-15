@@ -34,6 +34,18 @@ async function fetchWithAuth(
   });
 
   if (!response.ok) {
+    // 401 = token expired or invalid → clear auth and redirect to login
+    if (response.status === 401 && typeof window !== "undefined") {
+      localStorage.removeItem("pp_token");
+      document.cookie = "pp_token=; path=/; max-age=0";
+      // Only redirect if we're not already on login/signup
+      if (!window.location.pathname.startsWith("/login") && !window.location.pathname.startsWith("/signup")) {
+        window.location.href = "/login?expired=1";
+        // Return a never-resolving promise so callers don't try to use the response
+        return new Promise<Response>(() => {});
+      }
+    }
+
     let data: Record<string, unknown> = {};
     try {
       data = await response.json();

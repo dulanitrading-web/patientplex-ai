@@ -4,11 +4,13 @@ import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2, CheckCircle2 } from "lucide-react";
-import { signup, ApiError } from "@/lib/api";
+import { ApiError } from "@/lib/api";
+import { useAuth } from "@/context/auth";
 import Logo from "@/components/Logo";
 
 export default function SignupPage() {
   const router = useRouter();
+  const { signup: authSignup } = useAuth();
   const [form, setForm] = useState({
     full_name: "",
     email: "",
@@ -45,22 +47,15 @@ export default function SignupPage() {
 
     setLoading(true);
     try {
-      const data = await signup({
+      // AuthProvider.signup handles token storage, user fetch, and redirect to /onboarding
+      await authSignup({
         full_name: form.full_name,
         email: form.email,
         phone: form.phone,
         password: form.password,
       });
-      // Store token in both localStorage and cookie (middleware reads cookie)
-      localStorage.setItem("pp_token", data.access_token);
-      document.cookie = `pp_token=${data.access_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
-      if (data.user?.full_name) {
-        localStorage.setItem("user_name", data.user.full_name);
-      }
-      // Hard redirect so the browser sends the cookie on the next request
-      window.location.href = "/onboarding";
     } catch (err) {
-      if (err instanceof ApiError) {
+      if (err instanceof Error) {
         setApiError(err.message);
       } else {
         setApiError("Something went wrong. Please try again.");
