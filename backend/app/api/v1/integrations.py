@@ -155,10 +155,14 @@ async def google_ads_callback(
     try:
         from app.services.google_ads_oauth import get_google_ads_customer_ids
         customers = await get_google_ads_customer_ids(tokens["access_token"])
+        logger.info("OAuth callback: accessible customers = %s", customers)
         if customers:
             doctor.google_ads_customer_id = customers[0]["customer_id"]
+            logger.info("OAuth callback: stored customer_id = %s", doctor.google_ads_customer_id)
+        else:
+            logger.warning("OAuth callback: no accessible customers found")
     except Exception as e:
-        logger.warning("Could not auto-detect Google Ads customer ID: %s", e)
+        logger.warning("Could not auto-detect Google Ads customer ID: %s", e, exc_info=True)
 
     await db.commit()
 
@@ -559,31 +563,43 @@ async def import_google_ads_campaigns(
             await engine.connect_with_refresh_token(decrypt_value(doctor_refresh))
 
     # Get the customer ID — auto-detect if missing
-    customer_id = getattr(doctor, 'google_ads_customer_id', None) or os.getenv("GOOGLE_ADS_LOGIN_CUSTOMER_ID", "")
+    customer_id = getattr(doctor, 'google_ads_customer_id', None)
+    logger.info("Import campaigns: doctor customer_id from DB = %s", customer_id)
+
     if not customer_id:
-        # Try to detect from the refresh token
+        # Try to detect from the refresh token (per-doctor OAuth)
         raw_refresh = getattr(doctor, 'google_ads_refresh_token', None)
         refresh_token = decrypt_value(raw_refresh) if raw_refresh else None
+        logger.info("Import campaigns: has refresh token = %s", bool(refresh_token))
+
         if refresh_token and settings.GOOGLE_ADS_DEVELOPER_TOKEN:
             try:
-                import httpx
                 # Get a fresh access token from the refresh token
                 token_resp = await _get_access_token_from_refresh(refresh_token)
+                logger.info("Import campaigns: got access token = %s", bool(token_resp))
                 if token_resp:
                     from app.services.google_ads_oauth import get_google_ads_customer_ids
                     customers = await get_google_ads_customer_ids(token_resp)
+                    logger.info("Import campaigns: accessible customers = %s", customers)
                     if customers:
                         customer_id = customers[0]["customer_id"]
                         doctor.google_ads_customer_id = customer_id
                         await db.commit()
                         logger.info("Auto-detected Google Ads customer ID: %s", customer_id)
             except Exception as e:
-                logger.warning("Auto-detect customer ID failed: %s", e)
+                logger.warning("Auto-detect customer ID failed: %s", e, exc_info=True)
+
+    # Fallback to env var only if it's the MCC login customer ID and we have no per-doctor ID
+    if not customer_id:
+        login_cid = os.getenv("GOOGLE_ADS_LOGIN_CUSTOMER_ID", "")
+        if login_cid:
+            logger.info("Import campaigns: falling back to GOOGLE_ADS_LOGIN_CUSTOMER_ID = %s", login_cid)
+            customer_id = login_cid
 
     if not customer_id:
         return {
             "status": "no_customer_id",
-            "message": "No Google Ads customer ID found. The clinic may not have a Google Ads account yet.",
+            "message": "No Google Ads customer ID found. Please reconnect Google Ads — click Disconnect then Connect again.",
             "imported": 0,
         }
 

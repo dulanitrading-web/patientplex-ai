@@ -102,16 +102,22 @@ async def get_google_ads_customer_ids(access_token: str) -> list[dict]:
 
     try:
         # Use the REST API directly — much more reliable than SDK for this
-        api_url = "https://googleads.googleapis.com/v17/customers:listAccessibleCustomers"
+        api_url = "https://googleads.googleapis.com/v18/customers:listAccessibleCustomers"
         headers = {
             "Authorization": f"Bearer {access_token}",
             "developer-token": settings.GOOGLE_ADS_DEVELOPER_TOKEN,
         }
         if settings.GOOGLE_ADS_LOGIN_CUSTOMER_ID:
-            headers["login-customer-id"] = settings.GOOGLE_ADS_LOGIN_CUSTOMER_ID
+            headers["login-customer-id"] = settings.GOOGLE_ADS_LOGIN_CUSTOMER_ID.replace("-", "")
+
+        logger.info("Listing accessible customers with dev-token=%s..., login-cid=%s",
+                     settings.GOOGLE_ADS_DEVELOPER_TOKEN[:6] if settings.GOOGLE_ADS_DEVELOPER_TOKEN else "NONE",
+                     headers.get("login-customer-id", "NONE"))
 
         async with httpx.AsyncClient() as client:
             resp = await client.get(api_url, headers=headers, timeout=15)
+            if resp.status_code != 200:
+                logger.error("listAccessibleCustomers returned %s: %s", resp.status_code, resp.text[:500])
             resp.raise_for_status()
             data = resp.json()
 

@@ -672,7 +672,7 @@ class GoogleAdsEngine:
         if campaign_id:
             query += f" AND campaign.id = {campaign_id}"
 
-        api_url = f"https://googleads.googleapis.com/v17/customers/{customer_id}/googleAds:searchStream"
+        api_url = f"https://googleads.googleapis.com/v18/customers/{customer_id}/googleAds:searchStream"
         headers = {
             "Authorization": f"Bearer {self._rest_access_token}",
             "developer-token": self._rest_developer_token,
@@ -680,7 +680,9 @@ class GoogleAdsEngine:
         }
         login_cid = os.getenv("GOOGLE_ADS_LOGIN_CUSTOMER_ID", "")
         if login_cid:
-            headers["login-customer-id"] = login_cid
+            headers["login-customer-id"] = login_cid.replace("-", "")
+
+        logger.info("Google Ads REST: calling searchStream for customer %s", customer_id)
 
         try:
             async with httpx.AsyncClient() as client:
