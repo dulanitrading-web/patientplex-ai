@@ -205,7 +205,7 @@ export default function SettingsPage() {
                 window.location.reload();
               }
             }}
-            extraAction={mapIntegrationStatus(integrations?.google_ads?.status) === "connected" ? (
+            extraAction={["connected", "ready"].includes(mapIntegrationStatus(integrations?.google_ads?.status)) ? (
               <button
                 onClick={async () => {
                   setImportingCampaigns(true);
