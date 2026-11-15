@@ -502,6 +502,12 @@ async def import_google_ads_campaigns(
 
     engine = GoogleAdsEngine(db)
 
+    # If the global client isn't connected, try using the doctor's per-clinic refresh token
+    if not engine.is_connected:
+        doctor_refresh = getattr(doctor, 'google_ads_refresh_token', None)
+        if doctor_refresh:
+            engine.connect_with_refresh_token(doctor_refresh)
+
     # Get the customer ID — auto-detect if missing
     customer_id = getattr(doctor, 'google_ads_customer_id', None) or os.getenv("GOOGLE_ADS_LOGIN_CUSTOMER_ID", "")
     if not customer_id:
