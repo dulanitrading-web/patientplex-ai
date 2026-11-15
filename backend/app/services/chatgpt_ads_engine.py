@@ -106,7 +106,7 @@ class ChatGPTAdsEngine:
     def __init__(self, db: AsyncSession):
         self.db = db
         self.api_base = "https://ads.openai.com/v1"
-        self.api_key = getattr(settings, "OPENAI_ADS_API_KEY", None)
+        self.api_key = getattr(settings, "CHATGPT_ADS_API_KEY", None) or None
 
     async def create_campaign(
         self,
@@ -165,7 +165,7 @@ class ChatGPTAdsEngine:
 
         campaign = Campaign(
             doctor_id=doctor.id,
-            platform=AdPlatform.GOOGLE,  # Reuse enum, add CHATGPT in future
+            platform=AdPlatform.CHATGPT,
             name=campaign_name,
             campaign_type=campaign_type,
             daily_budget=daily_budget,
@@ -173,7 +173,7 @@ class ChatGPTAdsEngine:
             currency=doctor.currency or "INR",
             target_location=city,
             target_radius_km=doctor.geo_radius_km,
-            target_keywords=keywords,
+            keywords=keywords,
             target_audiences=targeting,
             ad_copy=sponsored_content,
             landing_page_url=(
@@ -253,7 +253,7 @@ class ChatGPTAdsEngine:
         if not campaign:
             return {"error": "Campaign not found"}
 
-        current_keywords = campaign.target_keywords or []
+        current_keywords = campaign.keywords or []
 
         # Analyze performance by keyword (placeholder — real impl uses OpenAI API)
         optimization = {

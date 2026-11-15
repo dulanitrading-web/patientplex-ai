@@ -20,6 +20,7 @@ class AdPlatform(str, enum.Enum):
     CHATGPT = "CHATGPT"
     INSTAGRAM = "INSTAGRAM"
     GMB = "GMB"
+    WHATSAPP = "WHATSAPP"
 
 
 class CampaignStatus(str, enum.Enum):

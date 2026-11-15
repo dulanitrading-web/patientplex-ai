@@ -7,6 +7,7 @@ These endpoints receive webhooks from the voice provider when:
 """
 
 import logging
+from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, Response
@@ -23,9 +24,10 @@ from app.core.config import settings
 
 limiter = Limiter(key_func=get_remote_address, enabled=os.environ.get("TESTING", "").lower() != "true")
 from app.db.session import get_db
-from app.models.call_log import CallLog, CallStatus
+from app.models.call_log import CallDirection, CallLog, CallStatus
 from app.models.doctor import Doctor
 from app.services.call_handler import CallHandler, TwilioVoiceHandler
+from app.services.call_tracking import call_tracking_service
 
 logger = logging.getLogger(__name__)
 
@@ -216,3 +218,68 @@ async def call_stats(
         "recovery_rate": round(recovered / missed * 100, 1) if missed > 0 else 0,
         "answer_rate": round(answered / total * 100, 1) if total > 0 else 0,
     }
+
+
+# ---- Call Tracking Number Management ----
+
+@router.post("/tracking/provision")
+async def provision_tracking_number(
+    doctor: Doctor = Depends(get_current_doctor),
+):
+    """Provision a Twilio virtual number for call tracking.
+
+    This number is used in Google Ads call extensions so PatientPlex
+    captures every caller's real phone number (Google normally blurs it).
+    """
+    result = await call_tracking_service.provision_number(
+        country_code="IN",
+        webhook_base_url=None,  # Uses BACKEND_URL env var
+    )
+    return result
+
+
+@router.get("/tracking/numbers")
+async def list_tracking_numbers(
+    doctor: Doctor = Depends(get_current_doctor),
+):
+    """List all provisioned Twilio tracking numbers."""
+    numbers = await call_tracking_service.list_numbers()
+    return {"numbers": numbers, "twilio_connected": call_tracking_service.is_connected}
+
+
+@router.post("/callback")
+async def initiate_callback(
+    caller_phone: str = Query(..., description="Patient phone number to call back"),
+    doctor: Doctor = Depends(get_current_doctor),
+    db: AsyncSession = Depends(get_db),
+):
+    """Initiate a callback to a patient whose number was captured.
+
+    Uses the clinic's Twilio virtual number to call the patient back,
+    then connects them to the doctor's real phone.
+    """
+    clinic_phone = doctor.whatsapp_number or doctor.phone
+    clinic_name = doctor.clinic_name or f"Dr. {doctor.full_name}'s clinic"
+
+    result = await call_tracking_service.initiate_callback(
+        from_number=clinic_phone,
+        to_number=caller_phone,
+        clinic_name=clinic_name,
+    )
+
+    # Log the outbound call
+    if result.get("status") == "calling":
+        call_log = CallLog(
+            doctor_id=doctor.id,
+            caller_phone=caller_phone,
+            clinic_phone=clinic_phone,
+            direction=CallDirection.OUTBOUND,
+            status=CallStatus.RINGING,
+            started_at=datetime.now(timezone.utc),
+            platform_call_sid=result.get("call_sid"),
+            platform_provider="twilio",
+        )
+        db.add(call_log)
+        await db.commit()
+
+    return result

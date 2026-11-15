@@ -55,7 +55,7 @@ async def lifespan(app: FastAPI):
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
             # Add new enum values if they don't exist (for platform expansion)
-            for new_val in ("CHATGPT", "INSTAGRAM", "GMB"):
+            for new_val in ("CHATGPT", "INSTAGRAM", "GMB", "WHATSAPP"):
                 try:
                     await conn.execute(
                         sa.text(f"ALTER TYPE ad_platform_enum ADD VALUE IF NOT EXISTS '{new_val}'")
