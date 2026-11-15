@@ -269,6 +269,53 @@ export async function startTrial() {
   return res.json();
 }
 
+// Integrations — connect ad accounts
+export async function connectGoogleAds() {
+  const res = await fetchWithAuth("/integrations/google-ads/connect");
+  return res.json();
+}
+
+export async function disconnectGoogleAds() {
+  const res = await fetchWithAuth("/integrations/google-ads/disconnect", { method: "POST" });
+  return res.json();
+}
+
+export async function connectMetaAds() {
+  const res = await fetchWithAuth("/integrations/meta-ads/connect");
+  return res.json();
+}
+
+export async function disconnectMetaAds() {
+  const res = await fetchWithAuth("/integrations/meta-ads/disconnect", { method: "POST" });
+  return res.json();
+}
+
+export async function verifyWhatsApp() {
+  const res = await fetchWithAuth("/integrations/whatsapp/verify", { method: "POST" });
+  return res.json();
+}
+
+// Razorpay Payments
+export async function createRazorpayOrder(plan: string) {
+  const res = await fetchWithAuth("/integrations/razorpay/create-order", {
+    method: "POST",
+    body: JSON.stringify({ plan }),
+  });
+  return res.json();
+}
+
+export async function verifyRazorpayPayment(data: {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+}) {
+  const res = await fetchWithAuth("/integrations/razorpay/verify", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+
 // Password Reset
 export async function requestPasswordReset(email: string) {
   // TODO: Backend endpoint /api/v1/auth/forgot-password needs implementation

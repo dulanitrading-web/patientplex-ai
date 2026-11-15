@@ -768,9 +768,13 @@ class GoogleAdsEngine:
     def _customer_id_for(campaign: Campaign) -> str:
         """Resolve the Google Ads customer ID for a campaign's doctor.
 
-        In production this comes from the doctor's stored OAuth / MCC link.
-        Falls back to the env-level login_customer_id.
+        Uses the doctor's own connected Google Ads account if available,
+        otherwise falls back to the MCC login_customer_id from env.
         """
+        # Try doctor's own connected account first
+        if hasattr(campaign, 'doctor') and campaign.doctor:
+            if campaign.doctor.google_ads_customer_id:
+                return campaign.doctor.google_ads_customer_id
         return os.getenv("GOOGLE_ADS_LOGIN_CUSTOMER_ID", "")
 
     @staticmethod

@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     # Google OAuth (Calendar integration)
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
-    GOOGLE_REDIRECT_URI: str = "http://localhost:8000/api/v1/onboarding/google-calendar/callback"
+    GOOGLE_REDIRECT_URI: str = "https://patientplex-ai-g7ce.onrender.com/api/v1/onboarding/google-calendar/callback"
 
     # Meta / Facebook Ads
     META_APP_ID: str = ""

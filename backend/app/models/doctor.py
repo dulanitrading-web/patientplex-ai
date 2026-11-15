@@ -75,6 +75,20 @@ class Doctor(Base):
     whatsapp_number: Mapped[str | None] = mapped_column(String(20), nullable=True)
     whatsapp_verified: Mapped[bool] = mapped_column(Boolean, default=False)
 
+    # Google Ads integration (per-clinic OAuth)
+    google_ads_customer_id: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    google_ads_refresh_token: Mapped[str | None] = mapped_column(Text, nullable=True)
+    google_ads_connected: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    # Meta Ads integration (per-clinic OAuth)
+    meta_ads_access_token: Mapped[str | None] = mapped_column(Text, nullable=True)
+    meta_ads_account_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    meta_ads_page_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    meta_ads_connected: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    # Twilio call tracking
+    twilio_phone_number: Mapped[str | None] = mapped_column(String(20), nullable=True)
+
     # Public profile
     subdomain_slug: Mapped[str | None] = mapped_column(
         String(100), unique=True, nullable=True, index=True

@@ -14,7 +14,7 @@ from app.api.v1 import (
     analytics, auth, onboarding, whatsapp, appointments, campaigns, chatgpt_ads,
     landing_pages, intelligence, calls, conversions, bookings, billing,
     marketing_brain, ml, webhooks, payments, signals, ehr, compliance,
-    knowledge, google_my_business, ga4, seo,
+    knowledge, google_my_business, ga4, seo, integrations,
 )
 from app.api.v1.agents_router import router as agents_router
 from app.core.config import settings
@@ -144,6 +144,7 @@ app.include_router(webhooks.router, prefix=settings.API_V1_PREFIX)
 app.include_router(payments.router, prefix=settings.API_V1_PREFIX)
 app.include_router(compliance.router, prefix=settings.API_V1_PREFIX)
 app.include_router(knowledge.router, prefix=settings.API_V1_PREFIX)
+app.include_router(integrations.router, prefix=settings.API_V1_PREFIX)
 
 # AI Agents — list, trigger, monitor
 app.include_router(agents_router, prefix=settings.API_V1_PREFIX)

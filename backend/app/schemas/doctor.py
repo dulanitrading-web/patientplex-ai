@@ -101,6 +101,11 @@ class DoctorResponse(BaseModel):
     google_calendar_id: str | None = None
     whatsapp_number: str | None = None
     whatsapp_verified: bool
+    google_ads_connected: bool = False
+    google_ads_customer_id: str | None = None
+    meta_ads_connected: bool = False
+    meta_ads_account_id: str | None = None
+    twilio_phone_number: str | None = None
     subdomain_slug: str | None = None
     is_active: bool
     onboarding_step: int

@@ -149,9 +149,9 @@ async def get_integration_status(
     )
     active_platforms = {row[0].value for row in result.all()}
 
-    # Check backend credentials
-    google_ads_configured = bool(settings.GOOGLE_ADS_DEVELOPER_TOKEN)
-    meta_ads_configured = bool(settings.META_APP_ID and settings.META_APP_SECRET)
+    # Check credentials — per-doctor OAuth takes priority over global keys
+    google_ads_configured = bool(doctor.google_ads_connected) or bool(settings.GOOGLE_ADS_DEVELOPER_TOKEN)
+    meta_ads_configured = bool(doctor.meta_ads_connected) or bool(settings.META_APP_ID and settings.META_APP_SECRET)
     chatgpt_ads_configured = bool(settings.CHATGPT_ADS_API_KEY)
     linkedin_configured = bool(settings.LINKEDIN_ACCESS_TOKEN)
     twilio_configured = bool(settings.TWILIO_ACCOUNT_SID and settings.TWILIO_AUTH_TOKEN)
@@ -181,15 +181,23 @@ async def get_integration_status(
         },
         "google_ads": {
             "status": _status("GOOGLE", google_ads_configured),
-            "detail": "Connected — MCC linked" if google_ads_configured else "Add Google Ads Developer Token to connect",
+            "detail": (
+                f"Connected — Account {doctor.google_ads_customer_id}" if doctor.google_ads_connected
+                else ("Connected — MCC linked" if settings.GOOGLE_ADS_DEVELOPER_TOKEN else "Click Connect to link your Google Ads account")
+            ),
             "has_campaigns": "GOOGLE" in active_platforms,
             "credentials_configured": google_ads_configured,
+            "doctor_connected": doctor.google_ads_connected,
         },
         "meta_ads": {
             "status": _status("META", meta_ads_configured),
-            "detail": "Connected — App configured" if meta_ads_configured else "Add Meta App ID & Secret to connect",
+            "detail": (
+                f"Connected — Ad Account {doctor.meta_ads_account_id}" if doctor.meta_ads_connected
+                else ("Connected — App configured" if (settings.META_APP_ID and settings.META_APP_SECRET) else "Click Connect to link your Meta Ads account")
+            ),
             "has_campaigns": "META" in active_platforms,
             "credentials_configured": meta_ads_configured,
+            "doctor_connected": doctor.meta_ads_connected,
         },
         "chatgpt_ads": {
             "status": _status("CHATGPT", chatgpt_ads_configured),

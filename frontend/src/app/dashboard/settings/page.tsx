@@ -15,7 +15,16 @@ import {
   XCircle,
   Clock,
 } from "lucide-react";
-import { getMe, getSubscription, getIntegrationStatus } from "@/lib/api";
+import {
+  getMe,
+  getSubscription,
+  getIntegrationStatus,
+  connectGoogleAds,
+  disconnectGoogleAds,
+  connectMetaAds,
+  disconnectMetaAds,
+  verifyWhatsApp,
+} from "@/lib/api";
 
 interface DoctorProfile {
   id: string;
@@ -145,25 +154,57 @@ export default function SettingsPage() {
             icon={<Calendar className="w-4 h-4" />}
             name="Google Calendar"
             status={mapIntegrationStatus(integrations?.google_calendar?.status)}
-            detail={integrations?.google_calendar?.detail || (doctor?.google_calendar_connected ? "Syncing appointments" : "Connect to sync appointments")}
+            detail={integrations?.google_calendar?.detail || "Connect to sync appointments"}
           />
           <IntegrationRow
             icon={<MessageCircle className="w-4 h-4" />}
             name="WhatsApp"
             status={mapIntegrationStatus(integrations?.whatsapp?.status)}
-            detail={integrations?.whatsapp?.detail || (doctor?.whatsapp_number || "No number configured")}
+            detail={integrations?.whatsapp?.detail || "No number configured"}
+            onConnect={async () => {
+              try {
+                const result = await verifyWhatsApp();
+                alert(result.message || "Verification message sent!");
+                window.location.reload();
+              } catch { alert("WhatsApp verification failed"); }
+            }}
+            connectLabel="Verify"
           />
           <IntegrationRow
             icon={<BarChart3 className="w-4 h-4" />}
             name="Google Ads"
             status={mapIntegrationStatus(integrations?.google_ads?.status)}
-            detail={integrations?.google_ads?.detail || "Checking..."}
+            detail={integrations?.google_ads?.detail || "Connect your Google Ads account"}
+            onConnect={async () => {
+              try {
+                const data = await connectGoogleAds();
+                if (data.auth_url) window.location.href = data.auth_url;
+              } catch { alert("Could not start Google Ads connection"); }
+            }}
+            onDisconnect={async () => {
+              if (confirm("Disconnect Google Ads?")) {
+                await disconnectGoogleAds();
+                window.location.reload();
+              }
+            }}
           />
           <IntegrationRow
             icon={<BarChart3 className="w-4 h-4" />}
             name="Meta Ads"
             status={mapIntegrationStatus(integrations?.meta_ads?.status)}
-            detail={integrations?.meta_ads?.detail || "Checking..."}
+            detail={integrations?.meta_ads?.detail || "Connect your Meta Ads account"}
+            onConnect={async () => {
+              try {
+                const data = await connectMetaAds();
+                if (data.auth_url) window.location.href = data.auth_url;
+              } catch { alert("Could not start Meta Ads connection"); }
+            }}
+            onDisconnect={async () => {
+              if (confirm("Disconnect Meta Ads?")) {
+                await disconnectMetaAds();
+                window.location.reload();
+              }
+            }}
           />
           <IntegrationRow
             icon={<BarChart3 className="w-4 h-4" />}
@@ -254,11 +295,14 @@ function mapIntegrationStatus(s?: string): "connected" | "pending" | "not_connec
   return "not_connected";
 }
 
-function IntegrationRow({ icon, name, status, detail }: {
+function IntegrationRow({ icon, name, status, detail, onConnect, onDisconnect, connectLabel }: {
   icon: React.ReactNode;
   name: string;
   status: "connected" | "pending" | "not_connected" | "ready" | "active_draft";
   detail: string;
+  onConnect?: () => void;
+  onDisconnect?: () => void;
+  connectLabel?: string;
 }) {
   const statusConfig = {
     connected: { icon: <CheckCircle2 className="w-4 h-4 text-emerald-600" />, label: "Connected", cls: "bg-emerald-50 text-emerald-600" },
@@ -278,9 +322,27 @@ function IntegrationRow({ icon, name, status, detail }: {
           <div className="text-xs text-slate-600">{detail}</div>
         </div>
       </div>
-      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${cfg.cls}`}>
-        {cfg.icon} {cfg.label}
-      </span>
+      <div className="flex items-center gap-2">
+        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${cfg.cls}`}>
+          {cfg.icon} {cfg.label}
+        </span>
+        {status !== "connected" && onConnect && (
+          <button
+            onClick={onConnect}
+            className="px-3 py-1 rounded-lg text-xs font-medium bg-emerald-500 text-white hover:bg-emerald-600 transition-colors"
+          >
+            {connectLabel || "Connect"}
+          </button>
+        )}
+        {status === "connected" && onDisconnect && (
+          <button
+            onClick={onDisconnect}
+            className="px-3 py-1 rounded-lg text-xs font-medium text-slate-500 hover:text-red-500 hover:bg-red-50 transition-colors"
+          >
+            Disconnect
+          </button>
+        )}
+      </div>
     </div>
   );
 }
