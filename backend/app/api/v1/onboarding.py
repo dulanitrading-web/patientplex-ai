@@ -30,6 +30,21 @@ router = APIRouter(prefix="/onboarding", tags=["onboarding"])
 # ---------------------------------------------------------------------------
 
 
+SPECIALTY_ICON_MAP = {
+    "DENTIST": "smile", "DERMATOLOGIST": "sparkle", "ORTHOPEDIC": "bone",
+    "OPHTHALMOLOGIST": "eye", "PEDIATRICIAN": "baby", "ENT": "ear",
+    "SURGEON": "scissors", "GENERAL_PHYSICIAN": "activity",
+    "GYNECOLOGIST": "heart", "OTHER": "activity",
+}
+
+SPECIALTY_DISPLAY_NAME = {
+    "DENTIST": "Dentist", "DERMATOLOGIST": "Dermatologist", "ORTHOPEDIC": "Orthopedic",
+    "OPHTHALMOLOGIST": "Eye Specialist", "PEDIATRICIAN": "Pediatrician", "ENT": "ENT Specialist",
+    "SURGEON": "Plastic Surgeon", "GENERAL_PHYSICIAN": "General Physician",
+    "GYNECOLOGIST": "Gynecologist", "OTHER": "Other",
+}
+
+
 @router.get("/specialties")
 async def list_specialties() -> list[dict]:
     """Return all supported specialties with their default services and keywords.
@@ -39,6 +54,9 @@ async def list_specialties() -> list[dict]:
     """
     return [
         {
+            "id": cfg.specialty.lower(),
+            "name": SPECIALTY_DISPLAY_NAME.get(cfg.specialty, cfg.specialty),
+            "icon": SPECIALTY_ICON_MAP.get(cfg.specialty, "activity"),
             "specialty": cfg.specialty,
             "default_services": cfg.default_services,
             "default_keywords": cfg.default_keywords,
