@@ -102,7 +102,7 @@ async def get_google_ads_customer_ids(access_token: str) -> list[dict]:
 
     try:
         # Use the REST API directly — much more reliable than SDK for this
-        api_url = "https://googleads.googleapis.com/v18/customers:listAccessibleCustomers"
+        api_url = "https://googleads.googleapis.com/v26/customers:listAccessibleCustomers"
         headers = {
             "Authorization": f"Bearer {access_token}",
             "developer-token": settings.GOOGLE_ADS_DEVELOPER_TOKEN,

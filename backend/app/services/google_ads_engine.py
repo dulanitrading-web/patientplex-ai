@@ -672,7 +672,7 @@ class GoogleAdsEngine:
         if campaign_id:
             query += f" AND campaign.id = {campaign_id}"
 
-        api_url = f"https://googleads.googleapis.com/v18/customers/{customer_id}/googleAds:searchStream"
+        api_url = f"https://googleads.googleapis.com/v26/customers/{customer_id}/googleAds:searchStream"
         headers = {
             "Authorization": f"Bearer {self._rest_access_token}",
             "developer-token": self._rest_developer_token,
