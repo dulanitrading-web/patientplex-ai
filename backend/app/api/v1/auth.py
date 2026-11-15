@@ -158,15 +158,17 @@ async def get_integration_status(
     twilio_configured = bool(settings.TWILIO_ACCOUNT_SID and settings.TWILIO_AUTH_TOKEN)
     whatsapp_api_configured = bool(settings.WHATSAPP_API_TOKEN)
 
-    def _status(platform_key: str, credentials_ok: bool) -> str:
+    def _status(platform_key: str, credentials_ok: bool, doctor_oauth: bool = False) -> str:
         """Determine integration status: connected, active, pending, not_connected."""
         has_campaigns = platform_key in active_platforms
+        if doctor_oauth:
+            return "connected"  # Doctor personally connected via OAuth
         if has_campaigns and credentials_ok:
             return "connected"
         if has_campaigns and not credentials_ok:
             return "active_draft"  # Campaigns exist but in draft/demo mode
         if credentials_ok:
-            return "ready"  # Credentials set, no campaigns yet
+            return "ready"  # Global credentials set, no per-doctor OAuth yet
         return "not_connected"
 
     return {
@@ -181,7 +183,7 @@ async def get_integration_status(
             "verified": doctor.whatsapp_verified if doctor.whatsapp_number else False,
         },
         "google_ads": {
-            "status": _status("GOOGLE", google_ads_configured),
+            "status": _status("GOOGLE", google_ads_configured, getattr(doctor, 'google_ads_connected', False)),
             "detail": (
                 f"Connected — Account {getattr(doctor, 'google_ads_customer_id', '')}" if getattr(doctor, 'google_ads_connected', False)
                 else ("Connected — MCC linked" if settings.GOOGLE_ADS_DEVELOPER_TOKEN else "Click Connect to link your Google Ads account")
@@ -191,7 +193,7 @@ async def get_integration_status(
             "doctor_connected": getattr(doctor, 'google_ads_connected', False),
         },
         "meta_ads": {
-            "status": _status("META", meta_ads_configured),
+            "status": _status("META", meta_ads_configured, getattr(doctor, 'meta_ads_connected', False)),
             "detail": (
                 f"Connected — Ad Account {getattr(doctor, 'meta_ads_account_id', '')}" if getattr(doctor, 'meta_ads_connected', False)
                 else ("Connected — App configured" if (settings.META_APP_ID and settings.META_APP_SECRET) else "Click Connect to link your Meta Ads account")
