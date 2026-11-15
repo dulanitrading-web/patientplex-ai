@@ -51,11 +51,14 @@ export default function SignupPage() {
         phone: form.phone,
         password: form.password,
       });
+      // Store token in both localStorage and cookie (middleware reads cookie)
       localStorage.setItem("pp_token", data.access_token);
+      document.cookie = `pp_token=${data.access_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
       if (data.user?.full_name) {
         localStorage.setItem("user_name", data.user.full_name);
       }
-      router.push("/onboarding");
+      // Hard redirect so the browser sends the cookie on the next request
+      window.location.href = "/onboarding";
     } catch (err) {
       if (err instanceof ApiError) {
         setApiError(err.message);

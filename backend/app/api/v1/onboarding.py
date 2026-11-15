@@ -61,7 +61,8 @@ async def onboarding_step1(
     """Step 1: save specialty, services, and clinic name."""
     doctor.specialty = body.specialty
     doctor.services = body.services
-    doctor.clinic_name = body.clinic_name
+    if body.clinic_name:
+        doctor.clinic_name = body.clinic_name
     if doctor.onboarding_step < 2:
         doctor.onboarding_step = 2
 
@@ -82,6 +83,8 @@ async def onboarding_step2(
     db: AsyncSession = Depends(get_db),
 ) -> DoctorResponse:
     """Step 2: save clinic address and geo-targeting configuration."""
+    if body.clinic_name:
+        doctor.clinic_name = body.clinic_name
     doctor.clinic_address = body.clinic_address
     doctor.city = body.city
     doctor.state = body.state

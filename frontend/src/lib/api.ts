@@ -75,26 +75,27 @@ export async function getOnboardingStatus() {
 }
 
 export async function updateStep1(data: {
-  specialty_id: string;
-  services: { name: string; enabled: boolean }[];
+  specialty: string;
+  services: string[];
+  clinic_name?: string;
 }) {
   const res = await fetchWithAuth("/onboarding/step1", {
-    method: "POST",
+    method: "PUT",
     body: JSON.stringify(data),
   });
   return res.json();
 }
 
 export async function updateStep2(data: {
-  clinic_name: string;
-  address: string;
+  clinic_name?: string;
+  clinic_address: string;
   city: string;
   state: string;
   pincode: string;
   geo_radius_km: number;
 }) {
   const res = await fetchWithAuth("/onboarding/step2", {
-    method: "POST",
+    method: "PUT",
     body: JSON.stringify(data),
   });
   return res.json();
@@ -102,7 +103,7 @@ export async function updateStep2(data: {
 
 export async function updateStep3(data: { monthly_budget: number }) {
   const res = await fetchWithAuth("/onboarding/step3", {
-    method: "POST",
+    method: "PUT",
     body: JSON.stringify(data),
   });
   return res.json();
@@ -113,19 +114,19 @@ export async function updateStep4(data: {
   google_calendar_connected?: boolean;
 }) {
   const res = await fetchWithAuth("/onboarding/step4", {
-    method: "POST",
+    method: "PUT",
     body: JSON.stringify(data),
   });
   return res.json();
 }
 
 export async function getSpecialties() {
-  const res = await fetchWithAuth("/specialties");
+  const res = await fetchWithAuth("/onboarding/specialties");
   return res.json();
 }
 
 export async function getGoogleCalendarUrl() {
-  const res = await fetchWithAuth("/integrations/google-calendar/auth-url");
+  const res = await fetchWithAuth("/onboarding/google-calendar/connect");
   return res.json();
 }
 

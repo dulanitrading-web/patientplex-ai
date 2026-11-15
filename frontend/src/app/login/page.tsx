@@ -31,14 +31,18 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const data = await login(email, password);
+      // Store token in both localStorage and cookie (middleware reads cookie)
       localStorage.setItem("pp_token", data.access_token);
+      document.cookie = `pp_token=${data.access_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
       if (data.user?.full_name) {
         localStorage.setItem("user_name", data.user.full_name);
       }
-      if (data.onboarding_complete) {
-        router.push("/dashboard");
+      // Hard redirect so the browser sends the cookie on the next request
+      const redirect = new URLSearchParams(window.location.search).get("redirect");
+      if (data.user?.onboarding_completed) {
+        window.location.href = redirect || "/dashboard";
       } else {
-        router.push("/onboarding");
+        window.location.href = "/onboarding";
       }
     } catch (err) {
       if (err instanceof ApiError) {

@@ -78,17 +78,16 @@ async def signup(request: Request, body: DoctorCreate, db: AsyncSession = Depend
     log_audit(action="signup", actor_id=str(doctor.id), resource="auth", details={"email": doctor.email})
 
     response = JSONResponse(
-        content={"access_token": access_token, "token_type": "bearer"},
+        content={
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": {
+                "full_name": doctor.full_name,
+                "email": doctor.email,
+                "onboarding_completed": doctor.onboarding_completed,
+            },
+        },
         status_code=status.HTTP_201_CREATED,
-    )
-    response.set_cookie(
-        key="pp_token",
-        value=access_token,
-        httponly=True,
-        secure=settings.ENVIRONMENT != "development",
-        samesite="lax",
-        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        path="/",
     )
     return response
 
@@ -113,16 +112,15 @@ async def login(request: Request, body: DoctorLogin, db: AsyncSession = Depends(
     log_audit(action="login", actor_id=str(doctor.id), resource="auth", details={"email": doctor.email})
 
     response = JSONResponse(
-        content={"access_token": access_token, "token_type": "bearer"},
-    )
-    response.set_cookie(
-        key="pp_token",
-        value=access_token,
-        httponly=True,
-        secure=settings.ENVIRONMENT != "development",
-        samesite="lax",
-        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        path="/",
+        content={
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": {
+                "full_name": doctor.full_name,
+                "email": doctor.email,
+                "onboarding_completed": doctor.onboarding_completed,
+            },
+        },
     )
     return response
 

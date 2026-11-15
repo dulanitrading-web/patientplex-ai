@@ -46,12 +46,13 @@ class DoctorOnboardingStep1(BaseModel):
 
     specialty: Specialty
     services: list[str] = Field(..., min_length=1)
-    clinic_name: str = Field(..., min_length=2, max_length=255)
+    clinic_name: str | None = Field(default=None, max_length=255)
 
 
 class DoctorOnboardingStep2(BaseModel):
     """Step 2: clinic address and geo-targeting radius."""
 
+    clinic_name: str | None = Field(default=None, max_length=255)
     clinic_address: str = Field(..., min_length=5)
     city: str = Field(..., min_length=2, max_length=100)
     state: str = Field(..., min_length=2, max_length=100)

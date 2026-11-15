@@ -168,7 +168,7 @@ export default function OnboardingPage() {
         if (data.current_step) {
           setCurrentStep(data.current_step);
         }
-        if (data.completed) {
+        if (data.onboarding_completed) {
           router.push("/dashboard");
         }
       })
@@ -253,11 +253,24 @@ export default function OnboardingPage() {
     setLoading(true);
     try {
       switch (currentStep) {
-        case 1:
-          await updateStep1({ specialty_id: selectedSpecialty!, services });
+        case 1: {
+          const enabledServices = services.filter(s => s.enabled).map(s => s.name);
+          // Map frontend specialty IDs to backend enum values
+          const specialtyMap: Record<string, string> = {
+            dentist: "DENTIST", dermatologist: "DERMATOLOGIST", orthopedic: "ORTHOPEDIC",
+            ophthalmologist: "OPHTHALMOLOGIST", pediatrician: "PEDIATRICIAN", neurologist: "OTHER",
+            cardiologist: "OTHER", ent: "ENT", plastic_surgeon: "SURGEON",
+            general: "GENERAL_PHYSICIAN", gynecologist: "GYNECOLOGIST",
+          };
+          await updateStep1({
+            specialty: specialtyMap[selectedSpecialty!] || "OTHER",
+            services: enabledServices.length > 0 ? enabledServices : ["General Consultation"],
+            clinic_name: clinicName || undefined,
+          });
           break;
+        }
         case 2:
-          await updateStep2({ clinic_name: clinicName, address, city, state, pincode, geo_radius_km: geoRadius });
+          await updateStep2({ clinic_name: clinicName, clinic_address: address, city, state, pincode, geo_radius_km: geoRadius });
           break;
         case 3:
           await updateStep3({ monthly_budget: budget });
