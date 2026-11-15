@@ -62,6 +62,26 @@ async def lifespan(app: FastAPI):
                     )
                 except Exception:
                     pass  # Already exists or enum not yet created
+
+            # Add new columns to existing tables (create_all doesn't do this)
+            new_columns = [
+                ("doctors", "google_ads_customer_id", "VARCHAR(20)"),
+                ("doctors", "google_ads_refresh_token", "TEXT"),
+                ("doctors", "google_ads_connected", "BOOLEAN DEFAULT FALSE"),
+                ("doctors", "meta_ads_access_token", "TEXT"),
+                ("doctors", "meta_ads_account_id", "VARCHAR(100)"),
+                ("doctors", "meta_ads_page_id", "VARCHAR(100)"),
+                ("doctors", "meta_ads_connected", "BOOLEAN DEFAULT FALSE"),
+                ("doctors", "twilio_phone_number", "VARCHAR(20)"),
+            ]
+            for table, col, col_type in new_columns:
+                try:
+                    await conn.execute(
+                        sa.text(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {col} {col_type}")
+                    )
+                except Exception:
+                    pass  # Column already exists
+
         logger.info("Database tables verified/created")
     except Exception as e:
         logger.error(f"Failed to create database tables: {e}")
