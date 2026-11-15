@@ -772,12 +772,10 @@ async def provision_twilio_number(
             return {
                 "status": "trial_account",
                 "message": (
-                    "Your Twilio account is on a free trial. To provision a number:\n"
-                    "1. Go to twilio.com/console\n"
-                    "2. Click 'Phone Numbers' \u2192 'Verified Caller IDs'\n"
-                    "3. Verify your phone number\n"
-                    "OR upgrade to a paid Twilio account.\n"
-                    "Then try again."
+                    "Twilio trial accounts cannot provision numbers or verify caller IDs via API. "
+                    "To enable call tracking, upgrade your Twilio account at twilio.com/console \u2192 Upgrade. "
+                    "It costs nothing extra \u2014 just add a payment method and Twilio gives you $15.50 free credit. "
+                    "After upgrading, click Provision Number again."
                 ),
             }
 
