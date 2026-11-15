@@ -164,8 +164,11 @@ export default function SettingsPage() {
               try {
                 const data = await getGoogleCalendarUrl();
                 if (data.auth_url) window.location.href = data.auth_url;
-                else alert("Google Calendar OAuth not configured on server");
-              } catch { alert("Could not start Google Calendar connection"); }
+                else alert("Google Calendar OAuth not configured on server. Please ensure GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are set in the backend environment.");
+              } catch (err: unknown) {
+                const msg = err instanceof Error ? err.message : "Could not start Google Calendar connection";
+                alert(msg);
+              }
             }}
           />
           <IntegrationRow
@@ -191,7 +194,10 @@ export default function SettingsPage() {
               try {
                 const data = await connectGoogleAds();
                 if (data.auth_url) window.location.href = data.auth_url;
-              } catch { alert("Could not start Google Ads connection"); }
+              } catch (err: unknown) {
+                const msg = err instanceof Error ? err.message : "Could not start Google Ads connection";
+                alert(msg);
+              }
             }}
             onDisconnect={async () => {
               if (confirm("Disconnect Google Ads?")) {
@@ -207,7 +213,10 @@ export default function SettingsPage() {
                     const result = await importGoogleAdsCampaigns();
                     alert(result.message || `Imported ${result.imported} campaigns`);
                     window.location.reload();
-                  } catch { alert("Failed to import campaigns"); }
+                  } catch (err: unknown) {
+                    const msg = err instanceof Error ? err.message : "Failed to import campaigns";
+                    alert(msg);
+                  }
                   finally { setImportingCampaigns(false); }
                 }}
                 disabled={importingCampaigns}
@@ -226,7 +235,10 @@ export default function SettingsPage() {
               try {
                 const data = await connectMetaAds();
                 if (data.auth_url) window.location.href = data.auth_url;
-              } catch { alert("Could not start Meta Ads connection"); }
+              } catch (err: unknown) {
+                const msg = err instanceof Error ? err.message : "Could not start Meta Ads connection";
+                alert(msg);
+              }
             }}
             onDisconnect={async () => {
               if (confirm("Disconnect Meta Ads?")) {
@@ -266,7 +278,10 @@ export default function SettingsPage() {
                     const result = await provisionTwilioNumber();
                     alert(result.message || `Number: ${result.phone_number}`);
                     window.location.reload();
-                  } catch { alert("Failed to provision Twilio number"); }
+                  } catch (err: unknown) {
+                    const msg = err instanceof Error ? err.message : "Failed to provision Twilio number";
+                    alert(msg);
+                  }
                   finally { setProvisioningTwilio(false); }
                 }}
                 disabled={provisioningTwilio}
