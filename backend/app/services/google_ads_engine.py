@@ -590,6 +590,9 @@ class GoogleAdsEngine:
 
         try:
             ga_svc = self.client.get_service("GoogleAdsService")
+            # Map days to valid GAQL date range literals
+            gaql_range_map = {7: "LAST_7_DAYS", 14: "LAST_14_DAYS", 30: "LAST_30_DAYS"}
+            date_range = gaql_range_map.get(days, "LAST_30_DAYS")
             query = f"""
                 SELECT
                     campaign.id,
@@ -604,7 +607,7 @@ class GoogleAdsEngine:
                     metrics.cost_per_conversion,
                     metrics.conversion_rate
                 FROM campaign
-                WHERE segments.date DURING LAST_{days}_DAYS
+                WHERE segments.date DURING {date_range}
             """
             if campaign_id:
                 query += f" AND campaign.id = {campaign_id}"
