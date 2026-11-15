@@ -93,44 +93,39 @@ async def exchange_google_ads_code(
 async def get_google_ads_customer_ids(access_token: str) -> list[dict]:
     """Fetch accessible Google Ads customer IDs using the access token.
 
-    Uses the Google Ads API to list all accounts the user has access to.
-    Falls back to returning empty list if google-ads SDK isn't available.
+    Uses the Google Ads REST API directly with the OAuth access token.
+    This avoids issues with the SDK needing a refresh_token at init time.
     """
-    try:
-        from google.ads.googleads.client import GoogleAdsClient
+    if not settings.GOOGLE_ADS_DEVELOPER_TOKEN:
+        logger.warning("GOOGLE_ADS_DEVELOPER_TOKEN not set — can't list customer IDs")
+        return []
 
-        config = {
-            "developer_token": settings.GOOGLE_ADS_DEVELOPER_TOKEN,
-            "client_id": settings.GOOGLE_CLIENT_ID,
-            "client_secret": settings.GOOGLE_CLIENT_SECRET,
-            "use_proto_plus": True,
+    try:
+        # Use the REST API directly — much more reliable than SDK for this
+        api_url = "https://googleads.googleapis.com/v17/customers:listAccessibleCustomers"
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "developer-token": settings.GOOGLE_ADS_DEVELOPER_TOKEN,
         }
         if settings.GOOGLE_ADS_LOGIN_CUSTOMER_ID:
-            config["login_customer_id"] = settings.GOOGLE_ADS_LOGIN_CUSTOMER_ID
+            headers["login-customer-id"] = settings.GOOGLE_ADS_LOGIN_CUSTOMER_ID
 
-        # Use the OAuth access token
-        client = GoogleAdsClient.load_from_dict({
-            **config,
-            "refresh_token": "dummy",  # Will use access_token directly
-        })
-
-        # List accessible customers
-        customer_service = client.get_service("CustomerService")
-        response = customer_service.list_accessible_customers()
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(api_url, headers=headers, timeout=15)
+            resp.raise_for_status()
+            data = resp.json()
 
         customers = []
-        for resource_name in response.resource_names:
+        for resource_name in data.get("resourceNames", []):
             customer_id = resource_name.split("/")[-1]
             customers.append({
                 "customer_id": customer_id,
                 "resource_name": resource_name,
             })
 
+        logger.info("Found %d accessible Google Ads customers", len(customers))
         return customers
 
-    except ImportError:
-        logger.warning("google-ads SDK not available — can't list customer IDs")
-        return []
     except Exception as e:
-        logger.error("Failed to list Google Ads customers: %s", e)
+        logger.error("Failed to list Google Ads customers via REST: %s", e)
         return []

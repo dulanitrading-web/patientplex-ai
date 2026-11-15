@@ -26,6 +26,28 @@ BACKEND_BASE = "https://patientplex-ai-g7ce.onrender.com"
 FRONTEND_BASE = "https://patientplex-ai.vercel.app"
 
 
+async def _get_access_token_from_refresh(refresh_token: str) -> str | None:
+    """Exchange a Google OAuth refresh_token for a fresh access_token."""
+    import httpx
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(
+                "https://oauth2.googleapis.com/token",
+                data={
+                    "client_id": settings.GOOGLE_CLIENT_ID,
+                    "client_secret": settings.GOOGLE_CLIENT_SECRET,
+                    "refresh_token": refresh_token,
+                    "grant_type": "refresh_token",
+                },
+                timeout=15,
+            )
+            resp.raise_for_status()
+            return resp.json().get("access_token")
+    except Exception as e:
+        logger.error("Failed to refresh Google access token: %s", e)
+        return None
+
+
 # ---------------------------------------------------------------------------
 # Google Ads OAuth
 # ---------------------------------------------------------------------------
@@ -471,8 +493,27 @@ async def import_google_ads_campaigns(
 
     engine = GoogleAdsEngine(db)
 
-    # Get the customer ID
+    # Get the customer ID — auto-detect if missing
     customer_id = getattr(doctor, 'google_ads_customer_id', None) or os.getenv("GOOGLE_ADS_LOGIN_CUSTOMER_ID", "")
+    if not customer_id:
+        # Try to detect from the refresh token
+        refresh_token = getattr(doctor, 'google_ads_refresh_token', None)
+        if refresh_token and settings.GOOGLE_ADS_DEVELOPER_TOKEN:
+            try:
+                import httpx
+                # Get a fresh access token from the refresh token
+                token_resp = await _get_access_token_from_refresh(refresh_token)
+                if token_resp:
+                    from app.services.google_ads_oauth import get_google_ads_customer_ids
+                    customers = await get_google_ads_customer_ids(token_resp)
+                    if customers:
+                        customer_id = customers[0]["customer_id"]
+                        doctor.google_ads_customer_id = customer_id
+                        await db.commit()
+                        logger.info("Auto-detected Google Ads customer ID: %s", customer_id)
+            except Exception as e:
+                logger.warning("Auto-detect customer ID failed: %s", e)
+
     if not customer_id:
         return {
             "status": "no_customer_id",
