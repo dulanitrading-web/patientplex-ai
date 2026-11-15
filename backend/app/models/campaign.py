@@ -17,6 +17,9 @@ class AdPlatform(str, enum.Enum):
     GOOGLE = "GOOGLE"
     META = "META"
     LINKEDIN = "LINKEDIN"
+    CHATGPT = "CHATGPT"
+    INSTAGRAM = "INSTAGRAM"
+    GMB = "GMB"
 
 
 class CampaignStatus(str, enum.Enum):

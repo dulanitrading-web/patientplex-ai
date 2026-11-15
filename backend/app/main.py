@@ -2,6 +2,7 @@
 import logging
 from contextlib import asynccontextmanager
 import os
+import sqlalchemy as sa
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -53,6 +54,14 @@ async def lifespan(app: FastAPI):
 
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
+            # Add new enum values if they don't exist (for platform expansion)
+            for new_val in ("CHATGPT", "INSTAGRAM", "GMB"):
+                try:
+                    await conn.execute(
+                        sa.text(f"ALTER TYPE ad_platform_enum ADD VALUE IF NOT EXISTS '{new_val}'")
+                    )
+                except Exception:
+                    pass  # Already exists or enum not yet created
         logger.info("Database tables verified/created")
     except Exception as e:
         logger.error(f"Failed to create database tables: {e}")
