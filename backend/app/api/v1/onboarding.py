@@ -187,8 +187,8 @@ async def google_calendar_callback(
             detail=f"Failed to connect Google Calendar: {exc}",
         )
 
-    # Redirect back to the frontend onboarding page
-    return RedirectResponse(url="/onboarding?calendar=connected")
+    # Redirect back to the frontend (settings if onboarding done, otherwise onboarding)
+    return RedirectResponse(url="https://patientplex-ai.vercel.app/dashboard/settings?calendar=connected")
 
 
 # ---------------------------------------------------------------------------

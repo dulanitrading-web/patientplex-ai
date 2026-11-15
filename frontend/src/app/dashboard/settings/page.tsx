@@ -19,6 +19,7 @@ import {
   getMe,
   getSubscription,
   getIntegrationStatus,
+  getGoogleCalendarUrl,
   connectGoogleAds,
   disconnectGoogleAds,
   connectMetaAds,
@@ -155,6 +156,13 @@ export default function SettingsPage() {
             name="Google Calendar"
             status={mapIntegrationStatus(integrations?.google_calendar?.status)}
             detail={integrations?.google_calendar?.detail || "Connect to sync appointments"}
+            onConnect={async () => {
+              try {
+                const data = await getGoogleCalendarUrl();
+                if (data.auth_url) window.location.href = data.auth_url;
+                else alert("Google Calendar OAuth not configured on server");
+              } catch { alert("Could not start Google Calendar connection"); }
+            }}
           />
           <IntegrationRow
             icon={<MessageCircle className="w-4 h-4" />}
@@ -164,7 +172,7 @@ export default function SettingsPage() {
             onConnect={async () => {
               try {
                 const result = await verifyWhatsApp();
-                alert(result.message || "Verification message sent!");
+                alert(result.message || result.detail || "Verification sent!");
                 window.location.reload();
               } catch { alert("WhatsApp verification failed"); }
             }}
@@ -210,25 +218,25 @@ export default function SettingsPage() {
             icon={<BarChart3 className="w-4 h-4" />}
             name="ChatGPT Ads"
             status={mapIntegrationStatus(integrations?.chatgpt_ads?.status)}
-            detail={integrations?.chatgpt_ads?.detail || "Checking..."}
+            detail={integrations?.chatgpt_ads?.detail || "Coming soon — OpenAI Ads API in beta"}
           />
           <IntegrationRow
             icon={<BarChart3 className="w-4 h-4" />}
             name="LinkedIn Ads"
             status={mapIntegrationStatus(integrations?.linkedin_ads?.status)}
-            detail={integrations?.linkedin_ads?.detail || "Checking..."}
+            detail={integrations?.linkedin_ads?.detail || "Coming soon"}
           />
           <IntegrationRow
             icon={<MessageCircle className="w-4 h-4" />}
             name="WhatsApp Ads (CTWA)"
             status={mapIntegrationStatus(integrations?.whatsapp_ads?.status)}
-            detail={integrations?.whatsapp_ads?.detail || "Checking..."}
+            detail={integrations?.whatsapp_ads?.detail || "Click-to-WhatsApp ads via Meta"}
           />
           <IntegrationRow
             icon={<BarChart3 className="w-4 h-4" />}
             name="Twilio Call Tracking"
             status={mapIntegrationStatus(integrations?.twilio_calls?.status)}
-            detail={integrations?.twilio_calls?.detail || "Checking..."}
+            detail={integrations?.twilio_calls?.detail || "Call tracking & recording"}
           />
         </div>
       </div>
