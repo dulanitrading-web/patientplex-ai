@@ -57,8 +57,11 @@ async def google_ads_connect(
     doctor: Doctor = Depends(get_current_doctor),
 ):
     """Start Google Ads OAuth flow. Returns the consent URL."""
-    if not settings.GOOGLE_CLIENT_ID:
-        raise HTTPException(status_code=400, detail="Google OAuth not configured on server")
+    if not settings.GOOGLE_CLIENT_ID or settings.GOOGLE_CLIENT_ID.startswith("YOUR_"):
+        raise HTTPException(
+            status_code=400,
+            detail="Google OAuth is not configured yet. The server needs GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET set in environment variables. Please add credentials from console.cloud.google.com to Render.",
+        )
 
     from app.services.google_ads_oauth import get_google_ads_auth_url
 
@@ -150,8 +153,11 @@ async def meta_ads_connect(
     doctor: Doctor = Depends(get_current_doctor),
 ):
     """Start Meta (Facebook) Ads OAuth flow."""
-    if not settings.META_APP_ID:
-        raise HTTPException(status_code=400, detail="Meta App not configured on server")
+    if not settings.META_APP_ID or settings.META_APP_ID.startswith("YOUR_"):
+        raise HTTPException(
+            status_code=400,
+            detail="Meta Ads is not configured yet. The server needs META_APP_ID and META_APP_SECRET set in environment variables. Please create a Meta App at developers.facebook.com and add the credentials to Render.",
+        )
 
     redirect_uri = f"{BACKEND_BASE}/api/v1/integrations/meta-ads/callback"
     params = {
@@ -489,7 +495,10 @@ async def import_google_ads_campaigns(
     import os
 
     if not getattr(doctor, 'google_ads_connected', False) and not settings.GOOGLE_ADS_DEVELOPER_TOKEN:
-        raise HTTPException(status_code=400, detail="Google Ads not connected. Connect first in Settings.")
+        raise HTTPException(
+            status_code=400,
+            detail="Google Ads is not connected yet. Please click 'Connect' on Google Ads first, complete the OAuth sign-in with your Google Ads account, and then try Import Campaigns again.",
+        )
 
     engine = GoogleAdsEngine(db)
 
@@ -631,8 +640,22 @@ async def provision_twilio_number(
             "message": f"Tracking number {result['phone_number']} provisioned! Use this in Google Ads call extensions.",
             "webhook_url": result.get("webhook_url"),
         }
-    else:
-        return result
+    # Provide user-friendly error messages for common Twilio issues
+    error_msg = result.get("message", "")
+    if "Trial" in error_msg or "trial" in error_msg or "verify" in error_msg.lower():
+        return {
+            "status": "trial_account",
+            "message": (
+                "Your Twilio account is on a free trial. To provision a number:\n"
+                "1. Go to twilio.com/console\n"
+                "2. Click 'Phone Numbers' \u2192 'Verified Caller IDs'\n"
+                "3. Verify your phone number\n"
+                "OR upgrade to a paid Twilio account.\n"
+                "Then try again."
+            ),
+        }
+
+    return result
 
 
 @router.get("/twilio/status")
