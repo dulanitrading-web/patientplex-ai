@@ -99,45 +99,49 @@ class GoogleAdsEngine:
     def __init__(self, db: AsyncSession):
         self.db = db
         self.client = _get_client()
+        self._rest_access_token: Optional[str] = None
+        self._rest_developer_token: str = os.getenv("GOOGLE_ADS_DEVELOPER_TOKEN", "")
 
     @property
     def is_connected(self) -> bool:
         return self.client is not None
 
-    def connect_with_refresh_token(self, refresh_token: str) -> bool:
-        """Build a per-doctor Google Ads client using their OAuth refresh token.
+    async def connect_with_refresh_token(self, refresh_token: str) -> bool:
+        """Connect to Google Ads using a doctor's OAuth refresh token.
 
-        Falls back to GOOGLE_CLIENT_ID/SECRET for the OAuth client credentials
-        and GOOGLE_ADS_DEVELOPER_TOKEN for the API developer token.
-        Returns True if a client was successfully built.
+        Uses the REST API (no SDK needed) — gets an access token via OAuth refresh.
+        Falls back to SDK if available.
         """
-        if not GOOGLE_ADS_SDK_AVAILABLE:
-            return False
+        import httpx
 
         dev_token = os.getenv("GOOGLE_ADS_DEVELOPER_TOKEN", "")
         client_id = os.getenv("GOOGLE_ADS_CLIENT_ID", "") or os.getenv("GOOGLE_CLIENT_ID", "")
         client_secret = os.getenv("GOOGLE_ADS_CLIENT_SECRET", "") or os.getenv("GOOGLE_CLIENT_SECRET", "")
-        login_customer_id = os.getenv("GOOGLE_ADS_LOGIN_CUSTOMER_ID", "")
 
         if not (dev_token and client_id and client_secret and refresh_token):
+            logger.warning("Missing credentials for Google Ads connect")
             return False
 
+        # Get a fresh access token (REST path — no SDK needed)
         try:
-            config = {
-                "developer_token": dev_token,
-                "client_id": client_id,
-                "client_secret": client_secret,
-                "refresh_token": refresh_token,
-                "use_proto_plus": True,
-            }
-            if login_customer_id:
-                config["login_customer_id"] = login_customer_id
-
-            self.client = GoogleAdsClient.load_from_dict(config)
-            logger.info("Google Ads client built with per-doctor refresh token")
-            return True
+            async with httpx.AsyncClient() as client:
+                resp = await client.post(
+                    "https://oauth2.googleapis.com/token",
+                    data={
+                        "client_id": client_id,
+                        "client_secret": client_secret,
+                        "refresh_token": refresh_token,
+                        "grant_type": "refresh_token",
+                    },
+                    timeout=15,
+                )
+                resp.raise_for_status()
+                self._rest_access_token = resp.json().get("access_token")
+                self._rest_developer_token = dev_token
+                logger.info("Google Ads REST connection ready")
+                return True
         except Exception as exc:
-            logger.error("Failed to build per-doctor Google Ads client: %s", exc)
+            logger.error("Failed to get Google Ads access token: %s", exc)
             return False
 
     # ------------------------------------------------------------------
@@ -584,13 +588,15 @@ class GoogleAdsEngine:
         campaign_id: Optional[str] = None,
         days: int = 30,
     ) -> Dict:
-        """Pull campaign performance metrics via GAQL."""
+        """Pull campaign performance metrics via Google Ads REST API or SDK."""
+        # Use REST API if we have an access token (from per-doctor OAuth)
+        if self._rest_access_token and self._rest_developer_token:
+            return await self._get_campaign_metrics_rest(customer_id, campaign_id, days)
         if not self.is_connected:
             return self._demo_metrics()
 
         try:
             ga_svc = self.client.get_service("GoogleAdsService")
-            # Map days to valid GAQL date range literals
             gaql_range_map = {7: "LAST_7_DAYS", 14: "LAST_14_DAYS", 30: "LAST_30_DAYS"}
             date_range = gaql_range_map.get(days, "LAST_30_DAYS")
             query = f"""
@@ -647,6 +653,63 @@ class GoogleAdsEngine:
             errors = [{"message": e.message} for e in ex.failure.errors]
             return {"status": "error", "errors": errors}
         except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    async def _get_campaign_metrics_rest(
+        self, customer_id: str, campaign_id: Optional[str] = None, days: int = 30,
+    ) -> Dict:
+        """Pull campaign metrics via Google Ads REST API (no SDK needed)."""
+        import httpx
+
+        gaql_range_map = {7: "LAST_7_DAYS", 14: "LAST_14_DAYS", 30: "LAST_30_DAYS"}
+        date_range = gaql_range_map.get(days, "LAST_30_DAYS")
+        query = (
+            "SELECT campaign.id, campaign.name, campaign.status, "
+            "metrics.impressions, metrics.clicks, metrics.cost_micros, "
+            "metrics.conversions, metrics.ctr, metrics.average_cpc "
+            f"FROM campaign WHERE segments.date DURING {date_range}"
+        )
+        if campaign_id:
+            query += f" AND campaign.id = {campaign_id}"
+
+        api_url = f"https://googleads.googleapis.com/v17/customers/{customer_id}/googleAds:searchStream"
+        headers = {
+            "Authorization": f"Bearer {self._rest_access_token}",
+            "developer-token": self._rest_developer_token,
+            "Content-Type": "application/json",
+        }
+        login_cid = os.getenv("GOOGLE_ADS_LOGIN_CUSTOMER_ID", "")
+        if login_cid:
+            headers["login-customer-id"] = login_cid
+
+        try:
+            async with httpx.AsyncClient() as client:
+                resp = await client.post(api_url, headers=headers, json={"query": query}, timeout=30)
+                if resp.status_code != 200:
+                    error_body = resp.text
+                    logger.error("Google Ads REST error %s: %s", resp.status_code, error_body[:500])
+                    return {"status": "error", "message": f"Google Ads API error {resp.status_code}: {error_body[:200]}"}
+                data = resp.json()
+
+            campaigns = []
+            for batch in data:
+                for result in batch.get("results", []):
+                    camp = result.get("campaign", {})
+                    metrics = result.get("metrics", {})
+                    campaigns.append({
+                        "campaign_id": str(camp.get("id", "")),
+                        "name": camp.get("name", "Unknown"),
+                        "status": camp.get("status", "UNKNOWN"),
+                        "impressions": int(metrics.get("impressions", 0)),
+                        "clicks": int(metrics.get("clicks", 0)),
+                        "cost_inr": round(int(metrics.get("costMicros", 0)) / 1e6, 2),
+                        "conversions": round(float(metrics.get("conversions", 0)), 1),
+                        "ctr": round(float(metrics.get("ctr", 0)) * 100, 2),
+                        "avg_cpc_inr": round(int(metrics.get("averageCpc", 0)) / 1e6, 2),
+                    })
+            return {"status": "success", "campaigns": campaigns, "period_days": days}
+        except Exception as e:
+            logger.error("Google Ads REST API call failed: %s", e)
             return {"status": "error", "message": str(e)}
 
     async def get_keyword_performance(
