@@ -45,8 +45,9 @@ def _build_google_ads_client() -> Optional["GoogleAdsClient"]:
         return None
 
     dev_token = os.getenv("GOOGLE_ADS_DEVELOPER_TOKEN", "")
-    client_id = os.getenv("GOOGLE_ADS_CLIENT_ID", "")
-    client_secret = os.getenv("GOOGLE_ADS_CLIENT_SECRET", "")
+    # Fall back to the standard Google OAuth client ID/secret if Ads-specific ones aren't set
+    client_id = os.getenv("GOOGLE_ADS_CLIENT_ID", "") or os.getenv("GOOGLE_CLIENT_ID", "")
+    client_secret = os.getenv("GOOGLE_ADS_CLIENT_SECRET", "") or os.getenv("GOOGLE_CLIENT_SECRET", "")
     refresh_token = os.getenv("GOOGLE_ADS_REFRESH_TOKEN", "")
     login_customer_id = os.getenv("GOOGLE_ADS_LOGIN_CUSTOMER_ID", "")
 
@@ -102,6 +103,42 @@ class GoogleAdsEngine:
     @property
     def is_connected(self) -> bool:
         return self.client is not None
+
+    def connect_with_refresh_token(self, refresh_token: str) -> bool:
+        """Build a per-doctor Google Ads client using their OAuth refresh token.
+
+        Falls back to GOOGLE_CLIENT_ID/SECRET for the OAuth client credentials
+        and GOOGLE_ADS_DEVELOPER_TOKEN for the API developer token.
+        Returns True if a client was successfully built.
+        """
+        if not GOOGLE_ADS_SDK_AVAILABLE:
+            return False
+
+        dev_token = os.getenv("GOOGLE_ADS_DEVELOPER_TOKEN", "")
+        client_id = os.getenv("GOOGLE_ADS_CLIENT_ID", "") or os.getenv("GOOGLE_CLIENT_ID", "")
+        client_secret = os.getenv("GOOGLE_ADS_CLIENT_SECRET", "") or os.getenv("GOOGLE_CLIENT_SECRET", "")
+        login_customer_id = os.getenv("GOOGLE_ADS_LOGIN_CUSTOMER_ID", "")
+
+        if not (dev_token and client_id and client_secret and refresh_token):
+            return False
+
+        try:
+            config = {
+                "developer_token": dev_token,
+                "client_id": client_id,
+                "client_secret": client_secret,
+                "refresh_token": refresh_token,
+                "use_proto_plus": True,
+            }
+            if login_customer_id:
+                config["login_customer_id"] = login_customer_id
+
+            self.client = GoogleAdsClient.load_from_dict(config)
+            logger.info("Google Ads client built with per-doctor refresh token")
+            return True
+        except Exception as exc:
+            logger.error("Failed to build per-doctor Google Ads client: %s", exc)
+            return False
 
     # ------------------------------------------------------------------
     # PUBLIC: high-level methods used by the rest of the app
