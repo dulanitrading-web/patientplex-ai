@@ -207,6 +207,13 @@ async def meta_ads_connect(
             detail="Meta Ads is not configured yet. The server needs META_APP_ID and META_APP_SECRET set in environment variables. Please create a Meta App at developers.facebook.com and add the credentials to Render.",
         )
 
+    # Validate Meta App ID is numeric (Facebook App IDs are always numbers)
+    if not settings.META_APP_ID.strip().isdigit():
+        raise HTTPException(
+            status_code=400,
+            detail=f"META_APP_ID appears invalid (must be a numeric Facebook App ID). Current value starts with: {settings.META_APP_ID[:6]}... — Please check at developers.facebook.com → Your App → Settings → Basic.",
+        )
+
     redirect_uri = f"{BACKEND_BASE}/api/v1/integrations/meta-ads/callback"
     state = _create_oauth_state("meta_ads", str(doctor.id))
     params = {
