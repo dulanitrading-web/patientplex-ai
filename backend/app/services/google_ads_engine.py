@@ -678,9 +678,10 @@ class GoogleAdsEngine:
             "developer-token": self._rest_developer_token,
             "Content-Type": "application/json",
         }
-        login_cid = os.getenv("GOOGLE_ADS_LOGIN_CUSTOMER_ID", "")
-        if login_cid:
-            headers["login-customer-id"] = login_cid.replace("-", "")
+        # NOTE: When using per-doctor OAuth (REST path with _rest_access_token),
+        # do NOT include login-customer-id. The doctor's own token already has
+        # direct access to their customer account. Including an MCC login-customer-id
+        # when the doctor isn't an MCC client causes PERMISSION_DENIED errors.
 
         logger.info("Google Ads REST: calling searchStream for customer %s", customer_id)
 

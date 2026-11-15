@@ -107,12 +107,12 @@ async def get_google_ads_customer_ids(access_token: str) -> list[dict]:
             "Authorization": f"Bearer {access_token}",
             "developer-token": settings.GOOGLE_ADS_DEVELOPER_TOKEN,
         }
-        if settings.GOOGLE_ADS_LOGIN_CUSTOMER_ID:
-            headers["login-customer-id"] = settings.GOOGLE_ADS_LOGIN_CUSTOMER_ID.replace("-", "")
+        # NOTE: Do NOT include login-customer-id for listAccessibleCustomers.
+        # This endpoint uses the OAuth user's own access and doesn't need MCC context.
+        # Including an MCC login-customer-id when the user isn't an MCC client causes 403.
 
-        logger.info("Listing accessible customers with dev-token=%s..., login-cid=%s",
-                     settings.GOOGLE_ADS_DEVELOPER_TOKEN[:6] if settings.GOOGLE_ADS_DEVELOPER_TOKEN else "NONE",
-                     headers.get("login-customer-id", "NONE"))
+        logger.info("Listing accessible customers with dev-token=%s...",
+                     settings.GOOGLE_ADS_DEVELOPER_TOKEN[:6] if settings.GOOGLE_ADS_DEVELOPER_TOKEN else "NONE")
 
         async with httpx.AsyncClient() as client:
             resp = await client.get(api_url, headers=headers, timeout=15)
