@@ -78,6 +78,7 @@ export default function SettingsPage() {
   const [integrations, setIntegrations] = useState<Record<string, IntegrationInfo> | null>(null);
   const [loading, setLoading] = useState(true);
   const [importingCampaigns, setImportingCampaigns] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
   const [provisioningTwilio, setProvisioningTwilio] = useState(false);
 
   useEffect(() => {
@@ -154,6 +155,14 @@ export default function SettingsPage() {
       {/* Integration Status */}
       <div className="bg-white rounded-xl border border-slate-200 p-5">
         <SectionHeader icon={<Link2 className="w-5 h-5 text-violet-600" />} title="Integration Status" />
+
+        {statusMessage && (
+          <div className={`mt-3 p-3 rounded-lg text-sm ${statusMessage.type === "success" ? "bg-green-50 text-green-800 border border-green-200" : "bg-red-50 text-red-800 border border-red-200"}`}>
+            {statusMessage.text}
+            <button onClick={() => setStatusMessage(null)} className="ml-2 text-xs underline">Dismiss</button>
+          </div>
+        )}
+
         <div className="space-y-3 mt-4">
           <IntegrationRow
             icon={<Calendar className="w-4 h-4" />}
@@ -179,9 +188,12 @@ export default function SettingsPage() {
             onConnect={async () => {
               try {
                 const result = await verifyWhatsApp();
-                alert(result.message || result.detail || "Verification sent!");
-                window.location.reload();
-              } catch { alert("WhatsApp verification failed"); }
+                setStatusMessage({ text: result.message || result.detail || "Verification sent!", type: "success" });
+                setTimeout(() => window.location.reload(), 2000);
+              } catch (err: unknown) {
+                const msg = err instanceof Error ? err.message : "WhatsApp verification failed";
+                setStatusMessage({ text: msg, type: "error" });
+              }
             }}
             connectLabel="Verify"
           />
@@ -211,11 +223,15 @@ export default function SettingsPage() {
                   setImportingCampaigns(true);
                   try {
                     const result = await importGoogleAdsCampaigns();
-                    alert(result.message || `Imported ${result.imported} campaigns`);
-                    window.location.reload();
+                    if (result.status === "success") {
+                      setStatusMessage({ text: result.message || `Imported ${result.imported} campaigns`, type: "success" });
+                      setTimeout(() => window.location.reload(), 2000);
+                    } else {
+                      setStatusMessage({ text: result.message || "Import failed — check integration setup", type: "error" });
+                    }
                   } catch (err: unknown) {
                     const msg = err instanceof Error ? err.message : "Failed to import campaigns";
-                    alert(msg);
+                    setStatusMessage({ text: msg, type: "error" });
                   }
                   finally { setImportingCampaigns(false); }
                 }}
@@ -276,11 +292,15 @@ export default function SettingsPage() {
                   setProvisioningTwilio(true);
                   try {
                     const result = await provisionTwilioNumber();
-                    alert(result.message || `Number: ${result.phone_number}`);
-                    window.location.reload();
+                    if (result.status === "success") {
+                      setStatusMessage({ text: result.message || `Number: ${result.phone_number}`, type: "success" });
+                      setTimeout(() => window.location.reload(), 2000);
+                    } else {
+                      setStatusMessage({ text: result.message || "Provisioning failed", type: "error" });
+                    }
                   } catch (err: unknown) {
                     const msg = err instanceof Error ? err.message : "Failed to provision Twilio number";
-                    alert(msg);
+                    setStatusMessage({ text: msg, type: "error" });
                   }
                   finally { setProvisioningTwilio(false); }
                 }}

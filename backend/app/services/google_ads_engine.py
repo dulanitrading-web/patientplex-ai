@@ -691,6 +691,28 @@ class GoogleAdsEngine:
                 if resp.status_code != 200:
                     error_body = resp.text
                     logger.error("Google Ads REST error %s: %s", resp.status_code, error_body[:500])
+
+                    # Detect specific known errors and return helpful messages
+                    if "CLOUD_PROJECT_NOT_APPROVED_FOR_PRODUCTION" in error_body:
+                        return {
+                            "status": "error",
+                            "message": (
+                                "Google Ads API developer token needs production approval. "
+                                "The Google Cloud project is in test mode and can only access test accounts. "
+                                "To fix: 1) Create a Google Ads Manager (MCC) account, "
+                                "2) Link your clinic's Google Ads account to it, "
+                                "3) Add the clinic as a test account in the MCC's API Center, "
+                                "OR apply for Standard API access at ads.google.com/aw/apicenter."
+                            ),
+                        }
+                    if "USER_PERMISSION_DENIED" in error_body:
+                        return {
+                            "status": "error",
+                            "message": (
+                                "Permission denied accessing this Google Ads account. "
+                                "Please disconnect and reconnect Google Ads to refresh your access."
+                            ),
+                        }
                     return {"status": "error", "message": f"Google Ads API error {resp.status_code}: {error_body[:200]}"}
                 data = resp.json()
 
