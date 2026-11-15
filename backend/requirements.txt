@@ -40,6 +40,9 @@ razorpay>=1.4.0,<2.0.0
 # ML / Data
 numpy>=1.26.0,<2.0.0
 
+# Sync DB driver (for Alembic migrations)
+psycopg2-binary>=2.9.0,<3.0.0
+
 # Dev tools (not installed in production Docker image)
 # ruff>=0.4.0   # Linting
 # mypy>=1.10.0  # Type checking
