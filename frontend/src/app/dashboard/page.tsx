@@ -18,6 +18,8 @@ import {
   CheckCircle2,
   Clock,
   XCircle,
+  AlertTriangle,
+  Circle,
 } from "lucide-react";
 import {
   getMe,
@@ -146,57 +148,67 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* Greeting */}
+      {/* Greeting + Last Updated */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
+        className="flex items-end justify-between"
       >
-        <h1 className="text-2xl font-bold text-slate-900">
-          {greeting}, {doctor?.full_name?.split(" ")[0] || "Doctor"}
-        </h1>
-        <p className="text-sm text-slate-600 mt-0.5">{dateStr}</p>
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">
+            {greeting}, {doctor?.full_name?.split(" ")[0] || "Doctor"}
+          </h1>
+          <p className="text-sm text-slate-600 mt-0.5">{dateStr}</p>
+        </div>
+        <p className="text-xs text-slate-400">
+          Updated {lastUpdated.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
+        </p>
       </motion.div>
 
-      {/* Launch CTA */}
-      {!hasCampaigns && (
+      {/* Welcome Checklist — shows until setup is complete */}
+      <WelcomeChecklist
+        hasCampaigns={hasCampaigns}
+        integrations={integrations}
+        onLaunch={handleLaunch}
+        launching={launching}
+      />
+
+      {/* Conversion Tracking Warning */}
+      {hasCampaigns && (campaignOverview?.total_conversions || 0) === 0 && (campaignOverview?.total_spend || 0) > 0 && (
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="relative rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-500/[0.08] to-cyan-500/[0.04] p-6 overflow-hidden group"
-          style={{ boxShadow: "0 0 40px rgba(16,185,129,0.06)" }}
+          className="flex items-center gap-3 p-4 rounded-xl border border-amber-200 bg-amber-50"
         >
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_right,rgba(16,185,129,0.08),transparent_60%)]" />
-          <div className="absolute -top-20 -right-20 w-40 h-40 bg-emerald-50 rounded-full blur-3xl group-hover:bg-emerald-500/15 transition-colors duration-700" />
-          <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                <Zap className="w-6 h-6 text-emerald-600" /> Ready to get patients?
-              </h2>
-              <p className="text-slate-500 mt-1">
-                Launch AI-powered campaigns on Google & Meta to start getting patient enquiries.
-              </p>
-            </div>
-            <button
-              onClick={handleLaunch}
-              disabled={launching}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-500 hover:bg-slate-800 text-[#0A0E1A] font-semibold text-sm transition-all whitespace-nowrap disabled:opacity-50 hover:shadow-lg hover:shadow-emerald-500/20"
-            >
-              {launching ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-              Launch Campaigns <ArrowRight className="w-4 h-4" />
-            </button>
+          <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-amber-800">No conversions tracked yet</p>
+            <p className="text-xs text-amber-600 mt-0.5">
+              You{"'"}re spending on ads but no patient enquiries are being tracked.{" "}
+              <Link href="/dashboard/settings" className="underline font-medium">Set up conversion tracking in Settings</Link> to see your real ROI.
+            </p>
           </div>
         </motion.div>
       )}
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* KPI Cards — Doctor-friendly labels */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {[
-          { icon: <Eye className="w-5 h-5" />, label: "Impressions", value: fmt(campaignOverview?.total_impressions || 0), color: "cyan" as const, sub: undefined, trend: undefined },
-          { icon: <MousePointerClick className="w-5 h-5" />, label: "Clicks", value: fmt(campaignOverview?.total_clicks || 0), color: "emerald" as const, sub: `₹${campaignOverview?.avg_cpc?.toFixed(1) || "0"} avg CPC`, trend: "down" as const },
+          { icon: <Eye className="w-5 h-5" />, label: "People Reached", value: fmt(campaignOverview?.total_impressions || 0), color: "cyan" as const, sub: `${campaignOverview?.avg_ctr?.toFixed(1) || "0"}% clicked`, trend: undefined },
+          { icon: <MousePointerClick className="w-5 h-5" />, label: "Website Visitors", value: fmt(campaignOverview?.total_clicks || 0), color: "emerald" as const, sub: `₹${campaignOverview?.avg_cpc?.toFixed(1) || "0"} per visitor`, trend: undefined },
           { icon: <MessageCircle className="w-5 h-5" />, label: "Enquiries", value: fmt(campaignOverview?.total_conversions || 0), color: "violet" as const, sub: undefined, trend: undefined },
           { icon: <Calendar className="w-5 h-5" />, label: "Appointments", value: fmt(appointmentStats?.total_booked || 0), color: "amber" as const, sub: `${appointmentStats?.attendance_rate || 0}% attended`, trend: "up" as const },
+          {
+            icon: <IndianRupee className="w-5 h-5" />,
+            label: "Cost per Patient",
+            value: (campaignOverview?.total_conversions || 0) > 0
+              ? `₹${Math.round((campaignOverview?.total_spend || 0) / (campaignOverview?.total_conversions || 1))}`
+              : "—",
+            color: "emerald" as const,
+            sub: (campaignOverview?.total_spend || 0) > 0 ? `₹${fmt(campaignOverview?.total_spend || 0)} total spend` : undefined,
+            trend: undefined,
+          },
         ].map((m, i) => (
           <motion.div
             key={m.label}
@@ -437,4 +449,106 @@ function fmt(n: number): string {
   if (n >= 100000) return (n / 100000).toFixed(1) + "L";
   if (n >= 1000) return (n / 1000).toFixed(1) + "K";
   return n.toString();
+}
+
+/* ---------- Welcome Checklist ---------- */
+
+function WelcomeChecklist({
+  hasCampaigns,
+  integrations,
+  onLaunch,
+  launching,
+}: {
+  hasCampaigns: boolean;
+  integrations: Record<string, { status: string }> | null;
+  onLaunch: () => void;
+  launching: boolean;
+}) {
+  const googleAdsOk = integrations?.google_ads?.status === "connected";
+  const calendarOk = integrations?.google_calendar?.status === "connected";
+  const whatsappOk = integrations?.whatsapp?.status === "connected";
+
+  const steps = [
+    { label: "Create your account", done: true, href: undefined as string | undefined },
+    { label: "Connect Google Ads", done: googleAdsOk, href: "/dashboard/settings" },
+    { label: "Connect Google Calendar", done: calendarOk, href: "/dashboard/settings" },
+    { label: "Set up WhatsApp", done: whatsappOk, href: "/dashboard/settings" },
+    { label: "Launch your first campaign", done: hasCampaigns, href: "/dashboard/campaigns" },
+  ];
+
+  const completed = steps.filter((s) => s.done).length;
+  const allDone = completed === steps.length;
+
+  // Hide checklist once everything is set up
+  if (allDone) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.1 }}
+      className="relative rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-500/[0.08] to-cyan-500/[0.04] p-6 overflow-hidden"
+    >
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_right,rgba(16,185,129,0.08),transparent_60%)]" />
+      <div className="relative">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Zap className="w-5 h-5 text-emerald-600" /> Get started with PatientPlex
+            </h2>
+            <p className="text-sm text-slate-500 mt-0.5">
+              {completed} of {steps.length} steps completed
+            </p>
+          </div>
+          {/* Progress circle */}
+          <div className="relative w-12 h-12">
+            <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
+              <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                fill="none" stroke="#e2e8f0" strokeWidth="3" />
+              <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                fill="none" stroke="#10b981" strokeWidth="3"
+                strokeDasharray={`${(completed / steps.length) * 100}, 100`} strokeLinecap="round" />
+            </svg>
+            <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-slate-700">
+              {Math.round((completed / steps.length) * 100)}%
+            </span>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          {steps.map((step) => (
+            <div key={step.label} className="flex items-center gap-3">
+              {step.done ? (
+                <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+              ) : (
+                <Circle className="w-5 h-5 text-slate-300 flex-shrink-0" />
+              )}
+              {step.href && !step.done ? (
+                <Link href={step.href} className="text-sm text-emerald-600 hover:text-emerald-700 font-medium">
+                  {step.label} <ArrowRight className="w-3 h-3 inline ml-0.5" />
+                </Link>
+              ) : (
+                <span className={`text-sm ${step.done ? "text-slate-400 line-through" : "text-slate-700"}`}>
+                  {step.label}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {!hasCampaigns && googleAdsOk && (
+          <div className="mt-4 pt-4 border-t border-emerald-200/50">
+            <button
+              onClick={onLaunch}
+              disabled={launching}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-sm transition-all whitespace-nowrap disabled:opacity-50"
+            >
+              {launching ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+              Launch Campaigns <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
 }

@@ -14,6 +14,9 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
+  Pencil,
+  Save,
+  Info,
 } from "lucide-react";
 import {
   getMe,
@@ -27,6 +30,7 @@ import {
   verifyWhatsApp,
   importGoogleAdsCampaigns,
   provisionTwilioNumber,
+  updateProfile,
 } from "@/lib/api";
 
 interface DoctorProfile {
@@ -80,6 +84,16 @@ export default function SettingsPage() {
   const [importingCampaigns, setImportingCampaigns] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
   const [provisioningTwilio, setProvisioningTwilio] = useState(false);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState({
+    full_name: "",
+    phone: "",
+    clinic_name: "",
+    city: "",
+    state: "",
+    pincode: "",
+  });
 
   useEffect(() => {
     async function load() {
@@ -118,14 +132,76 @@ export default function SettingsPage() {
 
       {/* Profile Section */}
       <div className="bg-white rounded-xl border border-slate-200 p-5">
-        <SectionHeader icon={<User className="w-5 h-5 text-emerald-600" />} title="Profile" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-          <InfoField label="Full Name" value={doctor?.full_name} />
-          <InfoField label="Email" value={doctor?.email} />
-          <InfoField label="Phone" value={doctor?.phone} />
-          <InfoField label="Member Since" value={doctor?.created_at ? new Date(doctor.created_at).toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" }) : undefined} />
+        <div className="flex items-center justify-between">
+          <SectionHeader icon={<User className="w-5 h-5 text-emerald-600" />} title="Profile" />
+          {!editingProfile ? (
+            <button
+              onClick={() => {
+                setProfileForm({
+                  full_name: doctor?.full_name || "",
+                  phone: doctor?.phone || "",
+                  clinic_name: doctor?.clinic_name || "",
+                  city: doctor?.city || "",
+                  state: doctor?.state || "",
+                  pincode: doctor?.pincode || "",
+                });
+                setEditingProfile(true);
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+            >
+              <Pencil className="w-3.5 h-3.5" /> Edit Profile
+            </button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setEditingProfile(false)}
+                className="px-3 py-1.5 text-xs font-medium text-slate-500 hover:bg-slate-100 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={savingProfile}
+                onClick={async () => {
+                  setSavingProfile(true);
+                  try {
+                    const updated = await updateProfile(profileForm);
+                    setDoctor(updated);
+                    setEditingProfile(false);
+                    setStatusMessage({ text: "Profile updated successfully!", type: "success" });
+                  } catch (err: unknown) {
+                    const msg = err instanceof Error ? err.message : "Failed to update profile";
+                    setStatusMessage({ text: msg, type: "error" });
+                  } finally {
+                    setSavingProfile(false);
+                  }
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-emerald-500 text-white hover:bg-emerald-600 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {savingProfile ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                Save Changes
+              </button>
+            </div>
+          )}
         </div>
-        <p className="text-xs text-slate-600 mt-4">Profile editing is not available yet. Contact support to update your details.</p>
+        {editingProfile ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+            <EditField label="Full Name" value={profileForm.full_name} onChange={(v) => setProfileForm({ ...profileForm, full_name: v })} />
+            <InfoField label="Email" value={doctor?.email} />
+            <EditField label="Phone" value={profileForm.phone} onChange={(v) => setProfileForm({ ...profileForm, phone: v })} placeholder="10-digit mobile number" />
+            <InfoField label="Member Since" value={doctor?.created_at ? new Date(doctor.created_at).toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" }) : undefined} />
+            <EditField label="Clinic Name" value={profileForm.clinic_name} onChange={(v) => setProfileForm({ ...profileForm, clinic_name: v })} />
+            <EditField label="City" value={profileForm.city} onChange={(v) => setProfileForm({ ...profileForm, city: v })} />
+            <EditField label="State" value={profileForm.state} onChange={(v) => setProfileForm({ ...profileForm, state: v })} />
+            <EditField label="Pincode" value={profileForm.pincode} onChange={(v) => setProfileForm({ ...profileForm, pincode: v })} />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+            <InfoField label="Full Name" value={doctor?.full_name} />
+            <InfoField label="Email" value={doctor?.email} />
+            <InfoField label="Phone" value={doctor?.phone} />
+            <InfoField label="Member Since" value={doctor?.created_at ? new Date(doctor.created_at).toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" }) : undefined} />
+          </div>
+        )}
       </div>
 
       {/* Clinic Details */}
@@ -180,6 +256,14 @@ export default function SettingsPage() {
               }
             }}
           />
+          {mapIntegrationStatus(integrations?.google_calendar?.status) !== "connected" && (
+            <div className="flex items-start gap-2 ml-7 -mt-1 mb-2">
+              <Info className="w-3 h-3 text-slate-400 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-slate-400 italic">
+                After clicking Connect, if you see {"“"}Google hasn{"'"}t verified this app{"”"}, click <strong>Advanced</strong> {"→"} <strong>Go to PatientPlex</strong> {"→"} <strong>Allow</strong>
+              </p>
+            </div>
+          )}
           <IntegrationRow
             icon={<MessageCircle className="w-4 h-4" />}
             name="WhatsApp"
@@ -363,6 +447,23 @@ function InfoField({ label, value, className }: { label: string; value?: string 
     <div className={className}>
       <label className="block text-sm font-medium text-slate-600">{label}</label>
       <p className="mt-0.5 text-sm text-slate-800">{value || <span className="text-slate-600">Not set</span>}</p>
+    </div>
+  );
+}
+
+function EditField({ label, value, onChange, placeholder }: {
+  label: string; value: string; onChange: (v: string) => void; placeholder?: string;
+}) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-slate-600 mb-1">{label}</label>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 text-slate-800"
+      />
     </div>
   );
 }
