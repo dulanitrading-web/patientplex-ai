@@ -1,8 +1,12 @@
 """Google Calendar integration for reading availability and booking appointments."""
 
 import logging
+import os
 import time
 from datetime import datetime, timedelta, timezone
+
+# Allow Google OAuth to return additional scopes (e.g. adwords) without error
+os.environ.setdefault("OAUTHLIB_RELAX_TOKEN_SCOPE", "1")
 
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
@@ -94,7 +98,6 @@ class GoogleCalendarService:
         flow = self._get_flow()
         auth_url, _ = flow.authorization_url(
             access_type="offline",
-            include_granted_scopes="true",
             prompt="consent",
             state=doctor_id,
         )
