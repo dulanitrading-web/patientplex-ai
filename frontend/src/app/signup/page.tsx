@@ -102,7 +102,7 @@ export default function SignupPage() {
           </div>
 
           {apiError && (
-            <div className="bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg px-4 py-3 mb-6 text-sm">
+            <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 mb-6 text-sm">
               {apiError}
             </div>
           )}
@@ -117,7 +117,7 @@ export default function SignupPage() {
                 onChange={(e) => update("full_name", e.target.value)}
                 className={inputClass}
               />
-              {errors.full_name && <p className="text-red-400 text-xs mt-1.5">{errors.full_name}</p>}
+              {errors.full_name && <p className="text-red-500 text-xs mt-1.5">{errors.full_name}</p>}
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -130,7 +130,7 @@ export default function SignupPage() {
                   onChange={(e) => update("email", e.target.value)}
                   className={inputClass}
                 />
-                {errors.email && <p className="text-red-400 text-xs mt-1.5">{errors.email}</p>}
+                {errors.email && <p className="text-red-500 text-xs mt-1.5">{errors.email}</p>}
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">Phone</label>
@@ -141,7 +141,7 @@ export default function SignupPage() {
                   onChange={(e) => update("phone", e.target.value)}
                   className={inputClass}
                 />
-                {errors.phone && <p className="text-red-400 text-xs mt-1.5">{errors.phone}</p>}
+                {errors.phone && <p className="text-red-500 text-xs mt-1.5">{errors.phone}</p>}
               </div>
             </div>
 
@@ -154,7 +154,7 @@ export default function SignupPage() {
                 onChange={(e) => update("password", e.target.value)}
                 className={inputClass}
               />
-              {errors.password && <p className="text-red-400 text-xs mt-1.5">{errors.password}</p>}
+              {errors.password && <p className="text-red-500 text-xs mt-1.5">{errors.password}</p>}
             </div>
 
             <div>
@@ -166,7 +166,7 @@ export default function SignupPage() {
                 onChange={(e) => update("confirm_password", e.target.value)}
                 className={inputClass}
               />
-              {errors.confirm_password && <p className="text-red-400 text-xs mt-1.5">{errors.confirm_password}</p>}
+              {errors.confirm_password && <p className="text-red-500 text-xs mt-1.5">{errors.confirm_password}</p>}
             </div>
 
             <button
