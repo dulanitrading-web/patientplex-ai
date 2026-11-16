@@ -28,6 +28,7 @@ import {
   getAppointmentStats,
   getIntegrationStatus,
   launchCampaigns,
+  getAIIntelligence,
 } from "@/lib/api";
 
 interface DoctorProfile {
@@ -90,6 +91,7 @@ export default function DashboardPage() {
   const [appointmentStats, setAppointmentStats] = useState<AppointmentStats | null>(null);
   const [todayAppts, setTodayAppts] = useState<TodayAppointment[]>([]);
   const [integrations, setIntegrations] = useState<Record<string, { status: string }> | null>(null);
+  const [aiInsights, setAiInsights] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [launching, setLaunching] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
@@ -106,18 +108,20 @@ export default function DashboardPage() {
 
   async function loadDashboard() {
     try {
-      const [profile, campaigns, stats, today, intRes] = await Promise.allSettled([
+      const [profile, campaigns, stats, today, intRes, aiRes] = await Promise.allSettled([
         getMe(),
         getCampaignOverview(),
         getAppointmentStats(30),
         getTodayAppointments(),
         getIntegrationStatus(),
+        getAIIntelligence(),
       ]);
       if (profile.status === "fulfilled") setDoctor(profile.value);
       if (campaigns.status === "fulfilled") setCampaignOverview(campaigns.value);
       if (stats.status === "fulfilled") setAppointmentStats(stats.value);
       if (today.status === "fulfilled") setTodayAppts(today.value.appointments || []);
       if (intRes.status === "fulfilled") setIntegrations(intRes.value);
+      if (aiRes.status === "fulfilled") setAiInsights(aiRes.value);
       setLastUpdated(new Date());
     } catch {
       /* use defaults */
@@ -195,20 +199,43 @@ export default function DashboardPage() {
       {/* KPI Cards — Doctor-friendly labels */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {[
-          { icon: <Eye className="w-5 h-5" />, label: "People Reached", value: fmt(campaignOverview?.total_impressions || 0), color: "cyan" as const, sub: `${campaignOverview?.avg_ctr?.toFixed(1) || "0"}% clicked`, trend: undefined },
-          { icon: <MousePointerClick className="w-5 h-5" />, label: "Website Visitors", value: fmt(campaignOverview?.total_clicks || 0), color: "emerald" as const, sub: `₹${campaignOverview?.avg_cpc?.toFixed(1) || "0"} per visitor`, trend: undefined },
-          { icon: <MessageCircle className="w-5 h-5" />, label: "Enquiries", value: fmt(campaignOverview?.total_conversions || 0), color: "violet" as const, sub: undefined, trend: undefined },
-          { icon: <Calendar className="w-5 h-5" />, label: "Appointments", value: fmt(appointmentStats?.total_booked || 0), color: "amber" as const, sub: `${appointmentStats?.attendance_rate || 0}% attended`, trend: "up" as const },
-          {
-            icon: <IndianRupee className="w-5 h-5" />,
-            label: "Cost per Patient",
-            value: (campaignOverview?.total_conversions || 0) > 0
-              ? `₹${Math.round((campaignOverview?.total_spend || 0) / (campaignOverview?.total_conversions || 1))}`
-              : "—",
-            color: "emerald" as const,
-            sub: (campaignOverview?.total_spend || 0) > 0 ? `₹${fmt(campaignOverview?.total_spend || 0)} total spend` : undefined,
-            trend: undefined,
-          },
+          { icon: <Eye className="w-5 h-5" />, label: "People Reached", value: fmt(campaignOverview?.total_impressions || 0), color: "cyan" as const, sub: `${(campaignOverview?.avg_ctr ?? 0).toFixed(1)}% clicked`, trend: undefined },
+          { icon: <MousePointerClick className="w-5 h-5" />, label: "Website Visitors", value: fmt(campaignOverview?.total_clicks || 0), color: "emerald" as const, sub: `₹${(campaignOverview?.avg_cpc ?? 0).toFixed(1)} per visitor`, trend: undefined },
+          { icon: <MessageCircle className="w-5 h-5" />, label: "Enquiries", value: fmt(campaignOverview?.total_conversions || 0), color: "violet" as const, sub: (campaignOverview?.total_conversions || 0) > 0 ? `${Math.round(((campaignOverview?.total_conversions || 0) / Math.max(campaignOverview?.total_clicks || 1, 1)) * 100)}% of visitors` : undefined, trend: undefined },
+          { icon: <Calendar className="w-5 h-5" />, label: "Appointments", value: fmt(appointmentStats?.total_booked || 0), color: "amber" as const, sub: (appointmentStats?.total_booked || 0) > 0 ? `${appointmentStats?.attendance_rate || 0}% attended` : "Set up booking tracking", trend: undefined },
+          (() => {
+            const spend = campaignOverview?.total_spend || 0;
+            const enquiries = campaignOverview?.total_conversions || 0;
+            const booked = appointmentStats?.total_booked || 0;
+            if (booked > 0) {
+              return {
+                icon: <IndianRupee className="w-5 h-5" />,
+                label: "Cost per Patient",
+                value: `₹${fmt(Math.round(spend / booked))}`,
+                color: "emerald" as const,
+                sub: `${booked} patients from ₹${fmt(spend)} spend`,
+                trend: undefined,
+              };
+            }
+            if (enquiries > 0) {
+              return {
+                icon: <IndianRupee className="w-5 h-5" />,
+                label: "Cost per Enquiry",
+                value: `₹${fmt(Math.round(spend / enquiries))}`,
+                color: "emerald" as const,
+                sub: "Track bookings for cost per patient",
+                trend: undefined,
+              };
+            }
+            return {
+              icon: <IndianRupee className="w-5 h-5" />,
+              label: "Cost per Enquiry",
+              value: "—",
+              color: "emerald" as const,
+              sub: spend > 0 ? `₹${fmt(spend)} spent` : undefined,
+              trend: undefined,
+            };
+          })(),
         ].map((m, i) => (
           <motion.div
             key={m.label}
@@ -234,8 +261,11 @@ export default function DashboardPage() {
           </h3>
           <div className="text-3xl font-bold text-slate-900 tabular-nums">₹{fmt(campaignOverview?.total_spend || 0)}</div>
           <div className="mt-2 text-sm text-slate-600">
-            Cost per patient: ₹{appointmentStats?.attended
-              ? Math.round((campaignOverview?.total_spend || 0) / appointmentStats.attended) : "—"}
+            {appointmentStats?.attended
+              ? `Cost per patient: ₹${fmt(Math.round((campaignOverview?.total_spend || 0) / appointmentStats.attended))}`
+              : (campaignOverview?.total_conversions || 0) > 0
+                ? `Cost per enquiry: ₹${fmt(Math.round((campaignOverview?.total_spend || 0) / (campaignOverview?.total_conversions || 1)))}`
+                : "No conversion data yet"}
           </div>
           <div className="mt-4">
             <Link href="/dashboard/campaigns"
@@ -264,8 +294,79 @@ export default function DashboardPage() {
             <FunnelRow label="Attended" value={appointmentStats?.attended || 0}
               total={campaignOverview?.total_clicks || 1} color="bg-emerald-400" />
           </div>
+          {/* Booking tracking warning */}
+          {(campaignOverview?.total_conversions || 0) > 0 && (appointmentStats?.total_booked || 0) === 0 && (
+            <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-50 border border-amber-200">
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
+              <p className="text-xs text-amber-700">
+                Booking tracking not connected yet.{" "}
+                <Link href="/dashboard/settings" className="underline font-medium">Connect</Link> to see the full patient funnel.
+              </p>
+            </div>
+          )}
         </motion.div>
       </div>
+
+      {/* AI Insights */}
+      {aiInsights && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.58 }}
+          className="bg-white rounded-xl p-5 border border-slate-200"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-slate-900 flex items-center gap-2">
+              <Zap className="w-5 h-5 text-violet-500" /> AI Insights
+            </h3>
+            {aiInsights.account_health && (
+              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${
+                aiInsights.account_health.grade === "A" ? "bg-emerald-50 text-emerald-700" :
+                aiInsights.account_health.grade === "B" ? "bg-cyan-50 text-cyan-700" :
+                aiInsights.account_health.grade === "C" ? "bg-amber-50 text-amber-700" :
+                aiInsights.account_health.grade === "D" ? "bg-orange-50 text-orange-700" :
+                "bg-red-50 text-red-700"
+              }`}>
+                Health: {aiInsights.account_health.grade} ({aiInsights.account_health.score}/100)
+              </span>
+            )}
+          </div>
+
+          {/* Top actions */}
+          {aiInsights.next_actions && aiInsights.next_actions.length > 0 && (
+            <div className="space-y-2">
+              {aiInsights.next_actions.slice(0, 3).map((action: any, i: number) => (
+                <div key={i} className="flex items-start gap-2.5 p-2.5 rounded-lg bg-slate-50">
+                  <span className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                    action.severity === "CRITICAL" ? "bg-red-100 text-red-700" :
+                    action.severity === "HIGH" ? "bg-amber-100 text-amber-700" :
+                    "bg-slate-200 text-slate-600"
+                  }`}>{i + 1}</span>
+                  <p className="text-sm text-slate-700">{action.action}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Wins */}
+          {aiInsights.account_health?.wins?.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {aiInsights.account_health.wins.map((win: string, i: number) => (
+                <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700">
+                  <CheckCircle2 className="w-3 h-3" /> {win}
+                </span>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-4">
+            <Link href="/dashboard/campaigns"
+              className="group/link inline-flex items-center gap-1.5 text-sm text-violet-600 hover:text-violet-700 transition-colors">
+              View full analysis <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-0.5 transition-transform" />
+            </Link>
+          </div>
+        </motion.div>
+      )}
 
       {/* Today + Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
