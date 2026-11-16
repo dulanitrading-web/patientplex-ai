@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, FormEvent } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect, FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import { login as apiLogin, ApiError } from "@/lib/api";
@@ -10,9 +10,14 @@ import Logo from "@/components/Logo";
 
 export default function LoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const sessionExpired = searchParams.get("expired") === "1";
   const { login: authLogin } = useAuth();
+  const [sessionExpired, setSessionExpired] = useState(false);
+
+  useEffect(() => {
+    // Check URL for expired param without useSearchParams (avoids Suspense requirement)
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("expired") === "1") setSessionExpired(true);
+  }, []);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
