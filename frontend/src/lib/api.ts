@@ -345,11 +345,32 @@ export async function verifyRazorpayPayment(data: {
   return res.json();
 }
 
+// Profile update
+export async function updateProfile(data: {
+  full_name?: string;
+  phone?: string;
+  clinic_name?: string;
+  clinic_address?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
+  services?: string[];
+  monthly_budget?: number;
+}) {
+  const res = await fetchWithAuth("/auth/profile", {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+
 // Password Reset
 export async function requestPasswordReset(email: string) {
-  // TODO: Backend endpoint /api/v1/auth/forgot-password needs implementation
-  // For now, always return success to prevent email enumeration
-  return { message: "If an account exists, you'll receive a reset link." };
+  const res = await fetchWithAuth("/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+  return res.json();
 }
 
 export { ApiError };

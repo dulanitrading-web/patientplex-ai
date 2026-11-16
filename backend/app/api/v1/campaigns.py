@@ -1,5 +1,6 @@
 """Campaign management endpoints — create, monitor, and optimize ad campaigns."""
 
+from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -312,6 +313,14 @@ async def campaign_overview(
     total_conversions = sum(c.conversions for c in campaigns)
     active_count = sum(1 for c in campaigns if c.status == CampaignStatus.ACTIVE)
 
+    # Doctor-friendly metrics
+    avg_treatment_value = 5000  # ₹5,000 average treatment value (configurable later)
+    cost_per_patient = round(total_spend / total_conversions, 2) if total_conversions else None
+    estimated_revenue = total_conversions * avg_treatment_value if total_conversions else 0
+    roi_percent = round(
+        ((estimated_revenue - total_spend) / total_spend) * 100, 1
+    ) if total_spend > 0 and estimated_revenue > 0 else None
+
     return {
         "total_campaigns": len(campaigns),
         "active_campaigns": active_count,
@@ -322,6 +331,51 @@ async def campaign_overview(
         "avg_cpc": round(total_spend / total_clicks, 2) if total_clicks else 0,
         "avg_ctr": round(total_clicks / total_impressions * 100, 2) if total_impressions else 0,
         "cost_per_conversion": round(total_spend / total_conversions, 2) if total_conversions else 0,
+        # Doctor-friendly metrics
+        "cost_per_patient": cost_per_patient,
+        "estimated_revenue": estimated_revenue,
+        "roi_percent": roi_percent,
+    }
+
+
+@router.get("/overview/live")
+async def campaign_overview_live(
+    doctor: Doctor = Depends(get_current_doctor),
+    db: AsyncSession = Depends(get_db),
+):
+    """Same as /overview/stats but includes a refreshed_at timestamp for auto-refresh."""
+    result = await db.execute(
+        select(Campaign).where(Campaign.doctor_id == doctor.id)
+    )
+    campaigns = result.scalars().all()
+
+    total_spend = sum(c.spend for c in campaigns)
+    total_clicks = sum(c.clicks for c in campaigns)
+    total_impressions = sum(c.impressions for c in campaigns)
+    total_conversions = sum(c.conversions for c in campaigns)
+    active_count = sum(1 for c in campaigns if c.status == CampaignStatus.ACTIVE)
+
+    avg_treatment_value = 5000
+    cost_per_patient = round(total_spend / total_conversions, 2) if total_conversions else None
+    estimated_revenue = total_conversions * avg_treatment_value if total_conversions else 0
+    roi_percent = round(
+        ((estimated_revenue - total_spend) / total_spend) * 100, 1
+    ) if total_spend > 0 and estimated_revenue > 0 else None
+
+    return {
+        "total_campaigns": len(campaigns),
+        "active_campaigns": active_count,
+        "total_spend": total_spend,
+        "total_clicks": total_clicks,
+        "total_impressions": total_impressions,
+        "total_conversions": total_conversions,
+        "avg_cpc": round(total_spend / total_clicks, 2) if total_clicks else 0,
+        "avg_ctr": round(total_clicks / total_impressions * 100, 2) if total_impressions else 0,
+        "cost_per_conversion": round(total_spend / total_conversions, 2) if total_conversions else 0,
+        "cost_per_patient": cost_per_patient,
+        "estimated_revenue": estimated_revenue,
+        "roi_percent": roi_percent,
+        "refreshed_at": datetime.now(timezone.utc).isoformat(),
     }
 
 

@@ -1,11 +1,27 @@
 """Pydantic schemas for doctor signup, onboarding, and API responses."""
 
+import re
 from datetime import datetime
+from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from app.models.doctor import Specialty
+
+# Indian mobile: 10 digits starting with 6-9, optionally prefixed with +91 or 91
+_INDIAN_PHONE_RE = re.compile(r"^(?:\+?91)?([6-9]\d{9})$")
+
+
+def _normalize_indian_phone(v: str) -> str:
+    """Validate and normalize an Indian phone number to +91XXXXXXXXXX."""
+    digits = re.sub(r"[\s\-()]+", "", v.strip())
+    m = _INDIAN_PHONE_RE.match(digits)
+    if not m:
+        raise ValueError(
+            "Enter a valid Indian mobile number (10 digits starting with 6-9)"
+        )
+    return f"+91{m.group(1)}"
 
 
 # ---------------------------------------------------------------------------
@@ -20,6 +36,11 @@ class DoctorCreate(BaseModel):
     email: EmailStr
     phone: str = Field(..., min_length=10, max_length=20)
     password: str = Field(..., min_length=8, max_length=128)
+
+    @field_validator("phone")
+    @classmethod
+    def validate_phone(cls, v: str) -> str:
+        return _normalize_indian_phone(v)
 
 
 class DoctorLogin(BaseModel):
@@ -125,3 +146,38 @@ class OnboardingStatusResponse(BaseModel):
         ...,
         description="Completion status of each step: step1_specialty, step2_address, step3_budget, step4_whatsapp, google_calendar",
     )
+
+
+# ---------------------------------------------------------------------------
+# Profile editing & password reset
+# ---------------------------------------------------------------------------
+
+
+class ProfileUpdate(BaseModel):
+    """Partial update to doctor profile. All fields optional."""
+
+    full_name: Optional[str] = Field(default=None, min_length=2, max_length=255)
+    phone: Optional[str] = Field(default=None, min_length=10, max_length=20)
+    clinic_name: Optional[str] = Field(default=None, max_length=255)
+    clinic_address: Optional[str] = Field(default=None, min_length=5)
+    city: Optional[str] = Field(default=None, min_length=2, max_length=100)
+    state: Optional[str] = Field(default=None, min_length=2, max_length=100)
+    pincode: Optional[str] = Field(default=None, min_length=6, max_length=10)
+    services: Optional[list[str]] = None
+    monthly_budget: Optional[int] = Field(default=None, ge=1000)
+
+    @field_validator("phone")
+    @classmethod
+    def validate_phone(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        return _normalize_indian_phone(v)
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str = Field(..., min_length=8, max_length=128)

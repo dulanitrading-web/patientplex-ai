@@ -1,4 +1,8 @@
-"""Authentication endpoints: signup, login, and current-user retrieval."""
+"""Authentication endpoints: signup, login, profile, and password reset."""
+
+import logging
+import secrets
+import time
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
@@ -17,7 +21,16 @@ from app.core.config import settings
 from app.core.security import create_access_token, hash_password, verify_password, verify_token
 from app.db.session import get_db
 from app.models.doctor import Doctor
-from app.schemas.doctor import DoctorCreate, DoctorLogin, DoctorResponse, TokenResponse
+from app.schemas.doctor import (
+    DoctorCreate, DoctorLogin, DoctorResponse, TokenResponse,
+    ProfileUpdate, ForgotPasswordRequest, ResetPasswordRequest,
+)
+
+logger = logging.getLogger(__name__)
+
+# In-memory password-reset token store (use Redis in production)
+_reset_tokens: dict[str, dict] = {}
+_RESET_TOKEN_TTL = 3600  # 1 hour
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -129,6 +142,85 @@ async def login(request: Request, body: DoctorLogin, db: AsyncSession = Depends(
 async def get_me(doctor: Doctor = Depends(get_current_doctor)) -> DoctorResponse:
     """Return the profile of the currently authenticated doctor."""
     return DoctorResponse.model_validate(doctor)
+
+
+@router.put("/profile", response_model=DoctorResponse)
+async def update_profile(
+    body: ProfileUpdate,
+    doctor: Doctor = Depends(get_current_doctor),
+    db: AsyncSession = Depends(get_db),
+) -> DoctorResponse:
+    """Update the authenticated doctor's profile. Only provided fields are changed."""
+    update_data = body.model_dump(exclude_unset=True)
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No fields to update.")
+
+    for field_name, value in update_data.items():
+        setattr(doctor, field_name, value)
+
+    await db.commit()
+    await db.refresh(doctor)
+
+    log_audit(
+        action="profile_update",
+        actor_id=str(doctor.id),
+        resource="auth",
+        details={"fields": list(update_data.keys())},
+    )
+
+    return DoctorResponse.model_validate(doctor)
+
+
+@router.post("/forgot-password")
+async def forgot_password(
+    body: ForgotPasswordRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """Request a password reset link. Always returns success to prevent email enumeration."""
+    result = await db.execute(select(Doctor).where(Doctor.email == body.email))
+    doctor = result.scalar_one_or_none()
+
+    if doctor:
+        # Generate token
+        token = secrets.token_urlsafe(48)
+        _reset_tokens[token] = {
+            "doctor_id": str(doctor.id),
+            "expires": time.time() + _RESET_TOKEN_TTL,
+        }
+        # Cleanup expired
+        now = time.time()
+        expired = [k for k, v in _reset_tokens.items() if v["expires"] < now]
+        for k in expired:
+            del _reset_tokens[k]
+
+        reset_url = f"{settings.FRONTEND_BASE_URL}/reset-password?token={token}"
+        # TODO: Send actual email via SendGrid/AWS SES
+        logger.info("Password reset requested for %s — reset URL: %s", body.email, reset_url)
+
+    return {"message": "If an account with that email exists, a reset link has been sent."}
+
+
+@router.post("/reset-password")
+async def reset_password(
+    body: ResetPasswordRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """Reset password using a valid reset token."""
+    entry = _reset_tokens.pop(body.token, None)
+    if not entry or entry["expires"] < time.time():
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token.")
+
+    result = await db.execute(select(Doctor).where(Doctor.id == entry["doctor_id"]))
+    doctor = result.scalar_one_or_none()
+    if not doctor:
+        raise HTTPException(status_code=404, detail="Account not found.")
+
+    doctor.password_hash = hash_password(body.new_password)
+    await db.commit()
+
+    log_audit(action="password_reset", actor_id=str(doctor.id), resource="auth", details={})
+
+    return {"message": "Password has been reset successfully. You can now log in."}
 
 
 @router.get("/integrations")

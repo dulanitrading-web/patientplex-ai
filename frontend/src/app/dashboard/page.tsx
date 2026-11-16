@@ -24,6 +24,7 @@ import {
   getCampaignOverview,
   getTodayAppointments,
   getAppointmentStats,
+  getIntegrationStatus,
   launchCampaigns,
 } from "@/lib/api";
 
@@ -86,28 +87,36 @@ export default function DashboardPage() {
   const [campaignOverview, setCampaignOverview] = useState<CampaignOverview | null>(null);
   const [appointmentStats, setAppointmentStats] = useState<AppointmentStats | null>(null);
   const [todayAppts, setTodayAppts] = useState<TodayAppointment[]>([]);
+  const [integrations, setIntegrations] = useState<Record<string, { status: string }> | null>(null);
   const [loading, setLoading] = useState(true);
   const [launching, setLaunching] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
   const greeting = useMemo(() => getGreeting(), []);
   const dateStr = useMemo(() => getDateString(), []);
 
   useEffect(() => {
     loadDashboard();
+    // Auto-refresh every 5 minutes
+    const interval = setInterval(() => loadDashboard(), 300000);
+    return () => clearInterval(interval);
   }, []);
 
   async function loadDashboard() {
     try {
-      const [profile, campaigns, stats, today] = await Promise.allSettled([
+      const [profile, campaigns, stats, today, intRes] = await Promise.allSettled([
         getMe(),
         getCampaignOverview(),
         getAppointmentStats(30),
         getTodayAppointments(),
+        getIntegrationStatus(),
       ]);
       if (profile.status === "fulfilled") setDoctor(profile.value);
       if (campaigns.status === "fulfilled") setCampaignOverview(campaigns.value);
       if (stats.status === "fulfilled") setAppointmentStats(stats.value);
       if (today.status === "fulfilled") setTodayAppts(today.value.appointments || []);
+      if (intRes.status === "fulfilled") setIntegrations(intRes.value);
+      setLastUpdated(new Date());
     } catch {
       /* use defaults */
     } finally {
