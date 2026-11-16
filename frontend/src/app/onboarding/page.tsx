@@ -69,6 +69,7 @@ const FALLBACK_SPECIALTIES: Specialty[] = [
   { id: "cardiologist", name: "Cardiologist", icon: "heart", default_services: ["ECG / Echo", "Blood Pressure", "Angiography", "Heart Check-up", "Cholesterol Management", "Pacemaker"] },
   { id: "ent", name: "ENT Specialist", icon: "ear", default_services: ["Sinus Treatment", "Hearing Test", "Tonsil Surgery", "Ear Cleaning", "Snoring / Sleep Apnea", "Voice Disorders"] },
   { id: "plastic_surgeon", name: "Plastic Surgeon", icon: "scissors", default_services: ["Rhinoplasty", "Liposuction", "Hair Transplant", "Facelift", "Scar Revision", "Botox / Fillers"] },
+  { id: "gynecologist", name: "Gynecologist", icon: "baby", default_services: ["Normal Delivery", "C-Section", "Fertility / IVF", "PCOS Treatment", "Prenatal Care", "Laparoscopy"] },
   { id: "general", name: "General Physician", icon: "activity", default_services: ["General Check-up", "Fever / Cold", "Diabetes Management", "Thyroid Treatment", "Blood Tests", "Health Screening"] },
 ];
 
