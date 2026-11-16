@@ -659,19 +659,45 @@ async def import_google_ads_campaigns(
             continue  # Already imported
 
         # Create local record
+        # NOTE: cost_inr from REST API is already in INR (micros/1e6), store directly
+        # ctr from REST API is already in percentage (raw * 100), store directly
+        # avg_cpc_inr from REST API is already in INR (micros/1e6), store directly
+        gads_status = gads_campaign.get("status", "UNKNOWN")
+        if gads_status == "ENABLED":
+            local_status = CampaignStatus.ACTIVE
+        elif gads_status == "PAUSED":
+            local_status = CampaignStatus.PAUSED
+        elif gads_status == "REMOVED":
+            local_status = CampaignStatus.COMPLETED
+        else:
+            local_status = CampaignStatus.DRAFT
+
+        # Map Google Ads channel type to our campaign_type
+        channel = gads_campaign.get("channel_type", "SEARCH")
+        campaign_type_map = {
+            "SEARCH": "SEARCH",
+            "DISPLAY": "DISPLAY",
+            "VIDEO": "VIDEO",
+            "SHOPPING": "SHOPPING",
+            "MULTI_CHANNEL": "PMAX",
+            "PERFORMANCE_MAX": "PMAX",
+        }
+
         campaign = Campaign(
             doctor_id=doctor.id,
             platform=AdPlatform.GOOGLE,
             platform_campaign_id=str(gads_campaign["campaign_id"]),
             name=gads_campaign.get("name", "Imported Campaign"),
-            campaign_type="SEARCH",
-            status=CampaignStatus.ACTIVE if gads_campaign.get("status") == "ENABLED" else CampaignStatus.PAUSED,
+            campaign_type=campaign_type_map.get(channel, "SEARCH"),
+            status=local_status,
+            daily_budget=round(gads_campaign.get("daily_budget_inr", 0)),
+            total_budget=round(gads_campaign.get("daily_budget_inr", 0) * 30.4),
             impressions=gads_campaign.get("impressions", 0),
             clicks=gads_campaign.get("clicks", 0),
             conversions=int(gads_campaign.get("conversions", 0)),
-            spend=int(gads_campaign.get("cost_inr", 0) * 100),  # Store in paise
-            cpc=gads_campaign.get("avg_cpc_inr", 0),
-            ctr=gads_campaign.get("ctr", 0),
+            spend=round(gads_campaign.get("cost_inr", 0)),  # Already in INR from REST API
+            cpc=round(gads_campaign.get("avg_cpc_inr", 0), 2),
+            ctr=round(gads_campaign.get("ctr", 0), 2),
             target_location=f"{doctor.city}, {doctor.state}" if doctor.city else None,
             target_radius_km=doctor.geo_radius_km,
             currency="INR",
@@ -686,6 +712,100 @@ async def import_google_ads_campaigns(
         "message": f"Imported {len(imported)} campaigns from Google Ads",
         "imported": len(imported),
         "campaigns": imported,
+    }
+
+
+@router.post("/google-ads/resync-all")
+async def resync_google_ads_campaigns(
+    doctor: Doctor = Depends(get_current_doctor),
+    db: AsyncSession = Depends(get_db),
+):
+    """Re-sync ALL imported Google Ads campaigns with fresh data from the API.
+
+    Fixes: budget amounts, spend values, status, metrics.
+    Use this after import to correct any data discrepancies.
+    """
+    from app.models.campaign import AdPlatform, Campaign, CampaignStatus
+    from app.services.google_ads_engine import GoogleAdsEngine
+    from sqlalchemy import select
+    import os
+
+    engine = GoogleAdsEngine(db)
+
+    # Try doctor's own refresh token
+    if not engine.is_connected:
+        from app.core.encryption import decrypt_value
+        doctor_refresh = getattr(doctor, 'google_ads_refresh_token', None)
+        if doctor_refresh:
+            await engine.connect_with_refresh_token(decrypt_value(doctor_refresh))
+
+    customer_id = getattr(doctor, 'google_ads_customer_id', None)
+    if not customer_id:
+        customer_id = os.getenv("GOOGLE_ADS_LOGIN_CUSTOMER_ID", "")
+    if not customer_id:
+        return {"status": "error", "message": "No customer ID"}
+
+    customer_id = customer_id.replace("-", "").strip()
+    metrics_data = await engine.get_campaign_metrics(customer_id, days=30)
+
+    if metrics_data.get("status") != "success":
+        return {"status": "error", "message": metrics_data.get("message", "API call failed")}
+
+    # Build lookup from Google data
+    google_data = {str(c["campaign_id"]): c for c in metrics_data.get("campaigns", [])}
+
+    # Update all existing campaigns
+    result = await db.execute(
+        select(Campaign).where(
+            Campaign.doctor_id == doctor.id,
+            Campaign.platform == AdPlatform.GOOGLE,
+        )
+    )
+    existing = result.scalars().all()
+    updated = 0
+
+    for campaign in existing:
+        gads = google_data.get(campaign.platform_campaign_id)
+        if not gads:
+            continue
+
+        # Fix status
+        gads_status = gads.get("status", "UNKNOWN")
+        if gads_status == "ENABLED":
+            campaign.status = CampaignStatus.ACTIVE
+        elif gads_status == "PAUSED":
+            campaign.status = CampaignStatus.PAUSED
+        elif gads_status == "REMOVED":
+            campaign.status = CampaignStatus.COMPLETED
+
+        # Fix budget (now comes as INR from API)
+        campaign.daily_budget = round(gads.get("daily_budget_inr", 0))
+        campaign.total_budget = round(gads.get("daily_budget_inr", 0) * 30.4)
+
+        # Fix metrics (all already in correct units from API)
+        campaign.impressions = gads.get("impressions", 0)
+        campaign.clicks = gads.get("clicks", 0)
+        campaign.conversions = int(gads.get("conversions", 0))
+        campaign.spend = round(gads.get("cost_inr", 0))  # INR, not paise
+        campaign.cpc = round(gads.get("avg_cpc_inr", 0), 2)
+        campaign.ctr = round(gads.get("ctr", 0), 2)
+
+        # Fix campaign type from channel
+        channel = gads.get("channel_type", "SEARCH")
+        type_map = {"SEARCH": "SEARCH", "DISPLAY": "DISPLAY", "VIDEO": "VIDEO", "MULTI_CHANNEL": "PMAX"}
+        campaign.campaign_type = type_map.get(channel, campaign.campaign_type or "SEARCH")
+
+        from datetime import datetime, timezone
+        campaign.last_synced_at = datetime.now(timezone.utc)
+        updated += 1
+
+    await db.commit()
+
+    return {
+        "status": "success",
+        "message": f"Re-synced {updated} campaigns with fresh Google Ads data",
+        "updated": updated,
+        "total_existing": len(existing),
     }
 
 

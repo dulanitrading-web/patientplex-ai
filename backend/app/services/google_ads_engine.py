@@ -665,6 +665,8 @@ class GoogleAdsEngine:
         date_range = gaql_range_map.get(days, "LAST_30_DAYS")
         query = (
             "SELECT campaign.id, campaign.name, campaign.status, "
+            "campaign_budget.amount_micros, "
+            "campaign.advertising_channel_type, "
             "metrics.impressions, metrics.clicks, metrics.cost_micros, "
             "metrics.conversions, metrics.ctr, metrics.average_cpc "
             f"FROM campaign WHERE segments.date DURING {date_range}"
@@ -721,10 +723,16 @@ class GoogleAdsEngine:
                 for result in batch.get("results", []):
                     camp = result.get("campaign", {})
                     metrics = result.get("metrics", {})
+                    budget = result.get("campaignBudget", {})
+                    daily_budget_micros = int(budget.get("amountMicros", 0))
+                    channel_type = camp.get("advertisingChannelType", "SEARCH")
+
                     campaigns.append({
                         "campaign_id": str(camp.get("id", "")),
                         "name": camp.get("name", "Unknown"),
                         "status": camp.get("status", "UNKNOWN"),
+                        "channel_type": channel_type,  # SEARCH, DISPLAY, VIDEO, SHOPPING, etc.
+                        "daily_budget_inr": round(daily_budget_micros / 1e6, 2),
                         "impressions": int(metrics.get("impressions", 0)),
                         "clicks": int(metrics.get("clicks", 0)),
                         "cost_inr": round(int(metrics.get("costMicros", 0)) / 1e6, 2),
