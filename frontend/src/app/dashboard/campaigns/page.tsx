@@ -62,6 +62,7 @@ export default function CampaignsPage() {
   const [budgetValue, setBudgetValue] = useState("");
   const [newKeyword, setNewKeyword] = useState("");
   const [campaignDetails, setCampaignDetails] = useState<Record<string, Campaign>>({});
+  const [platformFilter, setPlatformFilter] = useState<string>("ALL");
 
   const loadCampaigns = useCallback(async () => {
     try {
@@ -332,6 +333,25 @@ export default function CampaignsPage() {
         </div>
       )}
 
+      {/* ── Platform Filter ── */}
+      {campaigns.length > 0 && (
+        <div className="flex items-center gap-2 flex-wrap">
+          {["ALL", ...Array.from(new Set(campaigns.map(c => c.platform)))].map((p) => (
+            <button
+              key={p}
+              onClick={() => setPlatformFilter(p)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                platformFilter === p
+                  ? "bg-slate-900 text-white"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              }`}
+            >
+              {p === "ALL" ? `All Platforms (${campaigns.length})` : `${p} (${campaigns.filter(c => c.platform === p).length})`}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* ── Campaign Cards ── */}
       {campaigns.length === 0 ? (
         <div className="bg-white rounded-xl p-8 border border-slate-200 text-center">
@@ -347,7 +367,7 @@ export default function CampaignsPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {campaigns.map((c) => {
+          {campaigns.filter(c => platformFilter === "ALL" || c.platform === platformFilter).map((c) => {
             const sc = statusConfig[c.status] || statusConfig.DRAFT;
             const isExpanded = expandedCard === c.id;
             const detail = campaignDetails[c.id];

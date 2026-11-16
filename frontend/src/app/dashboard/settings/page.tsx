@@ -85,7 +85,7 @@ export default function SettingsPage() {
   const [integrations, setIntegrations] = useState<Record<string, IntegrationInfo> | null>(null);
   const [loading, setLoading] = useState(true);
   const [importingCampaigns, setImportingCampaigns] = useState(false);
-  const [statusMessage, setStatusMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
+  const [statusMessage, setStatusMessage] = useState<{ text: string; type: "success" | "error" | "info" } | null>(null);
   const [provisioningTwilio, setProvisioningTwilio] = useState(false);
   const [editingProfile, setEditingProfile] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
@@ -281,7 +281,7 @@ export default function SettingsPage() {
         <SectionHeader icon={<Link2 className="w-5 h-5 text-violet-600" />} title="Integration Status" />
 
         {statusMessage && (
-          <div className={`mt-3 p-3 rounded-lg text-sm ${statusMessage.type === "success" ? "bg-green-50 text-green-800 border border-green-200" : "bg-red-50 text-red-800 border border-red-200"}`}>
+          <div className={`mt-3 p-3 rounded-lg text-sm ${statusMessage.type === "success" ? "bg-green-50 text-green-800 border border-green-200" : statusMessage.type === "info" ? "bg-blue-50 text-blue-800 border border-blue-200" : "bg-red-50 text-red-800 border border-red-200"}`}>
             {statusMessage.text}
             <button onClick={() => setStatusMessage(null)} className="ml-2 text-xs underline">Dismiss</button>
           </div>
@@ -418,13 +418,21 @@ export default function SettingsPage() {
             icon={<BarChart3 className="w-4 h-4" />}
             name="ChatGPT Ads"
             status={mapIntegrationStatus(integrations?.chatgpt_ads?.status)}
-            detail={integrations?.chatgpt_ads?.detail || "Coming soon — OpenAI Ads API in beta"}
+            detail={integrations?.chatgpt_ads?.detail || "Sponsor your clinic in ChatGPT search results"}
+            connectLabel="Set Up"
+            onConnect={() => {
+              setStatusMessage({ text: "ChatGPT Ads integration requires an OpenAI Ads API key. Contact support@patientplex.ai for early access.", type: "info" });
+            }}
           />
           <IntegrationRow
             icon={<BarChart3 className="w-4 h-4" />}
             name="LinkedIn Ads"
             status={mapIntegrationStatus(integrations?.linkedin_ads?.status)}
-            detail={integrations?.linkedin_ads?.detail || "Coming soon"}
+            detail={integrations?.linkedin_ads?.detail || "Reach specialists and corporate employees for premium treatments"}
+            connectLabel="Set Up"
+            onConnect={() => {
+              setStatusMessage({ text: "LinkedIn Ads requires a Campaign Manager access token. Contact support@patientplex.ai for setup assistance.", type: "info" });
+            }}
           />
           <IntegrationRow
             icon={<MessageCircle className="w-4 h-4" />}
