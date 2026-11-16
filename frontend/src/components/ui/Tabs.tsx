@@ -31,7 +31,7 @@ export default function Tabs({ tabs, active, onChange, className }: TabsProps) {
               "ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold",
               active === tab.id
                 ? "bg-emerald-500/10 text-emerald-400"
-                : "bg-white/5 text-slate-500",
+                : "bg-slate-100 text-slate-500",
             )}>{tab.count}</span>
           )}
         </button>

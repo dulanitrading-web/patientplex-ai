@@ -10,7 +10,7 @@ interface SkeletonProps {
 }
 
 export default function Skeleton({ className, variant = "text", width, height }: SkeletonProps) {
-  const base = "animate-pulse bg-white/5";
+  const base = "animate-pulse bg-slate-100";
   const variants = {
     text: "h-4 rounded",
     circle: "rounded-full",

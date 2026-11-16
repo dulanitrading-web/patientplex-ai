@@ -31,7 +31,7 @@ const ICON_COLOR_MAP = {
   new_booking: "text-cyan-400 bg-cyan-500/10",
   missed_call: "text-red-600 bg-red-500/10",
   campaign_update: "text-violet-400 bg-violet-500/10",
-  system: "text-slate-400 bg-white/5",
+  system: "text-slate-400 bg-slate-100",
 };
 
 export default function NotificationBell() {

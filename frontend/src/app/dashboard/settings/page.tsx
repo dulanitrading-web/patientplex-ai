@@ -479,7 +479,7 @@ export default function SettingsPage() {
           </div>
         ) : (
           <div className="mt-4">
-            <p className="text-sm text-slate-600">No active subscription. Start a free trial from the <a href="/dashboard/billing" className="text-emerald-600 hover:text-emerald-300">Billing</a> page.</p>
+            <p className="text-sm text-slate-600">No active subscription. Start a free trial from the <a href="/dashboard/billing" className="text-emerald-600 hover:text-emerald-700 underline">Billing</a> page.</p>
           </div>
         )}
       </div>

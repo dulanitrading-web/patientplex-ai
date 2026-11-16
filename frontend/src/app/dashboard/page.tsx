@@ -269,7 +269,7 @@ export default function DashboardPage() {
           </div>
           <div className="mt-4">
             <Link href="/dashboard/campaigns"
-              className="group/link inline-flex items-center gap-1.5 text-sm text-emerald-600 hover:text-emerald-300 transition-colors">
+              className="group/link inline-flex items-center gap-1.5 text-sm text-emerald-600 hover:text-emerald-700 transition-colors">
               View campaigns <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-0.5 transition-transform" />
             </Link>
           </div>
@@ -402,7 +402,7 @@ export default function DashboardPage() {
           )}
           <div className="mt-3">
             <Link href="/dashboard/appointments"
-              className="group/link inline-flex items-center gap-1.5 text-sm text-emerald-600 hover:text-emerald-300 transition-colors">
+              className="group/link inline-flex items-center gap-1.5 text-sm text-emerald-600 hover:text-emerald-700 transition-colors">
               View all <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-0.5 transition-transform" />
             </Link>
           </div>

@@ -29,8 +29,8 @@ export default function DataTable<T extends Record<string, unknown>>({
     return (
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
         {[...Array(5)].map((_, i) => (
-          <div key={i} className="px-4 py-3 border-b border-white/[0.03]">
-            <div className="h-4 bg-white/5 rounded animate-pulse" style={{ width: `${60 + Math.random() * 30}%` }} />
+          <div key={i} className="px-4 py-3 border-b border-slate-100">
+            <div className="h-4 bg-slate-100 rounded animate-pulse" style={{ width: `${60 + Math.random() * 30}%` }} />
           </div>
         ))}
       </div>
