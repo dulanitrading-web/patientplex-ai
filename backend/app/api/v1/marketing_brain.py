@@ -10,6 +10,7 @@ from app.db.session import get_db
 from app.models.doctor import Doctor
 from app.services.marketing_brain import MarketingBrain
 from app.services.performance_marketing_brain import PerformanceMarketingBrain
+from app.services.brains.campaign_intelligence import campaign_intelligence
 
 router = APIRouter(prefix="/marketing-brain", tags=["marketing-brain"])
 
@@ -44,6 +45,117 @@ async def smart_budget_allocation(
     """
     pmb = PerformanceMarketingBrain(db)
     return await pmb.allocate_budget(doctor.id)
+
+
+@router.get("/intelligence")
+async def campaign_intelligence_analysis(
+    doctor: Doctor = Depends(get_current_doctor),
+    db: AsyncSession = Depends(get_db),
+):
+    """Full campaign intelligence analysis — the MASTER brain.
+
+    Analyzes all campaigns and returns:
+    - Which Google networks to enable (Search, Display, Partners, YouTube, PMax)
+    - Optimal bidding strategy per campaign
+    - Budget reallocation from losers to winners
+    - Keyword-level actions (scale, pause, negate)
+    - Meta campaign strategy (WhatsApp vs Lead Gen vs Retargeting)
+    - Prioritized action list (what to do first)
+    """
+    from sqlalchemy import select
+    from app.models.campaign import Campaign, AdPlatform
+
+    result = await db.execute(
+        select(Campaign).where(Campaign.doctor_id == doctor.id)
+    )
+    campaigns = result.scalars().all()
+
+    # Transform to dicts for the intelligence engine
+    campaign_data = []
+    for c in campaigns:
+        campaign_data.append({
+            "name": c.name,
+            "campaign_type": c.campaign_type or "SEARCH",
+            "platform": c.platform.value,
+            "status": c.status.value,
+            "daily_budget_inr": c.daily_budget,
+            "spend_inr": c.spend,
+            "clicks": c.clicks,
+            "impressions": c.impressions,
+            "conversions": c.conversions,
+            "cpc": c.cpc,
+            "ctr": c.ctr,
+            "bid_strategy": c.campaign_type or "MAXIMIZE_CLICKS",
+            "keywords": c.keywords or [],
+        })
+
+    specialty = doctor.specialty.value if doctor.specialty else "DENTIST"
+    monthly_budget = doctor.monthly_budget or 0
+
+    analysis = campaign_intelligence.analyze_and_decide(campaign_data, monthly_budget, specialty)
+    analysis["doctor_id"] = str(doctor.id)
+    analysis["clinic_name"] = doctor.clinic_name
+    analysis["monthly_budget"] = monthly_budget
+
+    return analysis
+
+
+@router.get("/network-guide")
+async def network_selection_guide(
+    doctor: Doctor = Depends(get_current_doctor),
+):
+    """Get the complete guide on when to use each Google network.
+
+    Returns decision matrix for: Search, Search Partners, Display,
+    YouTube, and Performance Max — with rules for when to enable each.
+    """
+    from app.services.brains.campaign_intelligence import NETWORK_DECISION_MATRIX
+    return {
+        "networks": NETWORK_DECISION_MATRIX,
+        "doctor_budget": doctor.monthly_budget,
+        "recommendation": (
+            "Start with Google Search only. Add Display retargeting at ₹30K+/month. "
+            "Enable Search Partners once Search CTR >3%. "
+            "Add YouTube at ₹50K+. Consider PMax at 30+ conversions/month."
+        ),
+    }
+
+
+@router.get("/meta-guide")
+async def meta_campaign_guide(
+    doctor: Doctor = Depends(get_current_doctor),
+):
+    """Get the Meta campaign intelligence guide.
+
+    Shows which Meta campaigns to run, expected costs, and when to use each type.
+    """
+    from app.services.brains.campaign_intelligence import META_CAMPAIGN_INTELLIGENCE
+    return {
+        "campaign_types": META_CAMPAIGN_INTELLIGENCE,
+        "top_recommendation": (
+            "For Indian clinics: Click-to-WhatsApp > Retargeting > Lead Gen > Awareness. "
+            "WhatsApp has 35% conversion to appointment vs 15% for lead forms."
+        ),
+    }
+
+
+@router.get("/bidding-guide")
+async def bidding_strategy_guide(
+    doctor: Doctor = Depends(get_current_doctor),
+):
+    """Get the bidding strategy intelligence guide.
+
+    Shows when to use each bidding strategy on Google and Meta
+    based on account maturity and data volume.
+    """
+    from app.services.brains.campaign_intelligence import BIDDING_INTELLIGENCE
+    return {
+        "strategies": BIDDING_INTELLIGENCE,
+        "progression": (
+            "Manual CPC → Maximize Clicks → Maximize Conversions → Target CPA → Target ROAS. "
+            "Never skip steps — each stage needs data from the previous one."
+        ),
+    }
 
 
 # ─── Legacy endpoints ───
