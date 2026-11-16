@@ -372,6 +372,7 @@ export async function updateProfile(data: {
   pincode?: string;
   services?: string[];
   monthly_budget?: number;
+  clinic_logo?: string;
 }) {
   const res = await fetchWithAuth("/auth/profile", {
     method: "PUT",

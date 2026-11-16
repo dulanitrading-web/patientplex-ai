@@ -98,9 +98,9 @@ export default function AnalyticsPage() {
   }
 
   const totalEnquiries = campaigns?.total_conversions || 0;
+  const totalBooked = appointments?.total_booked || 0;
   // Qualified leads = booked appointments (real data, not fabricated percentage)
   const qualifiedLeads = totalBooked;
-  const totalBooked = appointments?.total_booked || 0;
   const totalAttended = appointments?.attended || 0;
   const totalSpend = campaigns?.total_spend || 0;
   const costPerLead = totalEnquiries > 0 ? Math.round(totalSpend / totalEnquiries) : 0;

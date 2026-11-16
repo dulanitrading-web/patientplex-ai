@@ -52,6 +52,7 @@ interface DoctorProfile {
   google_calendar_connected: boolean;
   whatsapp_number: string | null;
   whatsapp_verified: boolean;
+  clinic_logo: string | null;
   onboarding_completed: boolean;
   created_at: string;
 }

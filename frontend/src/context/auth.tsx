@@ -23,6 +23,7 @@ interface Doctor {
   state: string | null;
   monthly_budget: number;
   whatsapp_number: string | null;
+  clinic_logo: string | null;
   subdomain_slug: string | null;
   onboarding_step: number;
   onboarding_completed: boolean;

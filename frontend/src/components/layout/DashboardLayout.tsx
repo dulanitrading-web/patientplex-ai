@@ -112,8 +112,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Doctor info + logout */}
         <div className="px-3 py-3 border-t border-slate-200 shrink-0">
           <div className="flex items-center gap-2.5 px-2 mb-2">
-            {(doctor as Record<string, unknown>)?.clinic_logo ? (
-              <img src={(doctor as Record<string, unknown>).clinic_logo as string} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
+            {doctor?.clinic_logo ? (
+              <img src={doctor.clinic_logo} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
             ) : (
               <Avatar name={doctor?.full_name || "D"} size="sm" />
             )}
