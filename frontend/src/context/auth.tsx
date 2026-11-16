@@ -106,6 +106,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => { refresh(); }, [refresh]);
 
+  // Auto-refresh token every 12 hours to prevent session expiry
+  useEffect(() => {
+    if (!token) return;
+    const REFRESH_INTERVAL = 12 * 60 * 60 * 1000; // 12 hours
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`${API}/auth/refresh`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setStoredToken(data.access_token);
+          setToken(data.access_token);
+        }
+      } catch {
+        // Silent fail — will retry on next interval
+      }
+    }, REFRESH_INTERVAL);
+    return () => clearInterval(interval);
+  }, [token]);
+
   const login = useCallback(async (email: string, password: string) => {
     const res = await fetch(`${API}/auth/login`, {
       method: "POST",

@@ -138,6 +138,17 @@ async def login(request: Request, body: DoctorLogin, db: AsyncSession = Depends(
     return response
 
 
+@router.post("/refresh", response_model=TokenResponse)
+async def refresh_token(doctor: Doctor = Depends(get_current_doctor)):
+    """Issue a fresh JWT for the currently authenticated doctor.
+
+    Call this before the current token expires to keep the session alive.
+    The old token remains valid until its own expiry — no revocation.
+    """
+    new_token = create_access_token(data={"sub": str(doctor.id)})
+    return TokenResponse(access_token=new_token, token_type="bearer")
+
+
 @router.get("/me", response_model=DoctorResponse)
 async def get_me(doctor: Doctor = Depends(get_current_doctor)) -> DoctorResponse:
     """Return the profile of the currently authenticated doctor."""

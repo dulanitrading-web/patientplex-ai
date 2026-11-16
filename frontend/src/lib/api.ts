@@ -12,9 +12,32 @@ class ApiError extends Error {
   }
 }
 
+let _refreshing: Promise<string | null> | null = null;
+
+async function tryRefreshToken(): Promise<string | null> {
+  const token = typeof window !== "undefined" ? localStorage.getItem("pp_token") : null;
+  if (!token) return null;
+  try {
+    const res = await fetch(`${BASE_URL}/auth/refresh`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const newToken = data.access_token;
+      localStorage.setItem("pp_token", newToken);
+      const isSecure = window.location.protocol === "https:";
+      document.cookie = `pp_token=${newToken}; path=/; max-age=${60 * 60 * 24}; SameSite=Lax${isSecure ? "; Secure" : ""}`;
+      return newToken;
+    }
+  } catch { /* refresh failed */ }
+  return null;
+}
+
 async function fetchWithAuth(
   url: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  _retried = false,
 ): Promise<Response> {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("pp_token") : null;
@@ -34,14 +57,20 @@ async function fetchWithAuth(
   });
 
   if (!response.ok) {
-    // 401 = token expired or invalid → clear auth and redirect to login
-    if (response.status === 401 && typeof window !== "undefined") {
+    // 401 = token may be expired → try refreshing once before giving up
+    if (response.status === 401 && typeof window !== "undefined" && !_retried) {
+      // Deduplicate concurrent refresh attempts
+      if (!_refreshing) _refreshing = tryRefreshToken().finally(() => { _refreshing = null; });
+      const newToken = await _refreshing;
+      if (newToken) {
+        // Retry the original request with the new token
+        return fetchWithAuth(url, options, true);
+      }
+      // Refresh failed — clear auth and redirect
       localStorage.removeItem("pp_token");
       document.cookie = "pp_token=; path=/; max-age=0";
-      // Only redirect if we're not already on login/signup
       if (!window.location.pathname.startsWith("/login") && !window.location.pathname.startsWith("/signup")) {
         window.location.href = "/login?expired=1";
-        // Return a never-resolving promise so callers don't try to use the response
         return new Promise<Response>(() => {});
       }
     }
