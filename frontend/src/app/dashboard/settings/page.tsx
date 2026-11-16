@@ -29,6 +29,7 @@ import {
   disconnectMetaAds,
   verifyWhatsApp,
   importGoogleAdsCampaigns,
+  resyncGoogleAdsCampaigns,
   provisionTwilioNumber,
   updateProfile,
 } from "@/lib/api";
@@ -302,28 +303,47 @@ export default function SettingsPage() {
               }
             }}
             extraAction={["connected", "ready"].includes(mapIntegrationStatus(integrations?.google_ads?.status)) ? (
-              <button
-                onClick={async () => {
-                  setImportingCampaigns(true);
-                  try {
-                    const result = await importGoogleAdsCampaigns();
-                    if (result.status === "success") {
-                      setStatusMessage({ text: result.message || `Imported ${result.imported} campaigns`, type: "success" });
-                      setTimeout(() => window.location.reload(), 2000);
-                    } else {
-                      setStatusMessage({ text: result.message || "Import failed — check integration setup", type: "error" });
+              <div className="flex gap-2">
+                <button
+                  onClick={async () => {
+                    setImportingCampaigns(true);
+                    try {
+                      const result = await importGoogleAdsCampaigns();
+                      if (result.status === "success") {
+                        setStatusMessage({ text: result.message || `Imported ${result.imported} campaigns`, type: "success" });
+                        setTimeout(() => window.location.reload(), 2000);
+                      } else {
+                        setStatusMessage({ text: result.message || "Import failed — check integration setup", type: "error" });
+                      }
+                    } catch (err: unknown) {
+                      const msg = err instanceof Error ? err.message : "Failed to import campaigns";
+                      setStatusMessage({ text: msg, type: "error" });
                     }
-                  } catch (err: unknown) {
-                    const msg = err instanceof Error ? err.message : "Failed to import campaigns";
-                    setStatusMessage({ text: msg, type: "error" });
-                  }
-                  finally { setImportingCampaigns(false); }
-                }}
-                disabled={importingCampaigns}
-                className="px-3 py-1 rounded-lg text-xs font-medium bg-cyan-500 text-white hover:bg-cyan-600 transition-colors disabled:opacity-50"
-              >
-                {importingCampaigns ? "Importing…" : "Import Campaigns"}
-              </button>
+                    finally { setImportingCampaigns(false); }
+                  }}
+                  disabled={importingCampaigns}
+                  className="px-3 py-1 rounded-lg text-xs font-medium bg-cyan-500 text-white hover:bg-cyan-600 transition-colors disabled:opacity-50"
+                >
+                  {importingCampaigns ? "Importing…" : "Import Campaigns"}
+                </button>
+                <button
+                  onClick={async () => {
+                    setImportingCampaigns(true);
+                    try {
+                      const result = await resyncGoogleAdsCampaigns();
+                      setStatusMessage({ text: result.message || `Re-synced ${result.updated} campaigns`, type: "success" });
+                      setTimeout(() => window.location.reload(), 2000);
+                    } catch (err: unknown) {
+                      const msg = err instanceof Error ? err.message : "Re-sync failed";
+                      setStatusMessage({ text: msg, type: "error" });
+                    } finally { setImportingCampaigns(false); }
+                  }}
+                  disabled={importingCampaigns}
+                  className="px-3 py-1 rounded-lg text-xs font-medium bg-violet-500 text-white hover:bg-violet-600 transition-colors disabled:opacity-50"
+                >
+                  {importingCampaigns ? "Syncing…" : "Re-sync Data"}
+                </button>
+              </div>
             ) : undefined}
           />
           <IntegrationRow
