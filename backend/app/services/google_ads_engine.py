@@ -889,6 +889,339 @@ class GoogleAdsEngine:
             return {"status": "error", "message": str(e)}
 
     # ------------------------------------------------------------------
+    # REST WRITE APIS — Per-doctor OAuth (no SDK needed)
+    # These allow PatientPlex to EDIT campaigns via the doctor's own OAuth
+    # ------------------------------------------------------------------
+
+    async def update_campaign_status_rest(
+        self, customer_id: str, campaign_resource_name: str, new_status: str
+    ) -> Dict:
+        """Pause or enable a campaign via REST API using doctor's OAuth token.
+
+        new_status: "ENABLED" or "PAUSED"
+        """
+        if not self._rest_access_token:
+            return {"status": "error", "message": "No REST access token — doctor not connected via OAuth"}
+
+        import httpx
+
+        api_url = f"https://googleads.googleapis.com/v26/{campaign_resource_name}"
+        headers = {
+            "Authorization": f"Bearer {self._rest_access_token}",
+            "developer-token": self._rest_developer_token,
+            "Content-Type": "application/json",
+        }
+        body = {
+            "updateMask": "status",
+            "campaign": {
+                "resourceName": campaign_resource_name,
+                "status": new_status,
+            },
+        }
+
+        try:
+            async with httpx.AsyncClient() as client:
+                # Use the mutate endpoint
+                mutate_url = f"https://googleads.googleapis.com/v26/customers/{customer_id}/campaigns:mutate"
+                mutate_body = {
+                    "operations": [{
+                        "updateMask": "status",
+                        "update": {
+                            "resourceName": campaign_resource_name,
+                            "status": new_status,
+                        },
+                    }],
+                }
+                resp = await client.post(mutate_url, headers=headers, json=mutate_body, timeout=15)
+                if resp.status_code == 200:
+                    logger.info("REST: Campaign %s set to %s", campaign_resource_name, new_status)
+                    return {"status": "success", "new_status": new_status}
+                else:
+                    error = resp.text[:300]
+                    logger.error("REST campaign status update failed: %s", error)
+                    return {"status": "error", "message": error}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    async def update_campaign_budget_rest(
+        self, customer_id: str, budget_resource_name: str, new_daily_inr: float
+    ) -> Dict:
+        """Update a campaign's daily budget via REST API."""
+        if not self._rest_access_token:
+            return {"status": "error", "message": "No REST access token"}
+
+        import httpx
+
+        amount_micros = int(new_daily_inr * 1_000_000)
+        mutate_url = f"https://googleads.googleapis.com/v26/customers/{customer_id}/campaignBudgets:mutate"
+        headers = {
+            "Authorization": f"Bearer {self._rest_access_token}",
+            "developer-token": self._rest_developer_token,
+            "Content-Type": "application/json",
+        }
+        body = {
+            "operations": [{
+                "updateMask": "amountMicros",
+                "update": {
+                    "resourceName": budget_resource_name,
+                    "amountMicros": str(amount_micros),
+                },
+            }],
+        }
+
+        try:
+            async with httpx.AsyncClient() as client:
+                resp = await client.post(mutate_url, headers=headers, json=body, timeout=15)
+                if resp.status_code == 200:
+                    logger.info("REST: Budget %s updated to ₹%s/day", budget_resource_name, new_daily_inr)
+                    return {"status": "updated", "new_daily_budget_inr": new_daily_inr}
+                else:
+                    error = resp.text[:300]
+                    logger.error("REST budget update failed: %s", error)
+                    return {"status": "error", "message": error}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    async def add_negative_keywords_rest(
+        self, customer_id: str, campaign_id: str, negative_keywords: List[str]
+    ) -> Dict:
+        """Add negative keywords to a campaign via REST API."""
+        if not self._rest_access_token:
+            return {"status": "error", "message": "No REST access token"}
+
+        import httpx
+
+        operations = []
+        for kw in negative_keywords:
+            operations.append({
+                "create": {
+                    "campaign": f"customers/{customer_id}/campaigns/{campaign_id}",
+                    "negative": True,
+                    "keyword": {
+                        "text": kw,
+                        "matchType": "BROAD",
+                    },
+                },
+            })
+
+        mutate_url = f"https://googleads.googleapis.com/v26/customers/{customer_id}/campaignCriteria:mutate"
+        headers = {
+            "Authorization": f"Bearer {self._rest_access_token}",
+            "developer-token": self._rest_developer_token,
+            "Content-Type": "application/json",
+        }
+
+        try:
+            async with httpx.AsyncClient() as client:
+                resp = await client.post(
+                    mutate_url, headers=headers,
+                    json={"operations": operations}, timeout=15,
+                )
+                if resp.status_code == 200:
+                    logger.info("REST: Added %d negative keywords to campaign %s", len(negative_keywords), campaign_id)
+                    return {"status": "success", "added": len(negative_keywords)}
+                else:
+                    error = resp.text[:300]
+                    logger.error("REST negative keyword add failed: %s", error)
+                    return {"status": "error", "message": error}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    async def get_keyword_performance_rest(
+        self, customer_id: str, campaign_id: str, days: int = 30
+    ) -> Dict:
+        """Get keyword-level performance data via REST API.
+
+        This is critical for optimization — shows which keywords are
+        generating clicks and conversions.
+        """
+        if not self._rest_access_token:
+            return {"status": "error", "message": "No REST access token"}
+
+        import httpx
+
+        gaql_range_map = {7: "LAST_7_DAYS", 14: "LAST_14_DAYS", 30: "LAST_30_DAYS"}
+        date_range = gaql_range_map.get(days, "LAST_30_DAYS")
+
+        query = (
+            "SELECT "
+            "ad_group_criterion.keyword.text, "
+            "ad_group_criterion.keyword.match_type, "
+            "metrics.impressions, metrics.clicks, metrics.ctr, "
+            "metrics.average_cpc, metrics.cost_micros, metrics.conversions "
+            "FROM keyword_view "
+            f"WHERE campaign.id = {campaign_id} "
+            f"AND segments.date DURING {date_range} "
+            "ORDER BY metrics.cost_micros DESC "
+            "LIMIT 100"
+        )
+
+        api_url = f"https://googleads.googleapis.com/v26/customers/{customer_id}/googleAds:searchStream"
+        headers = {
+            "Authorization": f"Bearer {self._rest_access_token}",
+            "developer-token": self._rest_developer_token,
+            "Content-Type": "application/json",
+        }
+
+        try:
+            async with httpx.AsyncClient() as client:
+                resp = await client.post(api_url, headers=headers, json={"query": query}, timeout=30)
+                if resp.status_code != 200:
+                    return {"status": "error", "message": resp.text[:300]}
+
+                data = resp.json()
+                keywords = []
+                for batch in data:
+                    for result in batch.get("results", []):
+                        criterion = result.get("adGroupCriterion", {}).get("keyword", {})
+                        metrics = result.get("metrics", {})
+                        keywords.append({
+                            "keyword": criterion.get("text", ""),
+                            "match_type": criterion.get("matchType", ""),
+                            "impressions": int(metrics.get("impressions", 0)),
+                            "clicks": int(metrics.get("clicks", 0)),
+                            "ctr": round(float(metrics.get("ctr", 0)) * 100, 2),
+                            "avg_cpc_inr": round(int(metrics.get("averageCpc", 0)) / 1e6, 2),
+                            "cost_inr": round(int(metrics.get("costMicros", 0)) / 1e6, 2),
+                            "conversions": round(float(metrics.get("conversions", 0)), 1),
+                        })
+                return {"status": "success", "keywords": keywords, "campaign_id": campaign_id}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    async def get_search_terms_rest(
+        self, customer_id: str, campaign_id: str, days: int = 30
+    ) -> Dict:
+        """Get search terms report — what people actually typed to trigger ads.
+
+        This is GOLD for optimization:
+        - Good search terms → add as keywords
+        - Bad search terms → add as negative keywords
+        """
+        if not self._rest_access_token:
+            return {"status": "error", "message": "No REST access token"}
+
+        import httpx
+
+        gaql_range_map = {7: "LAST_7_DAYS", 14: "LAST_14_DAYS", 30: "LAST_30_DAYS"}
+        date_range = gaql_range_map.get(days, "LAST_30_DAYS")
+
+        query = (
+            "SELECT "
+            "search_term_view.search_term, "
+            "metrics.impressions, metrics.clicks, metrics.ctr, "
+            "metrics.cost_micros, metrics.conversions "
+            "FROM search_term_view "
+            f"WHERE campaign.id = {campaign_id} "
+            f"AND segments.date DURING {date_range} "
+            "ORDER BY metrics.cost_micros DESC "
+            "LIMIT 200"
+        )
+
+        api_url = f"https://googleads.googleapis.com/v26/customers/{customer_id}/googleAds:searchStream"
+        headers = {
+            "Authorization": f"Bearer {self._rest_access_token}",
+            "developer-token": self._rest_developer_token,
+            "Content-Type": "application/json",
+        }
+
+        try:
+            async with httpx.AsyncClient() as client:
+                resp = await client.post(api_url, headers=headers, json={"query": query}, timeout=30)
+                if resp.status_code != 200:
+                    return {"status": "error", "message": resp.text[:300]}
+
+                data = resp.json()
+                terms = []
+                for batch in data:
+                    for result in batch.get("results", []):
+                        stv = result.get("searchTermView", {})
+                        metrics = result.get("metrics", {})
+                        cost_inr = round(int(metrics.get("costMicros", 0)) / 1e6, 2)
+                        clicks = int(metrics.get("clicks", 0))
+                        conversions = round(float(metrics.get("conversions", 0)), 1)
+
+                        # Auto-classify: is this a good or bad search term?
+                        quality = "good"
+                        if cost_inr > 500 and conversions == 0:
+                            quality = "waste"
+                        elif clicks == 0 and int(metrics.get("impressions", 0)) > 50:
+                            quality = "low_relevance"
+
+                        terms.append({
+                            "search_term": stv.get("searchTerm", ""),
+                            "impressions": int(metrics.get("impressions", 0)),
+                            "clicks": clicks,
+                            "ctr": round(float(metrics.get("ctr", 0)) * 100, 2),
+                            "cost_inr": cost_inr,
+                            "conversions": conversions,
+                            "quality": quality,
+                        })
+                return {
+                    "status": "success",
+                    "search_terms": terms,
+                    "waste_terms": [t for t in terms if t["quality"] == "waste"],
+                    "suggested_negatives": [t["search_term"] for t in terms if t["quality"] == "waste"],
+                }
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    async def update_ad_copy_rest(
+        self, customer_id: str, ad_group_id: str,
+        headlines: List[str], descriptions: List[str],
+    ) -> Dict:
+        """Create or update a Responsive Search Ad (RSA) in an ad group.
+
+        RSAs need: 3-15 headlines (30 chars each), 2-4 descriptions (90 chars each).
+        Google rotates and tests combinations automatically.
+        """
+        if not self._rest_access_token:
+            return {"status": "error", "message": "No REST access token"}
+
+        import httpx
+
+        # Build RSA asset structure
+        headline_assets = [{"text": h[:30]} for h in headlines[:15]]
+        description_assets = [{"text": d[:90]} for d in descriptions[:4]]
+
+        # First, create the ad
+        mutate_url = f"https://googleads.googleapis.com/v26/customers/{customer_id}/adGroupAds:mutate"
+        headers = {
+            "Authorization": f"Bearer {self._rest_access_token}",
+            "developer-token": self._rest_developer_token,
+            "Content-Type": "application/json",
+        }
+
+        body = {
+            "operations": [{
+                "create": {
+                    "adGroup": f"customers/{customer_id}/adGroups/{ad_group_id}",
+                    "status": "ENABLED",
+                    "ad": {
+                        "responsiveSearchAd": {
+                            "headlines": headline_assets,
+                            "descriptions": description_assets,
+                        },
+                        "finalUrls": [],  # Will be set from landing page
+                    },
+                },
+            }],
+        }
+
+        try:
+            async with httpx.AsyncClient() as client:
+                resp = await client.post(mutate_url, headers=headers, json=body, timeout=15)
+                if resp.status_code == 200:
+                    logger.info("REST: Created/updated RSA in ad group %s", ad_group_id)
+                    return {"status": "success", "headlines": len(headlines), "descriptions": len(descriptions)}
+                else:
+                    error = resp.text[:300]
+                    logger.error("REST ad copy update failed: %s", error)
+                    return {"status": "error", "message": error}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    # ------------------------------------------------------------------
     # Helpers
     # ------------------------------------------------------------------
 
