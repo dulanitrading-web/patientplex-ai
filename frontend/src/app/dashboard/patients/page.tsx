@@ -205,7 +205,7 @@ export default function PatientsPage() {
             placeholder="Search by name or phone..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 text-sm border border-slate-200 rounded-lg bg-white/5 text-slate-900 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/40"
+            className="w-full pl-10 pr-4 py-2.5 text-sm border border-slate-200 rounded-lg bg-slate-50 text-slate-900 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/40"
           />
         </div>
         <div className="flex bg-white border border-slate-200 rounded-lg overflow-hidden">
@@ -232,7 +232,7 @@ export default function PatientsPage() {
           <div className="px-4 py-3 border-b border-slate-200">
             <span className="text-sm font-medium text-slate-600">{filtered.length} patients</span>
           </div>
-          <div className="max-h-[calc(100vh-320px)] overflow-y-auto divide-y divide-white/[0.03]">
+          <div className="max-h-[calc(100vh-320px)] overflow-y-auto divide-y divide-slate-100">
             {filtered.length === 0 ? (
               <div className="p-8 text-center">
                 <User className="w-10 h-10 text-slate-700 mx-auto mb-2" />
@@ -251,7 +251,7 @@ export default function PatientsPage() {
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center shrink-0">
+                        <div className="w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center shrink-0">
                           <User className="w-5 h-5 text-slate-600" />
                         </div>
                         <div className="min-w-0">
@@ -373,7 +373,7 @@ export default function PatientsPage() {
                           <div
                             className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${
                               msg.role === "assistant"
-                                ? "bg-white/5 text-slate-700"
+                                ? "bg-slate-50 text-slate-700"
                                 : "bg-slate-900 text-white"
                             }`}
                           >

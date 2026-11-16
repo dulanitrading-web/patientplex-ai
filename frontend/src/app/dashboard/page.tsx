@@ -382,7 +382,7 @@ export default function DashboardPage() {
           {todayAppts.length === 0 ? (
             <p className="text-slate-600 text-sm py-4">No appointments today.</p>
           ) : (
-            <div className="divide-y divide-white/5">
+            <div className="divide-y divide-slate-100">
               {todayAppts.map((a) => (
                 <div key={a.id} className="flex items-center justify-between py-3 group/row">
                   <div className="flex items-center gap-3">
@@ -497,7 +497,7 @@ function FunnelRow({ label, value, total, color }: {
         <span className="text-slate-500">{label}</span>
         <span className="font-medium text-slate-900 tabular-nums">{fmt(value)} ({pct}%)</span>
       </div>
-      <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+      <div className="h-1.5 bg-slate-50 rounded-full overflow-hidden">
         <motion.div
           className={`h-full ${color} rounded-full`}
           initial={{ width: 0 }}

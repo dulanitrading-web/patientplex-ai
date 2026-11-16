@@ -85,7 +85,7 @@ export default function CallsPage() {
       COMPLETED: "bg-emerald-50 text-emerald-600",
       FAILED: "bg-red-50 text-red-600",
     };
-    return m[s] || "bg-white/5 text-slate-500";
+    return m[s] || "bg-slate-50 text-slate-500";
   };
 
   const DirectionIcon = ({ direction }: { direction: string }) => {
@@ -115,7 +115,7 @@ export default function CallsPage() {
         {STATUS_OPTIONS.map((s) => (
           <button key={s} onClick={() => setFilter(s)}
             className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-              filter === s ? "bg-slate-900 text-white" : "bg-white/5 text-slate-500 border border-slate-200 hover:border-slate-300"
+              filter === s ? "bg-slate-900 text-white" : "bg-slate-50 text-slate-500 border border-slate-200 hover:border-slate-300"
             }`}>
             {s === "ALL" ? "All" : s.replace("_", " ")}
           </button>
@@ -138,7 +138,7 @@ export default function CallsPage() {
             <div key={cl.id} className="bg-white rounded-xl border border-slate-200 p-4 hover:border-slate-200 transition-colors">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-start gap-3">
-                  <div className="p-2 bg-white/5 rounded-lg">
+                  <div className="p-2 bg-slate-50 rounded-lg">
                     <DirectionIcon direction={cl.direction} />
                   </div>
                   <div>

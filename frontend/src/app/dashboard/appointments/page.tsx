@@ -75,7 +75,7 @@ export default function AppointmentsPage() {
       REMINDED: "bg-amber-50 text-amber-600",
       ATTENDED: "bg-emerald-50 text-emerald-600",
       NO_SHOW: "bg-red-50 text-red-600",
-      CANCELLED: "bg-white/5 text-slate-600",
+      CANCELLED: "bg-slate-50 text-slate-600",
     };
     return m[s] || m.CONFIRMED;
   };
@@ -131,7 +131,7 @@ export default function AppointmentsPage() {
             <div key={a.id} className="bg-white rounded-xl border border-slate-200 p-4 hover:border-slate-200 transition-colors">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-start gap-3">
-                  <div className="p-2 bg-white/5 rounded-lg">
+                  <div className="p-2 bg-slate-50 rounded-lg">
                     <User className="w-5 h-5 text-slate-500" />
                   </div>
                   <div>

@@ -512,7 +512,7 @@ function IntegrationRow({ icon, name, status, detail, onConnect, onDisconnect, c
     ready: { icon: <CheckCircle2 className="w-4 h-4 text-cyan-600" />, label: "Ready", cls: "bg-cyan-50 text-cyan-600" },
     active_draft: { icon: <Clock className="w-4 h-4 text-amber-600" />, label: "Draft Mode", cls: "bg-amber-50 text-amber-600" },
     pending: { icon: <Clock className="w-4 h-4 text-amber-600" />, label: "Pending", cls: "bg-amber-50 text-amber-600" },
-    not_connected: { icon: <XCircle className="w-4 h-4 text-slate-600" />, label: "Not Connected", cls: "bg-white/5 text-slate-600" },
+    not_connected: { icon: <XCircle className="w-4 h-4 text-slate-600" />, label: "Not Connected", cls: "bg-slate-50 text-slate-600" },
   };
   const cfg = statusConfig[status];
 

@@ -217,7 +217,7 @@ export default function BillingPage() {
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-slate-100">
               <ComparisonRow
                 label="Price"
                 values={plans.map((p) => `₹${p.price_inr.toLocaleString("en-IN")}/mo`)}
@@ -346,7 +346,7 @@ function PlanCard({ plan, isCurrent, isPopular }: {
         disabled={isCurrent}
         className={`w-full py-2.5 rounded-lg text-sm font-medium transition-colors ${
           isCurrent
-            ? "bg-white/5 text-slate-600 cursor-not-allowed"
+            ? "bg-slate-50 text-slate-600 cursor-not-allowed"
             : isPopular
               ? "bg-emerald-500 hover:bg-slate-800 text-[#0A0E1A]"
               : "border border-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-900"
@@ -372,7 +372,7 @@ function UsageBar({ label, used, limit }: { label: string; used: number; limit: 
         </span>
       </div>
       {!isUnlimited && (
-        <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+        <div className="h-1.5 bg-slate-50 rounded-full overflow-hidden">
           <div
             className={`h-full rounded-full ${isHigh ? "bg-amber-500" : "bg-emerald-500"}`}
             style={{ width: `${pct}%` }}
@@ -380,7 +380,7 @@ function UsageBar({ label, used, limit }: { label: string; used: number; limit: 
         </div>
       )}
       {isUnlimited && (
-        <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+        <div className="h-1.5 bg-slate-50 rounded-full overflow-hidden">
           <div className="h-full bg-emerald-500/30 rounded-full w-0" />
         </div>
       )}
@@ -394,9 +394,9 @@ function StatusBadge({ status }: { status: string }) {
     ACTIVE: { cls: "bg-emerald-50 text-emerald-600", label: "Active" },
     PAST_DUE: { cls: "bg-amber-50 text-amber-600", label: "Past Due" },
     CANCELLED: { cls: "bg-red-50 text-red-600", label: "Cancelled" },
-    EXPIRED: { cls: "bg-white/5 text-slate-600", label: "Expired" },
+    EXPIRED: { cls: "bg-slate-50 text-slate-600", label: "Expired" },
   };
-  const cfg = config[status] || { cls: "bg-white/5 text-slate-600", label: status };
+  const cfg = config[status] || { cls: "bg-slate-50 text-slate-600", label: status };
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${cfg.cls}`}>
       {cfg.label}

@@ -127,7 +127,7 @@ export default function LandingPagesPage() {
                 </div>
                 <div className="flex gap-2 shrink-0">
                   <button onClick={() => copyUrl(page.url)}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-slate-500 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
+                    className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-slate-500 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
                     {copied === page.url ? (
                       <><CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Copied</>
                     ) : (

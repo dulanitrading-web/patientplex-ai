@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { LineChart, BarChart3, Users, ArrowUpRight, Globe, RefreshCw, TrendingUp, MousePointerClick } from "lucide-react";
-import { useAuth } from "@/context/auth";
+import { LineChart, BarChart3, Users, ArrowUpRight, Globe, RefreshCw, TrendingUp, MousePointerClick, AlertTriangle } from "lucide-react";
+import { fetchWithAuth } from "@/lib/api";
 
 interface GA4Report {
   demo_mode?: boolean;
@@ -34,29 +34,24 @@ interface RealtimeData {
 }
 
 export default function GA4AnalyticsPage() {
-  const { token } = useAuth();
   const [report, setReport] = useState<GA4Report | null>(null);
   const [realtime, setRealtime] = useState<RealtimeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState("30daysAgo");
 
-  const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
   useEffect(() => {
-    if (!token) return;
     fetchData();
-  }, [token, dateRange]);
+  }, [dateRange]);
 
   async function fetchData() {
     setLoading(true);
-    const headers = { Authorization: `Bearer ${token}` };
     try {
-      const [reportRes, realtimeRes] = await Promise.all([
-        fetch(`${API}/api/v1/ga4/report?date_range=${dateRange}`, { headers }),
-        fetch(`${API}/api/v1/ga4/realtime`, { headers }),
+      const [reportRes, realtimeRes] = await Promise.allSettled([
+        fetchWithAuth(`/ga4/report?date_range=${dateRange}`),
+        fetchWithAuth("/ga4/realtime"),
       ]);
-      if (reportRes.ok) setReport(await reportRes.json());
-      if (realtimeRes.ok) setRealtime(await realtimeRes.json());
+      if (reportRes.status === "fulfilled") setReport(await reportRes.value.json());
+      if (realtimeRes.status === "fulfilled") setRealtime(await realtimeRes.value.json());
     } catch (err) {
       console.error("GA4 fetch error:", err);
     } finally {
@@ -100,9 +95,15 @@ export default function GA4AnalyticsPage() {
       </div>
 
       {report?.demo_mode && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
-          <strong>Demo Mode:</strong> Set your GA4 Measurement ID in environment variables (<code>NEXT_PUBLIC_GA4_ID</code> for frontend,
-          <code> GA4_MEASUREMENT_ID</code> + <code>GA4_API_SECRET</code> for backend) to see real data.
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold text-amber-900">GA4 not connected — showing sample data</p>
+            <p className="text-sm text-amber-700 mt-1">
+              Connect Google Analytics 4 to see real website traffic, conversions, and patient funnel data.
+              Go to <a href="/dashboard/settings" className="underline font-medium">Settings → Integrations</a> to set up GA4.
+            </p>
+          </div>
         </div>
       )}
 

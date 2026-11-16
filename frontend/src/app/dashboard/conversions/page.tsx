@@ -116,7 +116,7 @@ export default function ConversionsPage() {
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               days === p.value
                 ? "bg-slate-900 text-white"
-                : "bg-white/5 text-slate-500 border border-slate-200 hover:bg-white/10 hover:text-slate-900"
+                : "bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-100 hover:text-slate-900"
             }`}>
             {p.label}
           </button>
@@ -148,7 +148,7 @@ export default function ConversionsPage() {
                       <span className="truncate">{STAGE_LABELS[stage.stage] || stage.stage}</span>
                     </div>
                     <div className="flex-1 relative">
-                      <div className="h-8 bg-white/5 rounded-lg w-full absolute" />
+                      <div className="h-8 bg-slate-50 rounded-lg w-full absolute" />
                       <div
                         className={`h-8 rounded-lg ${STAGE_COLORS[i % STAGE_COLORS.length]} flex items-center px-3 transition-all duration-500 relative`}
                         style={{ width: `${widthPct}%` }}

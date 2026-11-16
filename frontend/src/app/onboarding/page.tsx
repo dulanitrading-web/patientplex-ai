@@ -96,7 +96,7 @@ function Toast({ message, type, onClose }: { message: string; type: "error" | "s
 
   return (
     <div className={clsx(
-      "fixed top-4 right-4 z-50 px-4 py-3 rounded-lg text-sm text-slate-900 shadow-lg animate-slide-in",
+      "fixed top-4 right-4 z-50 px-4 py-3 rounded-lg text-sm text-white shadow-lg animate-slide-in",
       type === "error" ? "bg-red-500" : "bg-emerald-500"
     )}>
       <div className="flex items-center gap-2">

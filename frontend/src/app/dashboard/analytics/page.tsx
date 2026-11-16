@@ -211,7 +211,7 @@ export default function AnalyticsPage() {
                       )}
                     </span>
                   </div>
-                  <div className="h-8 bg-white/5 rounded-lg overflow-hidden">
+                  <div className="h-8 bg-slate-50 rounded-lg overflow-hidden">
                     <div
                       className={`h-full ${colors[i % colors.length]} rounded-lg flex items-center pl-3 transition-all duration-500`}
                       style={{ width: `${widthPct}%` }}
@@ -265,7 +265,7 @@ export default function AnalyticsPage() {
                         {ch.count} <span className="text-xs text-slate-600">({ch.percentage}%)</span>
                       </span>
                     </div>
-                    <div className="h-3 bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-3 bg-slate-50 rounded-full overflow-hidden">
                       <div
                         className={`h-full ${color} rounded-full transition-all duration-500`}
                         style={{ width: `${Math.max(ch.percentage, 2)}%` }}
@@ -298,7 +298,7 @@ export default function AnalyticsPage() {
                   <th className="text-right py-3 px-2 text-slate-600 font-medium">Value</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/[0.03]">
+              <tbody className="divide-y divide-slate-100">
                 <CampaignRow label="Total Spend" value={`₹${fmt(campaigns.total_spend)}`} />
                 <CampaignRow label="Impressions" value={fmt(campaigns.total_impressions)} />
                 <CampaignRow label="Clicks" value={fmt(campaigns.total_clicks)} />

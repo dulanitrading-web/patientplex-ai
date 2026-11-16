@@ -457,4 +457,4 @@ export async function getCampaignDetail(campaignId: string) {
   return res.json();
 }
 
-export { ApiError };
+export { ApiError, fetchWithAuth };
