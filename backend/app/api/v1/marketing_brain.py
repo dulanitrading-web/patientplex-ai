@@ -1,15 +1,52 @@
 """Marketing Brain API — endpoints for the AI marketing orchestrator."""
 
+from uuid import UUID
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.v1.auth import get_current_doctor
 from app.db.session import get_db
+from app.models.doctor import Doctor
 from app.services.marketing_brain import MarketingBrain
+from app.services.performance_marketing_brain import PerformanceMarketingBrain
 
 router = APIRouter(prefix="/marketing-brain", tags=["marketing-brain"])
 
 brain = MarketingBrain()
 
+
+# ─── NEW: Real Performance Marketing Intelligence ───
+
+@router.get("/audit")
+async def audit_my_account(
+    doctor: Doctor = Depends(get_current_doctor),
+    db: AsyncSession = Depends(get_db),
+):
+    """Full account audit — like a senior performance marketer's first-day analysis.
+
+    Analyzes existing campaigns, identifies gaps, scores health, and generates
+    a prioritized action plan with budget recommendations.
+    """
+    pmb = PerformanceMarketingBrain(db)
+    return await pmb.audit_account(doctor.id)
+
+
+@router.post("/smart-budget")
+async def smart_budget_allocation(
+    doctor: Doctor = Depends(get_current_doctor),
+    db: AsyncSession = Depends(get_db),
+):
+    """Allocate budget intelligently based on real performance data.
+
+    Unlike equal-split, this weights budget by: campaign performance score,
+    treatment value tier, and conversion efficiency.
+    """
+    pmb = PerformanceMarketingBrain(db)
+    return await pmb.allocate_budget(doctor.id)
+
+
+# ─── Legacy endpoints ───
 
 @router.get("/health-score/{doctor_id}")
 async def clinic_health_score(doctor_id: int, db: AsyncSession = Depends(get_db)):
