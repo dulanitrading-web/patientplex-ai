@@ -215,12 +215,12 @@ export default function CampaignsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-slate-900">Campaigns</h1>
-        <button
-          onClick={handleLaunch}
-          className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium transition-colors"
+        <a
+          href="/dashboard/campaigns/new"
+          className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium transition-colors inline-block"
         >
           + Launch New
-        </button>
+        </a>
       </div>
 
       {/* ── AI Intelligence Panel ── */}
@@ -338,12 +338,12 @@ export default function CampaignsPage() {
           <AlertCircle className="w-12 h-12 text-slate-400 mx-auto mb-3" />
           <h2 className="text-lg font-semibold text-slate-900 mb-1">No campaigns yet</h2>
           <p className="text-slate-500 text-sm mb-4">Launch your first AI-powered campaigns across Google, Meta, and more.</p>
-          <button
-            onClick={handleLaunch}
-            className="px-5 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium transition-colors"
+          <a
+            href="/dashboard/campaigns/new"
+            className="inline-block px-5 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium transition-colors"
           >
-            Launch Campaigns
-          </button>
+            Create Your First Campaign
+          </a>
         </div>
       ) : (
         <div className="space-y-4">

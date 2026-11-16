@@ -21,6 +21,66 @@ class StatusUpdate(BaseModel):
     notes: str | None = None
 
 
+class BookAppointmentRequest(BaseModel):
+    """Manual appointment booking from the dashboard."""
+    patient_name: str
+    patient_phone: str
+    treatment: str
+    date: date
+    time: str  # "HH:MM" format
+    source: str = "Walk-in"  # Google Ads, WhatsApp, Walk-in, Phone Call, Referral
+    notes: str | None = None
+
+
+@router.post("/book")
+async def book_appointment(
+    body: BookAppointmentRequest,
+    doctor: Doctor = Depends(get_current_doctor),
+    db: AsyncSession = Depends(get_db),
+):
+    """Manually book a new appointment from the dashboard.
+
+    Creates the appointment and tracks it as a conversion in the funnel.
+    """
+    from datetime import time as time_type
+
+    # Parse time string
+    try:
+        parts = body.time.split(":")
+        appt_time = time_type(int(parts[0]), int(parts[1]))
+    except (ValueError, IndexError):
+        raise HTTPException(status_code=400, detail="Time must be in HH:MM format")
+
+    appointment = Appointment(
+        doctor_id=doctor.id,
+        patient_name=body.patient_name,
+        patient_phone=body.patient_phone,
+        treatment=body.treatment,
+        appointment_date=body.date,
+        appointment_time=appt_time,
+        duration_minutes=30,
+        status=AppointmentStatus.CONFIRMED,
+        notes=body.notes or f"Source: {body.source}",
+    )
+    db.add(appointment)
+    await db.flush()
+
+    # Track as a conversion in the funnel
+    try:
+        from app.services.conversion_bridge import ConversionBridge
+        bridge = ConversionBridge(db)
+        await bridge.track_appointment_booked(appointment)
+    except Exception:
+        pass  # Don't fail the booking if tracking fails
+
+    await db.commit()
+
+    return {
+        "message": "Appointment booked",
+        "appointment": _serialize_appointment(appointment),
+    }
+
+
 @router.get("/")
 async def list_appointments(
     date_from: date | None = None,

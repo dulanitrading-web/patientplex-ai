@@ -17,6 +17,7 @@ import {
   Pencil,
   Save,
   Info,
+  Camera,
 } from "lucide-react";
 import {
   getMe,
@@ -208,7 +209,52 @@ export default function SettingsPage() {
       {/* Clinic Details */}
       <div className="bg-white rounded-xl border border-slate-200 p-5">
         <SectionHeader icon={<Building2 className="w-5 h-5 text-cyan-600" />} title="Clinic Details" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+        {/* Logo Upload */}
+        <div className="flex items-center gap-4 mt-4 mb-4 pb-4 border-b border-slate-100">
+          <div className="w-16 h-16 rounded-xl bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden shrink-0">
+            {doctor?.clinic_logo ? (
+              <img src={doctor.clinic_logo} alt="Clinic logo" className="w-full h-full object-cover rounded-xl" />
+            ) : (
+              <span className="text-xl font-bold text-slate-400">
+                {(doctor?.clinic_name || "C").charAt(0).toUpperCase()}
+              </span>
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-slate-900">Clinic Logo</p>
+            <p className="text-xs text-slate-500 mb-2">Upload your clinic logo (max 200KB, PNG/JPG)</p>
+            <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100 cursor-pointer transition-colors">
+              <Camera className="w-3.5 h-3.5" />
+              {doctor?.clinic_logo ? "Change Logo" : "Upload Logo"}
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  if (file.size > 200 * 1024) {
+                    setStatusMessage({ text: "Logo must be under 200KB", type: "error" });
+                    return;
+                  }
+                  const reader = new FileReader();
+                  reader.onload = async () => {
+                    const base64 = reader.result as string;
+                    try {
+                      await updateProfile({ clinic_logo: base64 });
+                      setStatusMessage({ text: "Logo uploaded!", type: "success" });
+                      setTimeout(() => window.location.reload(), 1000);
+                    } catch {
+                      setStatusMessage({ text: "Failed to upload logo", type: "error" });
+                    }
+                  };
+                  reader.readAsDataURL(file);
+                }}
+              />
+            </label>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <InfoField label="Clinic Name" value={doctor?.clinic_name} />
           <InfoField label="Specialty" value={doctor?.specialty ? formatSpecialty(doctor.specialty) : undefined} />
           <InfoField label="City" value={doctor?.city} />

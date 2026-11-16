@@ -68,6 +68,7 @@ async def lifespan(app: FastAPI):
             # hasn't been run yet.  The canonical source of truth is the
             # migration file; this block is a fallback for existing deployments.
             _safety_columns = [
+                ("doctors", "clinic_logo", "TEXT"),
                 ("doctors", "google_ads_customer_id", "VARCHAR(20)"),
                 ("doctors", "google_ads_refresh_token", "TEXT"),
                 ("doctors", "google_ads_connected", "BOOLEAN DEFAULT FALSE"),

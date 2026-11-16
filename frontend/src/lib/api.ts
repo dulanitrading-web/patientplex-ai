@@ -203,6 +203,22 @@ export async function updateAppointmentStatus(id: string, status: string, notes?
   return res.json();
 }
 
+export async function bookAppointment(data: {
+  patient_name: string;
+  patient_phone: string;
+  treatment: string;
+  date: string;
+  time: string;
+  source: string;
+  notes?: string;
+}) {
+  const res = await fetchWithAuth("/appointments/book", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+
 // Conversations
 export async function getConversations(status?: string) {
   const query = status ? `?status=${status}` : "";

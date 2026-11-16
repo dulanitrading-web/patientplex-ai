@@ -112,6 +112,7 @@ class DoctorResponse(BaseModel):
     email: str
     phone: str
     clinic_name: str | None = None
+    clinic_logo: str | None = None
     specialty: Specialty | None = None
     services: list[str] | None = None
     clinic_address: str | None = None
@@ -164,6 +165,7 @@ class ProfileUpdate(BaseModel):
     full_name: Optional[str] = Field(default=None, min_length=2, max_length=255)
     phone: Optional[str] = Field(default=None, min_length=10, max_length=20)
     clinic_name: Optional[str] = Field(default=None, max_length=255)
+    clinic_logo: Optional[str] = Field(default=None, max_length=500000)  # Base64 data URI, max ~350KB image
     clinic_address: Optional[str] = Field(default=None, min_length=5)
     city: Optional[str] = Field(default=None, min_length=2, max_length=100)
     state: Optional[str] = Field(default=None, min_length=2, max_length=100)

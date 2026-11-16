@@ -47,6 +47,7 @@ class Doctor(Base):
     password_hash: Mapped[str] = mapped_column(Text, nullable=False)
 
     # Clinic details
+    clinic_logo: Mapped[str | None] = mapped_column(Text, nullable=True)  # Base64 data URI or URL
     clinic_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     specialty: Mapped[Specialty | None] = mapped_column(
         Enum(Specialty, name="specialty_enum"), nullable=True
