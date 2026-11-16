@@ -5,8 +5,8 @@ import {
   Play, Pause, TrendingUp, IndianRupee, MousePointerClick,
   Eye, Loader2, AlertCircle, CheckCircle2, Clock, XCircle,
   ChevronDown, ChevronUp, Pencil, Check, X, Plus, Trash2,
-  Brain, Zap, Target, ArrowUpRight, ArrowDownRight, Minus,
-  Wifi, WifiOff, BarChart3, Search,
+  Brain, ArrowUpRight, ArrowDownRight, Minus,
+  Wifi, WifiOff, Search,
 } from "lucide-react";
 import {
   getCampaigns, pauseCampaign, resumeCampaign, launchCampaigns,
