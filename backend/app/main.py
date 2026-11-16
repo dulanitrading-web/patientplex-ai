@@ -89,7 +89,7 @@ async def lifespan(app: FastAPI):
                     pass
 
             # Enum expansion safety net
-            for new_val in ("CHATGPT", "INSTAGRAM", "GMB", "WHATSAPP"):
+            for new_val in ("CHATGPT", "INSTAGRAM", "GMB", "WHATSAPP", "PHYSIOTHERAPIST"):
                 try:
                     await conn.execute(
                         sa.text(f"ALTER TYPE ad_platform_enum ADD VALUE IF NOT EXISTS '{new_val}'")

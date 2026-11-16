@@ -292,6 +292,37 @@ SPECIALTY_CONFIGS: dict[str, SpecialtyConfig] = {
         ],
         negative_keywords=[*_COMMON_NEGATIVE_KEYWORDS],
     ),
+    "PHYSIOTHERAPIST": SpecialtyConfig(
+        specialty="PHYSIOTHERAPIST",
+        default_services=[
+            "Back Pain Rehab",
+            "Knee Rehabilitation",
+            "Post-Surgery Rehab",
+            "Sports Injury Recovery",
+            "Neck & Shoulder Pain",
+            "Frozen Shoulder",
+            "Stroke Rehabilitation",
+            "Cervical Spondylosis",
+        ],
+        default_keywords=[
+            "physiotherapist near me",
+            "physiotherapy center near me",
+            "back pain physiotherapy",
+            "knee pain treatment",
+            "sports injury rehab",
+            "frozen shoulder treatment",
+            "post surgery physiotherapy",
+            "physio near me",
+            "best physiotherapist",
+            "physiotherapy clinic",
+        ],
+        negative_keywords=[
+            *_COMMON_NEGATIVE_KEYWORDS,
+            "physiotherapy course",
+            "BPT admission",
+            "MPT syllabus",
+        ],
+    ),
     "OTHER": SpecialtyConfig(
         specialty="OTHER",
         default_services=[

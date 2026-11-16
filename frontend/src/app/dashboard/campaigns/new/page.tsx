@@ -294,7 +294,7 @@ export default function CampaignWizardPage() {
           <div>
             <h2 className="text-lg font-semibold text-slate-900 mb-1">Which treatments do you want to promote?</h2>
             <p className="text-sm text-slate-500">
-              Select 1–3 treatments. We'll create targeted campaigns with the right keywords and ad copy for each.
+              Select 1–3 treatments. We&apos;ll create targeted campaigns with the right keywords and ad copy for each.
             </p>
           </div>
 
@@ -341,7 +341,7 @@ export default function CampaignWizardPage() {
                 <span className="font-medium">{selectedTreatments.length} treatment{selectedTreatments.length > 1 ? "s" : ""} selected</span>
               </div>
               <p className="text-xs text-emerald-600 mt-1">
-                We'll generate {selectedTreatments.length * 4} keywords targeting "{doctor?.city}" for these treatments.
+                We&apos;ll generate {selectedTreatments.length * 4} keywords targeting &ldquo;{doctor?.city}&rdquo; for these treatments.
               </p>
             </div>
           )}

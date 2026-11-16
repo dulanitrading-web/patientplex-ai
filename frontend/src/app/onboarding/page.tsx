@@ -70,6 +70,7 @@ const FALLBACK_SPECIALTIES: Specialty[] = [
   { id: "ent", name: "ENT Specialist", icon: "ear", default_services: ["Sinus Treatment", "Hearing Test", "Tonsil Surgery", "Ear Cleaning", "Snoring / Sleep Apnea", "Voice Disorders"] },
   { id: "plastic_surgeon", name: "Plastic Surgeon", icon: "scissors", default_services: ["Rhinoplasty", "Liposuction", "Hair Transplant", "Facelift", "Scar Revision", "Botox / Fillers"] },
   { id: "gynecologist", name: "Gynecologist", icon: "baby", default_services: ["Normal Delivery", "C-Section", "Fertility / IVF", "PCOS Treatment", "Prenatal Care", "Laparoscopy"] },
+  { id: "physiotherapist", name: "Physiotherapist", icon: "activity", default_services: ["Back Pain Rehab", "Knee Rehabilitation", "Post-Surgery Rehab", "Sports Injury", "Frozen Shoulder", "Neck & Shoulder Pain"] },
   { id: "general", name: "General Physician", icon: "activity", default_services: ["General Check-up", "Fever / Cold", "Diabetes Management", "Thyroid Treatment", "Blood Tests", "Health Screening"] },
 ];
 
@@ -213,7 +214,7 @@ export default function OnboardingPage() {
   const SPECIALTY_CPC: Record<string, number> = {
     dentist: 35, dermatologist: 40, orthopedic: 45, ophthalmologist: 30,
     pediatrician: 20, neurologist: 35, cardiologist: 40, ent: 25,
-    plastic_surgeon: 50, general: 15, gynecologist: 30,
+    plastic_surgeon: 50, general: 15, gynecologist: 30, physiotherapist: 20,
   };
   const estimatedCPC = SPECIALTY_CPC[selectedSpecialty || "general"] || 35;
   const estimatedClicks = Math.round(budget / estimatedCPC);
@@ -269,6 +270,7 @@ export default function OnboardingPage() {
             ophthalmologist: "OPHTHALMOLOGIST", pediatrician: "PEDIATRICIAN", neurologist: "OTHER",
             cardiologist: "OTHER", ent: "ENT", plastic_surgeon: "SURGEON",
             general: "GENERAL_PHYSICIAN", gynecologist: "GYNECOLOGIST",
+            physiotherapist: "PHYSIOTHERAPIST",
           };
           await updateStep1({
             specialty: specialtyMap[selectedSpecialty!] || "OTHER",
