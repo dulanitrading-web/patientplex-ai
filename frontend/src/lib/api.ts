@@ -373,4 +373,22 @@ export async function requestPasswordReset(email: string) {
   return res.json();
 }
 
+// Conversion Summary (doctor-friendly metrics)
+export async function getConversionSummary(days = 30) {
+  const res = await fetchWithAuth(`/conversions/summary?days=${days}`);
+  return res.json();
+}
+
+// Marketing Brain Audit
+export async function getAccountAudit() {
+  const res = await fetchWithAuth("/marketing-brain/audit");
+  return res.json();
+}
+
+// Smart Budget Allocation
+export async function getSmartBudget() {
+  const res = await fetchWithAuth("/marketing-brain/smart-budget", { method: "POST" });
+  return res.json();
+}
+
 export { ApiError };

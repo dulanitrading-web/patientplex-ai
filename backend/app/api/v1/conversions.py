@@ -95,3 +95,50 @@ async def track_event(
     await db.commit()
 
     return {"tracked": True, "event_id": str(event.id), "stage": stage}
+
+
+@router.get("/summary")
+async def conversion_summary(
+    days: int = Query(30, ge=7, le=365),
+    doctor: Doctor = Depends(get_current_doctor),
+    db: AsyncSession = Depends(get_db),
+):
+    """Doctor-friendly conversion summary.
+
+    Returns metrics doctors actually care about:
+    - Total patients (not 'conversions')
+    - Cost per patient (not CPA)
+    - ROI percentage
+    - Revenue estimate
+    """
+    from app.services.conversion_bridge import ConversionBridge
+    bridge = ConversionBridge(db)
+    return await bridge.get_conversion_summary(doctor.id, days)
+
+
+@router.post("/track-booking")
+async def track_booking_conversion(
+    patient_phone: str,
+    treatment: str,
+    gclid: str | None = None,
+    source_campaign_id: str | None = None,
+    doctor: Doctor = Depends(get_current_doctor),
+    db: AsyncSession = Depends(get_db),
+):
+    """Track an appointment booking as a conversion event.
+
+    Called automatically when a booking is confirmed. Can also be called
+    manually from the dashboard for walk-in patients.
+    """
+    from uuid import UUID as UUIDType
+    from app.services.conversion_bridge import ConversionBridge
+    bridge = ConversionBridge(db)
+    result = await bridge.track_appointment_booked(
+        doctor_id=doctor.id,
+        patient_phone=patient_phone,
+        treatment=treatment,
+        source_campaign_id=UUIDType(source_campaign_id) if source_campaign_id else None,
+        gclid=gclid,
+    )
+    await db.commit()
+    return result
