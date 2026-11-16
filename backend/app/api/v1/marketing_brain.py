@@ -161,37 +161,37 @@ async def bidding_strategy_guide(
 # ─── Legacy endpoints ───
 
 @router.get("/health-score/{doctor_id}")
-async def clinic_health_score(doctor_id: int, db: AsyncSession = Depends(get_db)):
+async def clinic_health_score(doctor_id: UUID, db: AsyncSession = Depends(get_db)):
     """Get the overall marketing health score for a clinic."""
     return await brain.get_clinic_health_score(doctor_id, db)
 
 
 @router.post("/optimize-budget/{doctor_id}")
-async def optimize_budget(doctor_id: int, db: AsyncSession = Depends(get_db)):
+async def optimize_budget(doctor_id: UUID, db: AsyncSession = Depends(get_db)):
     """Run budget allocation optimization across all ad channels."""
     return await brain.optimize_budget_allocation(doctor_id, db)
 
 
 @router.get("/patient-persona/{doctor_id}")
-async def patient_persona(doctor_id: int, db: AsyncSession = Depends(get_db)):
+async def patient_persona(doctor_id: UUID, db: AsyncSession = Depends(get_db)):
     """Get the AI-built patient persona for targeting."""
     return await brain.build_patient_persona(doctor_id, db)
 
 
 @router.post("/optimize-bids/{doctor_id}")
-async def optimize_bids(doctor_id: int, db: AsyncSession = Depends(get_db)):
+async def optimize_bids(doctor_id: UUID, db: AsyncSession = Depends(get_db)):
     """Run real-time bid optimization."""
     return await brain.optimize_bids(doctor_id, db)
 
 
 @router.post("/optimize-creatives/{doctor_id}/{campaign_id}")
-async def optimize_creatives(doctor_id: int, campaign_id: int, db: AsyncSession = Depends(get_db)):
+async def optimize_creatives(doctor_id: UUID, campaign_id: UUID, db: AsyncSession = Depends(get_db)):
     """Run creative A/B test optimization for a campaign."""
     return await brain.optimize_creatives(doctor_id, campaign_id, db)
 
 
 @router.get("/anomalies/{doctor_id}")
-async def detect_anomalies(doctor_id: int, db: AsyncSession = Depends(get_db)):
+async def detect_anomalies(doctor_id: UUID, db: AsyncSession = Depends(get_db)):
     """Detect performance anomalies across all channels."""
     return await brain.detect_anomalies(doctor_id, db)
 
@@ -208,13 +208,13 @@ async def analyze_competitors(
 
 
 @router.get("/forecast/{doctor_id}")
-async def forecast(doctor_id: int, db: AsyncSession = Depends(get_db)):
+async def forecast(doctor_id: UUID, db: AsyncSession = Depends(get_db)):
     """Predict next month's patient volume and revenue."""
     return await brain.predict_monthly_performance(doctor_id, db)
 
 
 @router.post("/daily-optimization/{doctor_id}")
-async def daily_optimization(doctor_id: int, db: AsyncSession = Depends(get_db)):
+async def daily_optimization(doctor_id: UUID, db: AsyncSession = Depends(get_db)):
     """Run the full daily optimization cycle."""
     return await brain.run_daily_optimization(doctor_id, db)
 

@@ -14,21 +14,46 @@ import Avatar from "@/components/ui/Avatar";
 import NotificationBell from "@/components/ui/NotificationBell";
 import Logo from "@/components/Logo";
 
-const NAV_ITEMS = [
-  { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
-  { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/dashboard/patients", label: "Patients", icon: Users },
-  { href: "/dashboard/campaigns", label: "Campaigns", icon: TrendingUp },
-  { href: "/dashboard/appointments", label: "Appointments", icon: Calendar },
-  { href: "/dashboard/conversations", label: "WhatsApp", icon: MessageCircle },
-  { href: "/dashboard/calls", label: "Calls", icon: Phone },
-  { href: "/dashboard/conversions", label: "Funnel", icon: BarChart3 },
-  { href: "/dashboard/google-business", label: "Google Business", icon: MapPin },
-  { href: "/dashboard/ga4", label: "GA4 Analytics", icon: LineChart },
-  { href: "/dashboard/seo", label: "Website SEO", icon: Search },
-  { href: "/dashboard/landing-pages", label: "Landing Pages", icon: Globe },
-  { href: "/dashboard/billing", label: "Billing", icon: CreditCard },
-  { href: "/dashboard/settings", label: "Settings", icon: Settings },
+const NAV_SECTIONS = [
+  {
+    label: "",
+    items: [
+      { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
+    ],
+  },
+  {
+    label: "Marketing",
+    items: [
+      { href: "/dashboard/campaigns", label: "Campaigns", icon: TrendingUp },
+      { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
+      { href: "/dashboard/conversions", label: "Funnel", icon: BarChart3 },
+    ],
+  },
+  {
+    label: "Patients",
+    items: [
+      { href: "/dashboard/patients", label: "Patients", icon: Users },
+      { href: "/dashboard/appointments", label: "Appointments", icon: Calendar },
+      { href: "/dashboard/conversations", label: "WhatsApp", icon: MessageCircle },
+      { href: "/dashboard/calls", label: "Calls", icon: Phone },
+    ],
+  },
+  {
+    label: "Channels",
+    items: [
+      { href: "/dashboard/google-business", label: "Google Business", icon: MapPin },
+      { href: "/dashboard/ga4", label: "GA4 Analytics", icon: LineChart },
+      { href: "/dashboard/seo", label: "Website SEO", icon: Search },
+      { href: "/dashboard/landing-pages", label: "Landing Pages", icon: Globe },
+    ],
+  },
+  {
+    label: "",
+    items: [
+      { href: "/dashboard/billing", label: "Billing", icon: CreditCard },
+      { href: "/dashboard/settings", label: "Settings", icon: Settings },
+    ],
+  },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -54,23 +79,34 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-2 py-4 space-y-0.5 overflow-y-auto">
-          {NAV_ITEMS.map((item) => {
-            const active = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
-            return (
-              <Link key={item.href} href={item.href} onClick={() => setSidebarOpen(false)}>
-                <div className={clsx(
-                  "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150",
-                  active
-                    ? "bg-emerald-50 text-emerald-700 border-l-2 border-emerald-500"
-                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-100 border-l-2 border-transparent",
-                )}>
-                  <item.icon className="w-4 h-4 shrink-0" />
-                  {item.label}
+        <nav className="flex-1 px-2 py-3 overflow-y-auto">
+          {NAV_SECTIONS.map((section, si) => (
+            <div key={si} className={section.label ? "mt-4 first:mt-0" : ""}>
+              {section.label && (
+                <div className="px-3 mb-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                  {section.label}
                 </div>
-              </Link>
-            );
-          })}
+              )}
+              <div className="space-y-0.5">
+                {section.items.map((item) => {
+                  const active = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
+                  return (
+                    <Link key={item.href} href={item.href} onClick={() => setSidebarOpen(false)}>
+                      <div className={clsx(
+                        "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150",
+                        active
+                          ? "bg-emerald-50 text-emerald-700 border-l-2 border-emerald-500"
+                          : "text-slate-600 hover:text-slate-900 hover:bg-slate-100 border-l-2 border-transparent",
+                      )}>
+                        <item.icon className="w-4 h-4 shrink-0" />
+                        {item.label}
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
         {/* Doctor info + logout */}

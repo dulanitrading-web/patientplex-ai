@@ -26,11 +26,12 @@ class MetaAdsEngine:
     - LEAD_GEN: Collect patient enquiries via lead forms or WhatsApp
     """
 
-    def __init__(self, db: AsyncSession):
+    def __init__(self, db: AsyncSession, doctor_access_token: str | None = None):
         self.db = db
         self.api_version = "v21.0"
         self.base_url = f"https://graph.facebook.com/{self.api_version}"
-        self.access_token = settings.META_APP_SECRET  # Long-lived page access token
+        # Use per-doctor OAuth access token if available, otherwise fall back to app-level token
+        self.access_token = doctor_access_token or getattr(settings, "META_ACCESS_TOKEN", None)
 
     async def create_campaign_from_onboarding(
         self, doctor: Doctor, campaign_type: str = "LEAD_GEN"

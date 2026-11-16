@@ -98,7 +98,8 @@ export default function AnalyticsPage() {
   }
 
   const totalEnquiries = campaigns?.total_conversions || 0;
-  const qualifiedLeads = Math.round(totalEnquiries * 0.65);
+  // Qualified leads = booked appointments (real data, not fabricated percentage)
+  const qualifiedLeads = totalBooked;
   const totalBooked = appointments?.total_booked || 0;
   const totalAttended = appointments?.attended || 0;
   const totalSpend = campaigns?.total_spend || 0;
@@ -155,8 +156,8 @@ export default function AnalyticsPage() {
         />
         <KpiCard
           icon={<Target className="w-5 h-5" />}
-          label="Qualified Leads"
-          value={fmt(qualifiedLeads)}
+          label="Cost per Enquiry"
+          value={costPerLead > 0 ? `₹${fmt(costPerLead)}` : "—"}
           color="cyan"
         />
         <KpiCard

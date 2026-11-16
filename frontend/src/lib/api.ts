@@ -451,33 +451,6 @@ export async function getSearchTerms(campaignId: string, days = 30) {
   return res.json();
 }
 
-// Update campaign budget
-export async function updateCampaignBudget(campaignId: string, dailyBudget: number) {
-  const res = await fetchWithAuth(`/campaigns/${campaignId}/budget`, {
-    method: "PUT",
-    body: JSON.stringify({ daily_budget: dailyBudget }),
-  });
-  return res.json();
-}
-
-// Update campaign keywords
-export async function updateCampaignKeywords(campaignId: string, add: string[], remove: string[]) {
-  const res = await fetchWithAuth(`/campaigns/${campaignId}/keywords`, {
-    method: "PUT",
-    body: JSON.stringify({ add, remove }),
-  });
-  return res.json();
-}
-
-// Add negative keywords
-export async function addNegativeKeywords(campaignId: string, keywords: string[]) {
-  const res = await fetchWithAuth(`/campaigns/${campaignId}/negative-keywords`, {
-    method: "PUT",
-    body: JSON.stringify({ keywords }),
-  });
-  return res.json();
-}
-
 // Get campaign details (with keywords etc.)
 export async function getCampaignDetail(campaignId: string) {
   const res = await fetchWithAuth(`/campaigns/${campaignId}`);

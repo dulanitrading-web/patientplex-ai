@@ -195,7 +195,7 @@ async def forgot_password(
 
         reset_url = f"{settings.FRONTEND_BASE_URL}/reset-password?token={token}"
         # TODO: Send actual email via SendGrid/AWS SES
-        logger.info("Password reset requested for %s — reset URL: %s", body.email, reset_url)
+        logger.info("Password reset requested for %s", body.email)
 
     return {"message": "If an account with that email exists, a reset link has been sent."}
 
