@@ -52,9 +52,9 @@ class Campaign(Base):
     )
     campaign_type: Mapped[str] = mapped_column(String(50), default="SEARCH")  # SEARCH, DISPLAY, LEAD_GEN, AWARENESS
 
-    # Budget
-    daily_budget: Mapped[int] = mapped_column(Integer, default=0)  # In smallest currency unit (paise for INR)
-    total_budget: Mapped[int] = mapped_column(Integer, default=0)
+    # Budget (in INR — NOT paise)
+    daily_budget: Mapped[int] = mapped_column(Integer, default=0)  # Daily budget in INR
+    total_budget: Mapped[int] = mapped_column(Integer, default=0)  # Monthly budget in INR
     currency: Mapped[str] = mapped_column(String(3), default="INR")
 
     # Targeting
@@ -72,13 +72,13 @@ class Campaign(Base):
     ad_copy: Mapped[dict | None] = mapped_column(JSON, nullable=True)  # Meta-specific: primary_text, headline, etc.
     landing_page_url: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    # Performance (synced from platform)
+    # Performance (synced from platform — all monetary values in INR, NOT paise)
     impressions: Mapped[int] = mapped_column(Integer, default=0)
     clicks: Mapped[int] = mapped_column(Integer, default=0)
     conversions: Mapped[int] = mapped_column(Integer, default=0)
-    spend: Mapped[int] = mapped_column(Integer, default=0)  # In smallest currency unit
-    cpc: Mapped[float] = mapped_column(Float, default=0.0)
-    ctr: Mapped[float] = mapped_column(Float, default=0.0)
+    spend: Mapped[int] = mapped_column(Integer, default=0)  # Total spend in INR
+    cpc: Mapped[float] = mapped_column(Float, default=0.0)  # Cost per click in INR
+    ctr: Mapped[float] = mapped_column(Float, default=0.0)  # Click-through rate in percentage
     cost_per_conversion: Mapped[float] = mapped_column(Float, default=0.0)
 
     # Metadata
