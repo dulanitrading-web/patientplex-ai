@@ -209,10 +209,14 @@ export default function OnboardingPage() {
     setNewService("");
   }
 
-  // Budget estimates
-  // AI-optimized estimates: lower CPC (₹35 avg with AI bidding), higher conversion
-  // with WhatsApp AI follow-up (18% enquiry rate, 55% booking rate)
-  const estimatedClicks = Math.round(budget / 35);
+  // Budget estimates — CPC varies by specialty and city tier
+  const SPECIALTY_CPC: Record<string, number> = {
+    dentist: 35, dermatologist: 40, orthopedic: 45, ophthalmologist: 30,
+    pediatrician: 20, neurologist: 35, cardiologist: 40, ent: 25,
+    plastic_surgeon: 50, general: 15, gynecologist: 30,
+  };
+  const estimatedCPC = SPECIALTY_CPC[selectedSpecialty || "general"] || 35;
+  const estimatedClicks = Math.round(budget / estimatedCPC);
   const estimatedEnquiries = Math.round(estimatedClicks * 0.18);
   const estimatedAppointments = Math.round(estimatedEnquiries * 0.55);
   const costPerPatient = estimatedAppointments > 0 ? Math.round(budget / estimatedAppointments) : 0;
@@ -269,7 +273,6 @@ export default function OnboardingPage() {
           await updateStep1({
             specialty: specialtyMap[selectedSpecialty!] || "OTHER",
             services: enabledServices.length > 0 ? enabledServices : ["General Consultation"],
-            clinic_name: clinicName || undefined,
           });
           break;
         }
@@ -559,7 +562,7 @@ export default function OnboardingPage() {
                 <input
                   type="range"
                   min={5000}
-                  max={100000}
+                  max={500000}
                   step={1000}
                   value={budget}
                   onChange={(e) => setBudget(Number(e.target.value))}
@@ -567,7 +570,7 @@ export default function OnboardingPage() {
                 />
                 <div className="flex justify-between text-xs text-slate-600 mt-1">
                   <span>{formatINR(5000)}</span>
-                  <span>{formatINR(100000)}</span>
+                  <span>{formatINR(500000)}</span>
                 </div>
               </div>
 
@@ -591,7 +594,7 @@ export default function OnboardingPage() {
                   </div>
                 </div>
                 <p className="text-xs text-slate-600 mt-4 leading-relaxed border-t border-slate-200 pt-3">
-                  Estimates based on AI-optimized campaigns. PatientPlex AI reduces CPC by 60% vs agencies through smart bidding, and WhatsApp AI follow-up converts 3x more enquiries into appointments.
+                  Estimated ₹{estimatedCPC} per click{city ? ` in ${city}` : ""}{selectedSpecialty ? ` for ${selectedSpecialty.replace("_", " ")}` : ""}. PatientPlex AI reduces CPC by up to 60% vs agencies through smart bidding, and WhatsApp AI follow-up converts 3x more enquiries into appointments.
                 </p>
               </div>
             </div>
