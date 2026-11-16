@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { MapPin, Star, MessageSquare, Eye, Phone, Navigation, PenSquare, Send, RefreshCw } from "lucide-react";
-import { useAuth } from "@/context/auth";
+import { MapPin, Star, MessageSquare, Eye, Phone, Navigation, PenSquare, Send, RefreshCw, AlertTriangle } from "lucide-react";
+import { fetchWithAuth } from "@/lib/api";
 
 interface GMBProfile {
   business_name: string;
@@ -35,32 +35,27 @@ interface GMBInsights {
 }
 
 export default function GoogleBusinessPage() {
-  const { token } = useAuth();
   const [profile, setProfile] = useState<GMBProfile | null>(null);
   const [reviews, setReviews] = useState<GMBReview[]>([]);
   const [insights, setInsights] = useState<GMBInsights | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"overview" | "reviews" | "posts">("overview");
 
-  const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
   useEffect(() => {
-    if (!token) return;
     fetchData();
-  }, [token]);
+  }, []);
 
   async function fetchData() {
     setLoading(true);
-    const headers = { Authorization: `Bearer ${token}` };
     try {
-      const [profileRes, reviewsRes, insightsRes] = await Promise.all([
-        fetch(`${API}/api/v1/gmb/profile`, { headers }),
-        fetch(`${API}/api/v1/gmb/reviews`, { headers }),
-        fetch(`${API}/api/v1/gmb/insights`, { headers }),
+      const [profileRes, reviewsRes, insightsRes] = await Promise.allSettled([
+        fetchWithAuth("/gmb/profile"),
+        fetchWithAuth("/gmb/reviews"),
+        fetchWithAuth("/gmb/insights"),
       ]);
-      if (profileRes.ok) setProfile(await profileRes.json());
-      if (reviewsRes.ok) setReviews((await reviewsRes.json()).reviews || []);
-      if (insightsRes.ok) setInsights(await insightsRes.json());
+      if (profileRes.status === "fulfilled") setProfile(await profileRes.value.json());
+      if (reviewsRes.status === "fulfilled") setReviews((await reviewsRes.value.json()).reviews || []);
+      if (insightsRes.status === "fulfilled") setInsights(await insightsRes.value.json());
     } catch (err) {
       console.error("GMB fetch error:", err);
     } finally {
@@ -93,8 +88,15 @@ export default function GoogleBusinessPage() {
       </div>
 
       {profile?.demo_mode && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
-          <strong>Demo Mode:</strong> Connect your Google My Business account in Settings to see real data.
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold text-amber-900">Google Business not connected — showing sample data</p>
+            <p className="text-sm text-amber-700 mt-1">
+              Connect your Google Business Profile to manage reviews, posts, and see real insights.
+              Go to <a href="/dashboard/settings" className="underline font-medium">Settings → Integrations</a> to connect.
+            </p>
+          </div>
         </div>
       )}
 

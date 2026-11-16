@@ -272,6 +272,9 @@ class GoogleAdsEngine:
                 campaign.spend = m.get("cost_inr", 0)
                 campaign.cpc = m.get("avg_cpc_inr", 0)
                 campaign.ctr = m.get("ctr", 0)
+                # Calculate cost per conversion
+                if campaign.conversions > 0 and campaign.spend > 0:
+                    campaign.cost_per_conversion = round(campaign.spend / campaign.conversions, 2)
 
         campaign.last_synced_at = datetime.now(timezone.utc)
         await self.db.commit()

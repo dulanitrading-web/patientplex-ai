@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Search, FileText, Code, TrendingUp, BarChart3, RefreshCw, CheckCircle2, AlertTriangle, XCircle, ExternalLink } from "lucide-react";
-import { useAuth } from "@/context/auth";
+import { fetchWithAuth } from "@/lib/api";
 
 interface AuditCheck {
   name: string;
@@ -27,7 +27,6 @@ interface Keyword {
 }
 
 export default function SEOPage() {
-  const { token } = useAuth();
   const [audit, setAudit] = useState<AuditResult | null>(null);
   const [keywords, setKeywords] = useState<Keyword[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,29 +34,25 @@ export default function SEOPage() {
   const [schemaMarkup, setSchemaMarkup] = useState<string>("");
   const [auditUrl, setAuditUrl] = useState("");
 
-  const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
   useEffect(() => {
-    if (!token) return;
     fetchData();
-  }, [token]);
+  }, []);
 
   async function fetchData() {
     setLoading(true);
-    const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
     try {
-      const [auditRes, keywordRes, schemaRes] = await Promise.all([
-        fetch(`${API}/api/v1/seo/audit`, { method: "POST", headers, body: JSON.stringify({ url: "" }) }),
-        fetch(`${API}/api/v1/seo/keywords`, { headers }),
-        fetch(`${API}/api/v1/seo/schema`, { headers }),
+      const [auditRes, keywordRes, schemaRes] = await Promise.allSettled([
+        fetchWithAuth("/seo/audit", { method: "POST", body: JSON.stringify({ url: "" }) }),
+        fetchWithAuth("/seo/keywords"),
+        fetchWithAuth("/seo/schema"),
       ]);
-      if (auditRes.ok) setAudit(await auditRes.json());
-      if (keywordRes.ok) {
-        const data = await keywordRes.json();
+      if (auditRes.status === "fulfilled") setAudit(await auditRes.value.json());
+      if (keywordRes.status === "fulfilled") {
+        const data = await keywordRes.value.json();
         setKeywords(data.keywords || []);
       }
-      if (schemaRes.ok) {
-        const data = await schemaRes.json();
+      if (schemaRes.status === "fulfilled") {
+        const data = await schemaRes.value.json();
         setSchemaMarkup(data.html_snippet || "");
       }
     } catch (err) {

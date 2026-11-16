@@ -93,6 +93,11 @@ class DoctorOnboardingStep4(BaseModel):
 
     whatsapp_number: str = Field(..., min_length=10, max_length=20)
 
+    @field_validator("whatsapp_number")
+    @classmethod
+    def validate_whatsapp_phone(cls, v: str) -> str:
+        return _normalize_indian_phone(v)
+
 
 # ---------------------------------------------------------------------------
 # Response
