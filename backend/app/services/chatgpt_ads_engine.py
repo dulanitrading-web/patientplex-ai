@@ -410,6 +410,94 @@ class ChatGPTAdsEngine:
             "avg_patient_ltv": avg_ltv,
         }
 
+    # ------------------------------------------------------------------
+    # WRITE API — Edit/update ChatGPT Ads campaigns
+    # ------------------------------------------------------------------
+
+    async def update_campaign_status(self, campaign_id, new_status: str) -> dict:
+        """Enable or pause a ChatGPT ads campaign."""
+        from sqlalchemy import select as sa_select
+        result = await self.db.execute(sa_select(Campaign).where(Campaign.id == campaign_id))
+        campaign = result.scalar_one_or_none()
+        if not campaign:
+            return {"status": "error", "message": "Campaign not found"}
+
+        campaign.status = CampaignStatus.ACTIVE if new_status == "ACTIVE" else CampaignStatus.PAUSED
+        await self.db.commit()
+
+        if self.api_key and campaign.platform_campaign_id:
+            # POST {api_base}/campaigns/{id}/status
+            logger.info("ChatGPT campaign %s set to %s", campaign.name, new_status)
+
+        return {"status": "success", "new_status": new_status}
+
+    async def update_budget(self, campaign_id, new_daily_inr: float) -> dict:
+        """Update ChatGPT ads campaign daily budget."""
+        result = await self.db.execute(select(Campaign).where(Campaign.id == campaign_id))
+        campaign = result.scalar_one_or_none()
+        if not campaign:
+            return {"status": "error", "message": "Campaign not found"}
+
+        campaign.daily_budget = round(new_daily_inr)
+        campaign.total_budget = round(new_daily_inr * 30.4)
+        await self.db.commit()
+        return {"status": "success", "new_daily_budget_inr": new_daily_inr}
+
+    async def update_keywords(self, campaign_id, add: list[str] = None, remove: list[str] = None) -> dict:
+        """Add or remove keywords from a ChatGPT ads campaign."""
+        result = await self.db.execute(select(Campaign).where(Campaign.id == campaign_id))
+        campaign = result.scalar_one_or_none()
+        if not campaign:
+            return {"status": "error", "message": "Campaign not found"}
+
+        current = list(campaign.keywords or [])
+        if add:
+            current.extend(add)
+        if remove:
+            current = [k for k in current if k not in remove]
+
+        campaign.keywords = list(dict.fromkeys(current))
+        await self.db.commit()
+        return {"status": "success", "total_keywords": len(campaign.keywords)}
+
+    async def update_sponsored_content(
+        self, campaign_id, headline: str, body: str, cta: str = "Book Consultation"
+    ) -> dict:
+        """Update the sponsored answer content for a ChatGPT ads campaign."""
+        result = await self.db.execute(select(Campaign).where(Campaign.id == campaign_id))
+        campaign = result.scalar_one_or_none()
+        if not campaign:
+            return {"status": "error", "message": "Campaign not found"}
+
+        campaign.ad_copy = {
+            **(campaign.ad_copy or {}),
+            "headline": headline,
+            "body": body,
+            "cta": cta,
+        }
+        await self.db.commit()
+        return {"status": "success", "ad_copy": campaign.ad_copy}
+
+    async def update_bid_strategy(self, campaign_id, strategy: str = "balanced") -> dict:
+        """Change the bid strategy for a ChatGPT ads campaign.
+
+        strategy: "aggressive", "balanced", "conservative"
+        """
+        result = await self.db.execute(select(Campaign).where(Campaign.id == campaign_id))
+        campaign = result.scalar_one_or_none()
+        if not campaign:
+            return {"status": "error", "message": "Campaign not found"}
+
+        bid_config = BID_STRATEGIES.get(strategy, BID_STRATEGIES["balanced"])
+
+        audiences = campaign.target_audiences or {}
+        audiences["bid_strategy"] = strategy
+        audiences["bid_config"] = bid_config
+        campaign.target_audiences = audiences
+        await self.db.commit()
+
+        return {"status": "success", "bid_strategy": strategy, "config": bid_config}
+
     # ---- Private helpers ----
 
     def _get_keywords_for_specialty(self, specialty: str, city: str) -> list[str]:

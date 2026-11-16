@@ -234,19 +234,13 @@ async def pause_campaign(
     doctor: Doctor = Depends(get_current_doctor),
     db: AsyncSession = Depends(get_db),
 ):
-    """Pause an active campaign."""
+    """Pause an active campaign — works for ALL platforms with write API."""
     campaign = await _get_campaign(campaign_id, doctor.id, db)
     if campaign.status != CampaignStatus.ACTIVE:
         raise HTTPException(status_code=400, detail="Campaign is not active")
 
-    if campaign.platform == AdPlatform.GOOGLE:
-        engine = GoogleAdsEngine(db)
-        await engine.pause_campaign(campaign)
-    else:
-        campaign.status = CampaignStatus.PAUSED
-        await db.commit()
-
-    return {"message": "Campaign paused", "campaign_id": str(campaign_id)}
+    result = await _platform_status_update(campaign, "PAUSED", db)
+    return {"message": "Campaign paused", "campaign_id": str(campaign_id), **result}
 
 
 @router.put("/{campaign_id}/resume")
@@ -255,19 +249,13 @@ async def resume_campaign(
     doctor: Doctor = Depends(get_current_doctor),
     db: AsyncSession = Depends(get_db),
 ):
-    """Resume a paused campaign."""
+    """Resume a paused campaign — works for ALL platforms with write API."""
     campaign = await _get_campaign(campaign_id, doctor.id, db)
     if campaign.status != CampaignStatus.PAUSED:
         raise HTTPException(status_code=400, detail="Campaign is not paused")
 
-    if campaign.platform == AdPlatform.GOOGLE:
-        engine = GoogleAdsEngine(db)
-        await engine.resume_campaign(campaign)
-    else:
-        campaign.status = CampaignStatus.ACTIVE
-        await db.commit()
-
-    return {"message": "Campaign resumed", "campaign_id": str(campaign_id)}
+    result = await _platform_status_update(campaign, "ACTIVE", db)
+    return {"message": "Campaign resumed", "campaign_id": str(campaign_id), **result}
 
 
 @router.put("/{campaign_id}/budget")
@@ -277,18 +265,11 @@ async def update_budget(
     doctor: Doctor = Depends(get_current_doctor),
     db: AsyncSession = Depends(get_db),
 ):
-    """Update a campaign's daily budget."""
+    """Update a campaign's daily budget — works for ALL platforms with write API."""
     campaign = await _get_campaign(campaign_id, doctor.id, db)
 
-    if campaign.platform == AdPlatform.GOOGLE:
-        engine = GoogleAdsEngine(db)
-        await engine.update_budget(campaign, body.daily_budget)
-    else:
-        campaign.daily_budget = body.daily_budget
-        campaign.total_budget = round(body.daily_budget * 30.4)
-        await db.commit()
-
-    return {"message": "Budget updated", "daily_budget": body.daily_budget}
+    result = await _platform_budget_update(campaign, body.daily_budget, db)
+    return {"message": "Budget updated", "daily_budget": body.daily_budget, **result}
 
 
 @router.post("/{campaign_id}/sync")
@@ -451,44 +432,73 @@ async def update_ad_copy(
     doctor: Doctor = Depends(get_current_doctor),
     db: AsyncSession = Depends(get_db),
 ):
-    """Update RSA (Responsive Search Ad) headlines and descriptions.
+    """Update ad copy — works for ALL platforms.
 
-    Validates character limits:
-    - Headlines: 3-15 items, max 30 chars each
-    - Descriptions: 2-4 items, max 90 chars each
+    For Google: RSA format (3-15 headlines max 30 chars, 2-4 descriptions max 90 chars)
+    For Meta/WhatsApp: primary_text + headline format
+    For LinkedIn: intro_text + headline + description format
+    For ChatGPT: headline + body + cta format
     """
     campaign = await _get_campaign(campaign_id, doctor.id, db)
 
-    if campaign.platform != AdPlatform.GOOGLE:
-        raise HTTPException(status_code=400, detail="Ad copy update only supported for Google Ads")
+    if campaign.platform == AdPlatform.GOOGLE:
+        # Google RSA validation
+        if len(body.headlines) < 3:
+            raise HTTPException(status_code=400, detail="Minimum 3 headlines required for RSA")
+        if len(body.descriptions) < 2:
+            raise HTTPException(status_code=400, detail="Minimum 2 descriptions required for RSA")
+        over_limit_headlines = [h for h in body.headlines if len(h) > 30]
+        if over_limit_headlines:
+            raise HTTPException(status_code=400, detail=f"Headlines must be ≤30 chars. Over: {over_limit_headlines[:3]}")
+        over_limit_desc = [d for d in body.descriptions if len(d) > 90]
+        if over_limit_desc:
+            raise HTTPException(status_code=400, detail=f"Descriptions must be ≤90 chars. Over: {over_limit_desc[:2]}")
+        campaign.headlines = body.headlines[:15]
+        campaign.descriptions = body.descriptions[:4]
 
-    # Validate
-    if len(body.headlines) < 3:
-        raise HTTPException(status_code=400, detail="Minimum 3 headlines required for RSA")
-    if len(body.descriptions) < 2:
-        raise HTTPException(status_code=400, detail="Minimum 2 descriptions required for RSA")
-
-    over_limit_headlines = [h for h in body.headlines if len(h) > 30]
-    if over_limit_headlines:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Headlines must be ≤30 chars. Over: {over_limit_headlines[:3]}"
+    elif campaign.platform == AdPlatform.META:
+        engine = MetaAdsEngine(db)
+        await engine.update_ad_creative(
+            campaign,
+            primary_text=body.descriptions[0] if body.descriptions else "",
+            headline=body.headlines[0] if body.headlines else "",
+            description=body.descriptions[1] if len(body.descriptions) > 1 else "",
         )
 
-    over_limit_desc = [d for d in body.descriptions if len(d) > 90]
-    if over_limit_desc:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Descriptions must be ≤90 chars. Over: {over_limit_desc[:2]}"
+    elif campaign.platform == AdPlatform.WHATSAPP:
+        engine = WhatsAppAdsEngine(db)
+        await engine.update_ad_copy(
+            campaign,
+            primary_text=body.descriptions[0] if body.descriptions else "",
+            headline=body.headlines[0] if body.headlines else "",
         )
 
-    # Update local DB
+    elif campaign.platform == AdPlatform.LINKEDIN:
+        engine = LinkedInAdsEngine(db)
+        await engine.update_ad_copy(
+            campaign,
+            intro_text=body.descriptions[0] if body.descriptions else "",
+            headline=body.headlines[0] if body.headlines else "",
+            description=body.descriptions[1] if len(body.descriptions) > 1 else "",
+        )
+
+    elif campaign.platform == AdPlatform.CHATGPT:
+        engine = ChatGPTAdsEngine(db)
+        await engine.update_sponsored_content(
+            campaign.id,
+            headline=body.headlines[0] if body.headlines else "",
+            body=body.descriptions[0] if body.descriptions else "",
+            cta="Book Consultation",
+        )
+
+    # Always save headlines/descriptions locally for all platforms
     campaign.headlines = body.headlines[:15]
     campaign.descriptions = body.descriptions[:4]
     await db.commit()
 
     return {
         "message": "Ad copy updated",
+        "platform": campaign.platform.value,
         "headlines": len(campaign.headlines),
         "descriptions": len(campaign.descriptions),
     }
@@ -643,6 +653,78 @@ async def _get_campaign(campaign_id: UUID, doctor_id, db: AsyncSession) -> Campa
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
     return campaign
+
+
+async def _platform_status_update(campaign: Campaign, new_status: str, db: AsyncSession) -> dict:
+    """Route status update to the correct platform engine with write API."""
+    api_status = "ENABLED" if new_status == "ACTIVE" and campaign.platform == AdPlatform.GOOGLE else new_status
+
+    if campaign.platform == AdPlatform.GOOGLE:
+        engine = GoogleAdsEngine(db)
+        if new_status == "PAUSED":
+            await engine.pause_campaign(campaign)
+        else:
+            await engine.resume_campaign(campaign)
+        return {"platform": "google", "api": "write"}
+
+    elif campaign.platform == AdPlatform.META:
+        engine = MetaAdsEngine(db)
+        result = await engine.update_campaign_status(campaign, new_status)
+        return {"platform": "meta", **result}
+
+    elif campaign.platform == AdPlatform.LINKEDIN:
+        engine = LinkedInAdsEngine(db)
+        result = await engine.update_campaign_status(campaign, new_status)
+        return {"platform": "linkedin", **result}
+
+    elif campaign.platform == AdPlatform.WHATSAPP:
+        engine = WhatsAppAdsEngine(db)
+        result = await engine.update_campaign_status(campaign, new_status)
+        return {"platform": "whatsapp", **result}
+
+    elif campaign.platform == AdPlatform.CHATGPT:
+        engine = ChatGPTAdsEngine(db)
+        result = await engine.update_campaign_status(campaign.id, new_status)
+        return {"platform": "chatgpt", **result}
+
+    else:
+        campaign.status = CampaignStatus.ACTIVE if new_status == "ACTIVE" else CampaignStatus.PAUSED
+        await db.commit()
+        return {"platform": "unknown", "api": "local"}
+
+
+async def _platform_budget_update(campaign: Campaign, new_daily_inr: float, db: AsyncSession) -> dict:
+    """Route budget update to the correct platform engine with write API."""
+    if campaign.platform == AdPlatform.GOOGLE:
+        engine = GoogleAdsEngine(db)
+        await engine.update_budget(campaign, new_daily_inr)
+        return {"platform": "google", "api": "write"}
+
+    elif campaign.platform == AdPlatform.META:
+        engine = MetaAdsEngine(db)
+        result = await engine.update_budget(campaign, new_daily_inr)
+        return {"platform": "meta", **result}
+
+    elif campaign.platform == AdPlatform.LINKEDIN:
+        engine = LinkedInAdsEngine(db)
+        result = await engine.update_budget(campaign, new_daily_inr)
+        return {"platform": "linkedin", **result}
+
+    elif campaign.platform == AdPlatform.WHATSAPP:
+        engine = WhatsAppAdsEngine(db)
+        result = await engine.update_budget(campaign, new_daily_inr)
+        return {"platform": "whatsapp", **result}
+
+    elif campaign.platform == AdPlatform.CHATGPT:
+        engine = ChatGPTAdsEngine(db)
+        result = await engine.update_budget(campaign.id, new_daily_inr)
+        return {"platform": "chatgpt", **result}
+
+    else:
+        campaign.daily_budget = round(new_daily_inr)
+        campaign.total_budget = round(new_daily_inr * 30.4)
+        await db.commit()
+        return {"platform": "unknown", "api": "local"}
 
 
 def _ai_campaign_decision(

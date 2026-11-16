@@ -232,9 +232,30 @@ class MetaAdsEngine:
 
     async def sync_performance(self, campaign: Campaign) -> dict:
         """Sync performance metrics from Meta Insights API."""
-        # TODO: Replace with actual Meta Insights API query
-        # GET /{campaign_id}/insights?fields=impressions,clicks,spend,actions,cpc,ctr
-        # &date_preset=last_30d
+        if self.access_token and campaign.platform_campaign_id:
+            try:
+                import httpx
+                url = f"{self.base_url}/{campaign.platform_campaign_id}/insights"
+                params = {
+                    "access_token": self.access_token,
+                    "fields": "impressions,clicks,spend,actions,cpc,ctr,cpp",
+                    "date_preset": "last_30d",
+                }
+                async with httpx.AsyncClient() as client:
+                    resp = await client.get(url, params=params, timeout=15)
+                    if resp.status_code == 200:
+                        data = resp.json().get("data", [{}])[0]
+                        campaign.impressions = int(data.get("impressions", 0))
+                        campaign.clicks = int(data.get("clicks", 0))
+                        campaign.spend = float(data.get("spend", 0))
+                        campaign.ctr = float(data.get("ctr", 0))
+                        campaign.cpc = float(data.get("cpc", 0))
+                        actions = data.get("actions", [])
+                        for a in actions:
+                            if a.get("action_type") in ("lead", "onsite_conversion.messaging_conversation_started_7d"):
+                                campaign.conversions += int(a.get("value", 0))
+            except Exception as exc:
+                logger.error("Meta sync failed: %s", exc)
 
         campaign.last_synced_at = datetime.now(timezone.utc)
         await self.db.commit()
@@ -245,3 +266,155 @@ class MetaAdsEngine:
             "conversions": campaign.conversions,
             "spend": campaign.spend,
         }
+
+    # ------------------------------------------------------------------
+    # WRITE API — Edit/update Meta Ads campaigns
+    # ------------------------------------------------------------------
+
+    async def update_campaign_status(self, campaign: Campaign, new_status: str) -> dict:
+        """Enable or pause a Meta campaign.
+
+        new_status: "ACTIVE" or "PAUSED"
+        Uses Meta Marketing API POST /{campaign_id} with status field.
+        """
+        if not self.access_token or not campaign.platform_campaign_id:
+            campaign.status = CampaignStatus.ACTIVE if new_status == "ACTIVE" else CampaignStatus.PAUSED
+            await self.db.commit()
+            return {"status": "updated_local", "new_status": new_status}
+
+        try:
+            import httpx
+            url = f"{self.base_url}/{campaign.platform_campaign_id}"
+            async with httpx.AsyncClient() as client:
+                resp = await client.post(
+                    url,
+                    params={"access_token": self.access_token},
+                    json={"status": new_status},
+                    timeout=15,
+                )
+                if resp.status_code == 200:
+                    campaign.status = CampaignStatus.ACTIVE if new_status == "ACTIVE" else CampaignStatus.PAUSED
+                    await self.db.commit()
+                    return {"status": "success", "new_status": new_status, "api": "meta"}
+                else:
+                    error = resp.text[:300]
+                    logger.error("Meta status update failed: %s", error)
+                    return {"status": "error", "message": error}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    async def update_budget(self, campaign: Campaign, new_daily_inr: float) -> dict:
+        """Update daily budget on a Meta ad set.
+
+        Meta budgets are in cents (paise for INR), so ₹500 → 50000.
+        Budget lives on the ad_set, not the campaign.
+        """
+        ad_set_id = campaign.platform_ad_group_id
+        if not self.access_token or not ad_set_id:
+            campaign.daily_budget = round(new_daily_inr)
+            campaign.total_budget = round(new_daily_inr * 30.4)
+            await self.db.commit()
+            return {"status": "updated_local", "new_daily_budget_inr": new_daily_inr}
+
+        try:
+            import httpx
+            budget_cents = int(new_daily_inr * 100)
+            url = f"{self.base_url}/{ad_set_id}"
+            async with httpx.AsyncClient() as client:
+                resp = await client.post(
+                    url,
+                    params={"access_token": self.access_token},
+                    json={"daily_budget": budget_cents},
+                    timeout=15,
+                )
+                if resp.status_code == 200:
+                    campaign.daily_budget = round(new_daily_inr)
+                    campaign.total_budget = round(new_daily_inr * 30.4)
+                    await self.db.commit()
+                    return {"status": "success", "new_daily_budget_inr": new_daily_inr, "api": "meta"}
+                else:
+                    return {"status": "error", "message": resp.text[:300]}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    async def update_audience_targeting(self, campaign: Campaign, targeting: dict) -> dict:
+        """Update audience targeting on a Meta ad set.
+
+        targeting dict can include: age_min, age_max, interests, geo_locations, etc.
+        """
+        ad_set_id = campaign.platform_ad_group_id
+        if not self.access_token or not ad_set_id:
+            campaign.target_audiences = {**(campaign.target_audiences or {}), **targeting}
+            await self.db.commit()
+            return {"status": "updated_local"}
+
+        try:
+            import httpx
+            url = f"{self.base_url}/{ad_set_id}"
+            async with httpx.AsyncClient() as client:
+                resp = await client.post(
+                    url,
+                    params={"access_token": self.access_token},
+                    json={"targeting": targeting},
+                    timeout=15,
+                )
+                if resp.status_code == 200:
+                    campaign.target_audiences = {**(campaign.target_audiences or {}), **targeting}
+                    await self.db.commit()
+                    return {"status": "success", "api": "meta"}
+                else:
+                    return {"status": "error", "message": resp.text[:300]}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    async def update_ad_creative(
+        self, campaign: Campaign, primary_text: str, headline: str, description: str, cta_type: str = "BOOK_NOW"
+    ) -> dict:
+        """Update or create a new ad creative for the campaign.
+
+        Meta ad copy structure:
+        - primary_text: Main body text shown above the image
+        - headline: Bold headline below the image
+        - description: Subtitle below the headline
+        - cta_type: BOOK_NOW, LEARN_MORE, SEND_WHATSAPP_MESSAGE, etc.
+        """
+        campaign.ad_copy = {
+            **(campaign.ad_copy or {}),
+            "primary_text": primary_text,
+            "headline": headline,
+            "description": description,
+            "cta_type": cta_type,
+        }
+        await self.db.commit()
+
+        if not self.access_token:
+            return {"status": "updated_local"}
+
+        # When API is live: POST /{ad_account_id}/adcreatives with object_story_spec
+        return {"status": "updated_local", "note": "API creative update pending Meta app review"}
+
+    async def get_ad_insights(self, campaign: Campaign, breakdown: str = "age") -> dict:
+        """Get detailed performance breakdown by age, gender, placement, etc.
+
+        breakdown: "age", "gender", "publisher_platform", "impression_device", "region"
+        """
+        if not self.access_token or not campaign.platform_campaign_id:
+            return {"status": "no_api_access", "breakdown": breakdown, "data": []}
+
+        try:
+            import httpx
+            url = f"{self.base_url}/{campaign.platform_campaign_id}/insights"
+            params = {
+                "access_token": self.access_token,
+                "fields": "impressions,clicks,spend,cpc,ctr,actions",
+                "breakdowns": breakdown,
+                "date_preset": "last_30d",
+            }
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(url, params=params, timeout=15)
+                if resp.status_code == 200:
+                    return {"status": "success", "breakdown": breakdown, "data": resp.json().get("data", [])}
+                else:
+                    return {"status": "error", "message": resp.text[:300]}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}

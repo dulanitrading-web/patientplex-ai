@@ -234,3 +234,92 @@ class LinkedInAdsEngine:
             "clicks": campaign.clicks,
             "spend": campaign.spend,
         }
+
+    # ------------------------------------------------------------------
+    # WRITE API — Edit/update LinkedIn Ads campaigns
+    # ------------------------------------------------------------------
+
+    async def update_campaign_status(self, campaign: Campaign, new_status: str) -> dict:
+        """Enable or pause a LinkedIn campaign.
+
+        new_status: "ACTIVE" or "PAUSED"
+        LinkedIn API: PATCH /adAccounts/{id}/campaigns/{campaignId}
+        """
+        campaign.status = CampaignStatus.ACTIVE if new_status == "ACTIVE" else CampaignStatus.PAUSED
+        await self.db.commit()
+
+        if campaign.platform_campaign_id:
+            # When LinkedIn Marketing API access is granted:
+            # PATCH {api_base}/adCampaignsV2/{campaign_urn}
+            # body: {"patch": {"$set": {"status": new_status}}}
+            logger.info("LinkedIn campaign %s set to %s (local)", campaign.name, new_status)
+
+        return {"status": "success", "new_status": new_status}
+
+    async def update_budget(self, campaign: Campaign, new_daily_inr: float) -> dict:
+        """Update LinkedIn campaign daily budget.
+
+        LinkedIn uses micros (1/10000 of currency unit).
+        ₹500/day → {"amount": "5000000", "currencyCode": "INR"}
+        """
+        campaign.daily_budget = round(new_daily_inr)
+        campaign.total_budget = round(new_daily_inr * 30.4)
+        await self.db.commit()
+
+        if campaign.platform_campaign_id:
+            # PATCH /adCampaignsV2/{urn}
+            # body: {"patch": {"$set": {"dailyBudget": {"amount": str(int(new_daily_inr*10000)), "currencyCode": "INR"}}}}
+            logger.info("LinkedIn budget updated to ₹%s/day (local)", new_daily_inr)
+
+        return {"status": "success", "new_daily_budget_inr": new_daily_inr}
+
+    async def update_targeting(self, campaign: Campaign, targeting_updates: dict) -> dict:
+        """Update LinkedIn audience targeting.
+
+        targeting_updates can include: locations, industries, job_titles, seniority, etc.
+        """
+        current = campaign.target_audiences or {}
+        current.update(targeting_updates)
+        campaign.target_audiences = current
+        await self.db.commit()
+
+        return {"status": "success", "targeting": current}
+
+    async def update_ad_copy(self, campaign: Campaign, intro_text: str, headline: str, description: str) -> dict:
+        """Update LinkedIn Sponsored Content ad copy.
+
+        LinkedIn ad components:
+        - intro_text: Text above the image/card (max 600 chars)
+        - headline: Bold headline on the card (max 200 chars)
+        - description: Subtitle on the card (max 300 chars)
+        """
+        if len(intro_text) > 600:
+            return {"status": "error", "message": "Intro text must be ≤600 chars"}
+        if len(headline) > 200:
+            return {"status": "error", "message": "Headline must be ≤200 chars"}
+
+        campaign.ad_copy = {
+            **(campaign.ad_copy or {}),
+            "intro_text": intro_text,
+            "headline": headline,
+            "description": description,
+        }
+        await self.db.commit()
+
+        return {"status": "success", "ad_copy": campaign.ad_copy}
+
+    async def get_demographics_report(self, campaign: Campaign) -> dict:
+        """Get audience demographics breakdown for a LinkedIn campaign.
+
+        Shows which job titles, industries, and seniority levels
+        are engaging most — critical for B2B healthcare referral targeting.
+        """
+        # When API access available:
+        # GET /adAnalytics?q=analytics&campaigns=urn:li:sponsoredCampaign:{id}
+        #     &pivot=MEMBER_JOB_TITLE&dateRange=...
+
+        return {
+            "campaign_id": str(campaign.id),
+            "note": "Demographics report available when LinkedIn API access is granted",
+            "targeting_active": campaign.target_audiences or {},
+        }

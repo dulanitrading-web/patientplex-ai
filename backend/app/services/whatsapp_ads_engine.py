@@ -179,6 +179,74 @@ class WhatsAppAdsEngine:
             "whatsapp_conversations_started": campaign.conversions,  # Clicks = WA opens
         }
 
+    # ------------------------------------------------------------------
+    # WRITE API — Edit/update WhatsApp CTWA campaigns
+    # ------------------------------------------------------------------
+
+    async def update_campaign_status(self, campaign: Campaign, new_status: str) -> dict:
+        """Enable or pause a WhatsApp CTWA campaign (runs on Meta)."""
+        if self.is_connected and campaign.platform_campaign_id:
+            try:
+                import httpx
+                url = f"https://graph.facebook.com/v21.0/{campaign.platform_campaign_id}"
+                async with httpx.AsyncClient() as client:
+                    resp = await client.post(
+                        url,
+                        params={"access_token": self.meta_app_secret},
+                        json={"status": new_status},
+                        timeout=15,
+                    )
+                    if resp.status_code == 200:
+                        campaign.status = CampaignStatus.ACTIVE if new_status == "ACTIVE" else CampaignStatus.PAUSED
+                        await self.db.commit()
+                        return {"status": "success", "new_status": new_status, "api": "meta"}
+            except Exception as e:
+                logger.error("WhatsApp campaign status update failed: %s", e)
+
+        campaign.status = CampaignStatus.ACTIVE if new_status == "ACTIVE" else CampaignStatus.PAUSED
+        await self.db.commit()
+        return {"status": "updated_local", "new_status": new_status}
+
+    async def update_budget(self, campaign: Campaign, new_daily_inr: float) -> dict:
+        """Update WhatsApp CTWA campaign daily budget."""
+        campaign.daily_budget = round(new_daily_inr)
+        campaign.total_budget = round(new_daily_inr * 30.4)
+        await self.db.commit()
+        return {"status": "success", "new_daily_budget_inr": new_daily_inr}
+
+    async def update_welcome_message(self, campaign: Campaign, welcome_message: str) -> dict:
+        """Update the WhatsApp welcome message shown when a patient clicks the ad.
+
+        This is the first message the patient sees — critical for conversion.
+        """
+        ad_copy = campaign.ad_copy or {}
+        ad_copy["welcome_message"] = welcome_message
+        campaign.ad_copy = ad_copy
+        await self.db.commit()
+        return {"status": "success", "welcome_message": welcome_message}
+
+    async def update_ad_copy(
+        self, campaign: Campaign, primary_text: str, headline: str
+    ) -> dict:
+        """Update the ad creative text for the CTWA campaign."""
+        ad_copy = campaign.ad_copy or {}
+        ad_copy["primary_text"] = primary_text
+        ad_copy["headline"] = headline
+        campaign.ad_copy = ad_copy
+        await self.db.commit()
+        return {"status": "success", "ad_copy": ad_copy}
+
+    async def update_whatsapp_number(self, campaign: Campaign, new_number: str) -> dict:
+        """Change the WhatsApp number that receives messages from the ad.
+
+        Important: This is the clinic's business WhatsApp number.
+        """
+        ad_copy = campaign.ad_copy or {}
+        ad_copy["whatsapp_number"] = new_number
+        campaign.ad_copy = ad_copy
+        await self.db.commit()
+        return {"status": "success", "whatsapp_number": new_number}
+
     async def _create_on_meta(self, campaign: Campaign, doctor: Doctor) -> dict:
         """Create Click-to-WhatsApp campaign on Meta Marketing API.
 
