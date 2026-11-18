@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { getAppointments, updateAppointmentStatus, getAppointmentStats, bookAppointment, getMe } from "@/lib/api";
 import CalendarView from "@/components/ui/CalendarView";
+import WalkInQueue from "@/components/ui/WalkInQueue";
 
 interface Appointment {
   id: string;
@@ -291,6 +292,9 @@ export default function AppointmentsPage() {
           <StatCard label="Rate" value={`${stats.attendance_rate}%`} color="text-cyan-600" />
         </div>
       )}
+
+      {/* Walk-in Queue */}
+      <WalkInQueue services={services} onPatientAdded={load} />
 
       {/* Calendar View */}
       {viewMode === "calendar" && (

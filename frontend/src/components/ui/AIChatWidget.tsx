@@ -41,9 +41,34 @@ export default function AIChatWidget() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Load persisted messages from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("pp_chat_messages");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setMessages(parsed.map((m: any) => ({ ...m, timestamp: new Date(m.timestamp) })));
+          return;
+        }
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  // Save messages to localStorage when they change
+  useEffect(() => {
+    if (messages.length > 1) {
+      try {
+        // Keep last 20 messages to avoid localStorage bloat
+        const toSave = messages.slice(-20);
+        localStorage.setItem("pp_chat_messages", JSON.stringify(toSave));
+      } catch { /* ignore */ }
+    }
+  }, [messages]);
+
   useEffect(() => {
     if (open && messages.length === 0) {
-      // Load suggestions and show welcome
+      // First time — show welcome and load suggestions
       loadSuggestions();
       setMessages([
         {
@@ -53,6 +78,9 @@ export default function AIChatWidget() {
           timestamp: new Date(),
         },
       ]);
+    }
+    if (open && messages.length > 0 && suggestions.length === 0) {
+      loadSuggestions();
     }
     if (open) {
       setTimeout(() => inputRef.current?.focus(), 100);
@@ -93,7 +121,12 @@ export default function AIChatWidget() {
     setSending(true);
 
     try {
-      const data = await sendChatMessage(msg);
+      // Send conversation history for context
+      const historyForApi = messages.slice(-8).map((m) => ({
+        role: m.role === "user" ? "user" : "assistant",
+        content: m.content,
+      }));
+      const data = await sendChatMessage(msg, historyForApi);
       const aiMsg: Message = {
         id: `ai-${Date.now()}`,
         role: "assistant",

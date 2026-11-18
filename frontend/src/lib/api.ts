@@ -508,11 +508,11 @@ export async function getCampaignDetail(campaignId: string) {
 }
 
 // AI Chat Assistant
-export async function sendChatMessage(message: string) {
+export async function sendChatMessage(message: string, history?: { role: string; content: string }[]) {
   const res = await fetchWithAuth("/ai-chat/message", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message }),
+    body: JSON.stringify({ message, history: history || [] }),
   });
   return res.json();
 }

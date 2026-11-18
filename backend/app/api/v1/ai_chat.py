@@ -34,9 +34,15 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/ai-chat", tags=["ai-chat"])
 
 
+class HistoryMessage(BaseModel):
+    role: str  # "user" or "assistant"
+    content: str
+
+
 class ChatMessage(BaseModel):
     message: str
-    conversation_id: str | None = None  # For multi-turn conversations
+    conversation_id: str | None = None
+    history: list[HistoryMessage] | None = None  # Last N messages for context
 
 
 class ChatResponse(BaseModel):
@@ -77,7 +83,7 @@ async def chat_message(
 
     # Try Claude API first, fall back to rule-based
     if settings.CLAUDE_API_KEY:
-        reply_data = await _claude_response(body.message, context, doctor)
+        reply_data = await _claude_response(body.message, context, doctor, body.history)
     else:
         reply_data = _rule_based_response(body.message, context, doctor)
 
@@ -210,8 +216,8 @@ async def _gather_clinic_context(doctor: Doctor, db: AsyncSession) -> dict:
 
 # ─── Claude API Response ───
 
-async def _claude_response(message: str, context: dict, doctor: Doctor) -> dict:
-    """Get a response from Claude API with the doctor's context."""
+async def _claude_response(message: str, context: dict, doctor: Doctor, history: list | None = None) -> dict:
+    """Get a response from Claude API with the doctor's context and conversation history."""
     import httpx
 
     system_prompt = f"""You are PatientPlex AI Assistant — the AI helper for {context['doctor_name']} at {context['clinic_name']} ({context['specialty']}, {context['city']}).
@@ -259,7 +265,10 @@ RULES:
                     "model": "claude-sonnet-4-20250514",
                     "max_tokens": 1024,
                     "system": system_prompt,
-                    "messages": [{"role": "user", "content": message}],
+                    "messages": [
+                        *([{"role": h.role, "content": h.content} for h in (history or [])[-8:]]),
+                        {"role": "user", "content": message},
+                    ],
                 },
                 timeout=30,
             )

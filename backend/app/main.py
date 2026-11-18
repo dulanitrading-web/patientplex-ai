@@ -15,7 +15,7 @@ from app.api.v1 import (
     landing_pages, intelligence, calls, conversions, bookings, billing,
     marketing_brain, ml, webhooks, payments, signals, ehr, compliance,
     knowledge, google_my_business, ga4, seo, integrations, clinic_staff, ai_chat, patients,
-    notifications,
+    notifications, public_booking,
 )
 from app.api.v1.agents_router import router as agents_router
 from app.core.config import settings
@@ -203,6 +203,7 @@ app.include_router(clinic_staff.router, prefix=settings.API_V1_PREFIX)
 app.include_router(ai_chat.router, prefix=settings.API_V1_PREFIX)
 app.include_router(patients.router, prefix=settings.API_V1_PREFIX)
 app.include_router(notifications.router, prefix=settings.API_V1_PREFIX)
+app.include_router(public_booking.router, prefix=settings.API_V1_PREFIX)
 
 # AI Agents — list, trigger, monitor
 app.include_router(agents_router, prefix=settings.API_V1_PREFIX)
