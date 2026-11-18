@@ -553,4 +553,34 @@ export async function getStaffCalendar(dateFrom?: string, dateTo?: string) {
   return res.json();
 }
 
+// Patients CRM
+export async function getPatients(params?: { search?: string; source?: string; sort_by?: string; limit?: number }) {
+  const qs = new URLSearchParams();
+  if (params?.search) qs.set("search", params.search);
+  if (params?.source) qs.set("source", params.source);
+  if (params?.sort_by) qs.set("sort_by", params.sort_by);
+  if (params?.limit) qs.set("limit", String(params.limit));
+  const res = await fetchWithAuth(`/patients/?${qs}`);
+  return res.json();
+}
+
+export async function getPatientStats() {
+  const res = await fetchWithAuth("/patients/stats");
+  return res.json();
+}
+
+export async function getPatient(id: string) {
+  const res = await fetchWithAuth(`/patients/${id}`);
+  return res.json();
+}
+
+export async function createPatient(data: { name: string; phone: string; email?: string; source?: string }) {
+  const res = await fetchWithAuth("/patients/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+
 export { ApiError, fetchWithAuth };
