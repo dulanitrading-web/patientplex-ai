@@ -73,13 +73,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="h-16 flex items-center gap-2.5 px-4 border-b border-slate-200 shrink-0">
           <Logo size={28} />
           <span className="font-semibold text-slate-900 tracking-tight">PatientPlex</span>
-          <button onClick={() => setSidebarOpen(false)} className="ml-auto lg:hidden text-slate-500 hover:text-slate-900">
+          <button onClick={() => setSidebarOpen(false)} className="ml-auto lg:hidden text-slate-500 hover:text-slate-900" aria-label="Close sidebar">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-2 py-3 overflow-y-auto">
+        <nav className="flex-1 px-2 py-3 overflow-y-auto" aria-label="Dashboard navigation">
           {NAV_SECTIONS.map((section, si) => (
             <div key={si} className={section.label ? "mt-4 first:mt-0" : ""}>
               {section.label && (
@@ -140,7 +140,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar */}
         <header className="h-16 bg-white/90 backdrop-blur-xl border-b border-slate-200 flex items-center px-4 lg:px-6 shrink-0 sticky top-0 z-10">
-          <button onClick={() => setSidebarOpen(true)} className="lg:hidden mr-3 text-slate-500 hover:text-slate-900">
+          <button onClick={() => setSidebarOpen(true)} className="lg:hidden mr-3 text-slate-500 hover:text-slate-900" aria-label="Open sidebar">
             <Menu className="w-5 h-5" />
           </button>
           <div className="flex-1" />
@@ -151,7 +151,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-4 lg:p-6 overflow-y-auto">
+        <main className="flex-1 p-4 lg:p-6 overflow-y-auto" role="main">
           {children}
         </main>
       </div>

@@ -5,7 +5,7 @@ import uuid
 from datetime import date, datetime, time, timezone
 
 from sqlalchemy import (
-    Boolean, Date, DateTime, Enum, ForeignKey, Integer, JSON, String, Text, Time,
+    Boolean, Date, DateTime, Enum, Float, ForeignKey, Integer, JSON, String, Text, Time,
 )
 from app.db.types import PortableUUID as UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -86,6 +86,10 @@ class Appointment(Base):
     reminder_2h_sent: Mapped[bool] = mapped_column(Boolean, default=False)
     confirmation_sent: Mapped[bool] = mapped_column(Boolean, default=False)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    source: Mapped[str] = mapped_column(String(50), default="Walk-in", server_default="Walk-in")
+    revenue_amount: Mapped[float | None] = mapped_column(Float, nullable=True, default=None)
+    treatment_done: Mapped[str | None] = mapped_column(String(255), nullable=True, default=None)
+    patient_email: Mapped[str | None] = mapped_column(String(255), nullable=True, default=None)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(

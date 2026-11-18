@@ -19,6 +19,8 @@ router = APIRouter(prefix="/appointments", tags=["appointments"])
 class StatusUpdate(BaseModel):
     status: AppointmentStatus
     notes: str | None = None
+    revenue_amount: float | None = None
+    treatment_done: str | None = None
 
 
 class BookAppointmentRequest(BaseModel):
@@ -30,6 +32,7 @@ class BookAppointmentRequest(BaseModel):
     time: str  # "HH:MM" format
     source: str = "Walk-in"  # Google Ads, WhatsApp, Walk-in, Phone Call, Referral
     notes: str | None = None
+    patient_email: str | None = None
 
 
 @router.post("/book")
@@ -60,7 +63,9 @@ async def book_appointment(
         appointment_time=appt_time,
         duration_minutes=30,
         status=AppointmentStatus.CONFIRMED,
-        notes=body.notes or f"Source: {body.source}",
+        notes=body.notes,
+        source=body.source,
+        patient_email=body.patient_email,
     )
     db.add(appointment)
     await db.flush()
@@ -74,6 +79,24 @@ async def book_appointment(
         pass  # Don't fail the booking if tracking fails
 
     await db.commit()
+
+    # Send email confirmation (non-blocking — don't fail the booking)
+    if body.patient_email:
+        try:
+            from app.services.email_service import send_appointment_confirmation
+            await send_appointment_confirmation(
+                patient_email=body.patient_email,
+                patient_name=body.patient_name,
+                doctor_name=doctor.full_name,
+                clinic_name=doctor.clinic_name or "",
+                treatment=body.treatment,
+                date_str=body.date.strftime("%A, %d %B %Y"),
+                time_str=body.time,
+                clinic_address=doctor.address or "",
+                clinic_phone=doctor.phone_number or "",
+            )
+        except Exception:
+            pass  # Don't fail the booking if email fails
 
     return {
         "message": "Appointment booked",
@@ -162,11 +185,14 @@ async def appointment_stats(
     total = len(appointments)
     by_status = {}
     by_treatment = {}
+    total_revenue = 0.0
 
     for a in appointments:
         status_key = a.status.value
         by_status[status_key] = by_status.get(status_key, 0) + 1
         by_treatment[a.treatment] = by_treatment.get(a.treatment, 0) + 1
+        if getattr(a, "revenue_amount", None):
+            total_revenue += a.revenue_amount
 
     attended = by_status.get("ATTENDED", 0)
     no_show = by_status.get("NO_SHOW", 0)
@@ -188,6 +214,7 @@ async def appointment_stats(
         "cancellation_rate": cancellation_rate,
         "by_treatment": by_treatment,
         "by_status": by_status,
+        "total_revenue": total_revenue,
     }
 
 
@@ -229,6 +256,10 @@ async def update_appointment_status(
     appointment.status = body.status
     if body.notes:
         appointment.notes = body.notes
+    if body.revenue_amount is not None:
+        appointment.revenue_amount = body.revenue_amount
+    if body.treatment_done:
+        appointment.treatment_done = body.treatment_done
     await db.commit()
 
     return {"message": f"Appointment marked as {body.status.value}", "appointment": _serialize_appointment(appointment)}
@@ -249,5 +280,9 @@ def _serialize_appointment(a: Appointment) -> dict:
         "reminder_2h_sent": a.reminder_2h_sent,
         "confirmation_sent": a.confirmation_sent,
         "notes": a.notes,
+        "source": getattr(a, "source", "Walk-in"),
+        "revenue_amount": getattr(a, "revenue_amount", None),
+        "treatment_done": getattr(a, "treatment_done", None),
+        "patient_email": getattr(a, "patient_email", None),
         "created_at": a.created_at.isoformat(),
     }

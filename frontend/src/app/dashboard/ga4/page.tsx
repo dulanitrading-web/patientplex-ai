@@ -80,6 +80,7 @@ export default function GA4AnalyticsPage() {
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value)}
             className="border border-slate-200 rounded-lg px-3 py-2 text-sm"
+            aria-label="Date range"
           >
             <option value="7daysAgo">Last 7 days</option>
             <option value="30daysAgo">Last 30 days</option>

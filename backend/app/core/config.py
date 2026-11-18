@@ -107,6 +107,17 @@ class Settings(BaseSettings):
     GA4_API_SECRET: str = ""          # Measurement Protocol API secret
     GA4_PROPERTY_ID: str = ""         # GA4 property ID for Data API reporting
 
+    # Email (appointment confirmations, reminders, digests)
+    # Supports SMTP (Gmail, Zoho, any SMTP) or Resend API
+    EMAIL_PROVIDER: str = "smtp"      # "smtp" or "resend"
+    SMTP_HOST: str = ""               # e.g. smtp.gmail.com
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""               # e.g. noreply@patientplex.ai
+    SMTP_PASSWORD: str = ""           # app password
+    EMAIL_FROM_NAME: str = "PatientPlex AI"
+    EMAIL_FROM_ADDRESS: str = ""      # e.g. noreply@patientplex.ai
+    RESEND_API_KEY: str = ""          # If using Resend
+
     model_config = {
         "env_file": ".env",
         "env_file_encoding": "utf-8",

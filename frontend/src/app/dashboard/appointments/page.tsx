@@ -4,9 +4,10 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   ArrowLeft, Calendar, CheckCircle2, Clock, XCircle, User, Plus,
-  Loader2, Filter, Phone, X, Stethoscope,
+  Loader2, Filter, Phone, X, Stethoscope, LayoutGrid, List, IndianRupee,
 } from "lucide-react";
 import { getAppointments, updateAppointmentStatus, getAppointmentStats, bookAppointment, getMe } from "@/lib/api";
+import CalendarView from "@/components/ui/CalendarView";
 
 interface Appointment {
   id: string;
@@ -41,6 +42,9 @@ export default function AppointmentsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("ALL");
   const [updating, setUpdating] = useState<string | null>(null);
+
+  // View mode: list or calendar
+  const [viewMode, setViewMode] = useState<"list" | "calendar">("calendar");
 
   // Booking form
   const [showBooking, setShowBooking] = useState(false);
@@ -130,13 +134,32 @@ export default function AppointmentsPage() {
           </Link>
           <h1 className="text-lg font-bold text-slate-900">Appointments</h1>
         </div>
-        <button
-          onClick={() => setShowBooking(!showBooking)}
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium transition-colors"
-        >
-          {showBooking ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-          {showBooking ? "Cancel" : "Log Appointment"}
-        </button>
+        <div className="flex items-center gap-2">
+          {/* View Toggle */}
+          <div className="flex gap-0.5 bg-slate-100 rounded-lg p-0.5">
+            <button
+              onClick={() => setViewMode("calendar")}
+              className={`p-2 rounded-md transition ${viewMode === "calendar" ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
+              title="Calendar view"
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode("list")}
+              className={`p-2 rounded-md transition ${viewMode === "list" ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
+              title="List view"
+            >
+              <List className="w-4 h-4" />
+            </button>
+          </div>
+          <button
+            onClick={() => setShowBooking(!showBooking)}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium transition-colors"
+          >
+            {showBooking ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+            {showBooking ? "Cancel" : "Log Appointment"}
+          </button>
+        </div>
       </div>
 
       {/* Booking Form */}
@@ -236,8 +259,19 @@ export default function AppointmentsPage() {
         </div>
       )}
 
-      {/* Filter */}
-      <div className="flex items-center gap-2 flex-wrap">
+      {/* Calendar View */}
+      {viewMode === "calendar" && (
+        <CalendarView
+          appointments={appointments}
+          onSelectAppointment={(apt) => {
+            // Could open a detail modal; for now just log
+            console.log("Selected appointment:", apt);
+          }}
+        />
+      )}
+
+      {/* Filter — only in list mode */}
+      {viewMode === "list" && <div className="flex items-center gap-2 flex-wrap">
         <Filter className="w-4 h-4 text-slate-400" />
         {STATUS_OPTIONS.map((s) => (
           <button key={s} onClick={() => setFilter(s)}
@@ -249,10 +283,10 @@ export default function AppointmentsPage() {
             {s === "ALL" ? "All" : s.replace("_", " ")}
           </button>
         ))}
-      </div>
+      </div>}
 
-      {/* Appointments List */}
-      {loading ? (
+      {/* Appointments List — only in list mode */}
+      {viewMode === "list" && (loading ? (
         <div className="flex justify-center py-12">
           <Loader2 className="w-6 h-6 animate-spin text-emerald-500" />
         </div>
@@ -332,7 +366,7 @@ export default function AppointmentsPage() {
             </div>
           ))}
         </div>
-      )}
+      ))}
     </div>
   );
 }
