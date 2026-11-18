@@ -6,13 +6,14 @@ import clsx from "clsx";
 import {
   LayoutDashboard, BarChart3, Calendar, MessageCircle, Globe,
   Phone, TrendingUp, Settings, CreditCard, LogOut, Menu, X, Users,
-  MapPin, LineChart, Search,
+  MapPin, LineChart, Search, Stethoscope,
 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/context/auth";
 import Avatar from "@/components/ui/Avatar";
 import NotificationBell from "@/components/ui/NotificationBell";
 import Logo from "@/components/Logo";
+import AIChatWidget from "@/components/ui/AIChatWidget";
 
 const NAV_SECTIONS = [
   {
@@ -36,6 +37,7 @@ const NAV_SECTIONS = [
       { href: "/dashboard/appointments", label: "Appointments", icon: Calendar },
       { href: "/dashboard/conversations", label: "WhatsApp", icon: MessageCircle },
       { href: "/dashboard/calls", label: "Calls", icon: Phone },
+      { href: "/dashboard/staff", label: "Staff", icon: Stethoscope },
     ],
   },
   {
@@ -155,6 +157,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {children}
         </main>
       </div>
+
+      {/* AI Chat Assistant */}
+      <AIChatWidget />
     </div>
   );
 }

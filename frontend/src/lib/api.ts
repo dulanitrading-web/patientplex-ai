@@ -503,4 +503,54 @@ export async function getCampaignDetail(campaignId: string) {
   return res.json();
 }
 
+// AI Chat Assistant
+export async function sendChatMessage(message: string) {
+  const res = await fetchWithAuth("/ai-chat/message", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message }),
+  });
+  return res.json();
+}
+
+export async function getChatSuggestions() {
+  const res = await fetchWithAuth("/ai-chat/suggestions");
+  return res.json();
+}
+
+// Clinic Staff
+export async function getClinicStaff() {
+  const res = await fetchWithAuth("/staff/");
+  return res.json();
+}
+
+export async function addClinicStaff(data: {
+  full_name: string;
+  specialty: string;
+  services?: string[];
+  phone?: string;
+  email?: string;
+  calendar_color?: string;
+}) {
+  const res = await fetchWithAuth("/staff/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+
+export async function getStaffAvailability(staffId: string, date: string) {
+  const res = await fetchWithAuth(`/staff/${staffId}/availability?date=${date}`);
+  return res.json();
+}
+
+export async function getStaffCalendar(dateFrom?: string, dateTo?: string) {
+  const params = new URLSearchParams();
+  if (dateFrom) params.set("date_from", dateFrom);
+  if (dateTo) params.set("date_to", dateTo);
+  const res = await fetchWithAuth(`/staff/calendar?${params}`);
+  return res.json();
+}
+
 export { ApiError, fetchWithAuth };
