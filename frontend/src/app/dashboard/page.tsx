@@ -380,7 +380,13 @@ export default function DashboardPage() {
             <Calendar className="w-5 h-5 text-cyan-600" /> Today{"'"}s appointments
           </h3>
           {todayAppts.length === 0 ? (
-            <p className="text-slate-600 text-sm py-4">No appointments today.</p>
+            <div className="text-center py-6">
+              <Calendar className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+              <p className="text-slate-500 text-sm mb-3">No appointments today</p>
+              <Link href="/dashboard/appointments" className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition">
+                <Calendar className="w-3.5 h-3.5" /> Log a walk-in or book an appointment
+              </Link>
+            </div>
           ) : (
             <div className="divide-y divide-slate-100">
               {todayAppts.map((a) => (
