@@ -106,7 +106,7 @@ async def signup(request: Request, body: DoctorCreate, db: AsyncSession = Depend
 
 
 @router.post("/login", response_model=TokenResponse)
-@limiter.limit("20/minute")
+@limiter.limit("5/15minutes")
 async def login(request: Request, body: DoctorLogin, db: AsyncSession = Depends(get_db)) -> TokenResponse:
     """Authenticate a doctor by email/password and return a JWT.
 

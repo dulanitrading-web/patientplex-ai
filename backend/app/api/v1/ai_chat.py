@@ -60,6 +60,18 @@ async def chat_message(
     3. Send to Claude API for natural language response
     4. If Claude API not configured, use rule-based responses
     """
+    # Medical advice guardrail — detect patient health questions routed through doctor's chat
+    medical_keywords = ["bleeding", "pain", "swelling", "infection", "fever", "medicine", "tablet",
+                        "dose", "dosage", "antibiotic", "painkiller", "remedy", "symptom", "diagnos"]
+    msg_lower = body.message.lower()
+    if any(kw in msg_lower for kw in medical_keywords) and any(
+        q in msg_lower for q in ["what should", "how to treat", "which medicine", "is it normal", "home remedy"]
+    ):
+        return {
+            "reply": "I'm your clinic management assistant — I help with appointments, ads, and analytics. For medical questions, please consult with the doctor directly. I can help you schedule an appointment if a patient needs to be seen.",
+            "data": None,
+        }
+
     # Gather clinic data context
     context = await _gather_clinic_context(doctor, db)
 

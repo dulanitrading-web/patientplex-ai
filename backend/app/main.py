@@ -157,6 +157,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# --- Cache headers for read-only endpoints ---
+@app.middleware("http")
+async def add_cache_headers(request: Request, call_next):
+    """Add Cache-Control headers on read-only GET endpoints to reduce DB load."""
+    response = await call_next(request)
+    if request.method == "GET" and "/api/v1/" in request.url.path:
+        path = request.url.path
+        # Cache campaign overview and stats for 5 minutes
+        if any(p in path for p in ["/campaigns/overview", "/appointments/stats", "/patients/stats", "/ga4/", "/gmb/"]):
+            response.headers["Cache-Control"] = "private, max-age=300"
+        # Cache notifications for 1 minute
+        elif "/notifications" in path:
+            response.headers["Cache-Control"] = "private, max-age=60"
+    return response
+
+
 # --- Routers ---
 app.include_router(auth.router, prefix=settings.API_V1_PREFIX)
 app.include_router(onboarding.router, prefix=settings.API_V1_PREFIX)
@@ -196,12 +213,36 @@ app.include_router(agents_router, prefix=settings.API_V1_PREFIX)
 
 @app.get("/", tags=["health"])
 async def health_check() -> dict:
-    """System health check."""
+    """System health check — verifies DB connectivity."""
     jobs = 0
     if _scheduler and _scheduler.running:
         jobs = len(_scheduler.get_jobs())
+
+    db_ok = False
+    try:
+        from app.db.session import async_session_factory
+        async with async_session_factory() as session:
+            await session.execute(sa.text("SELECT 1"))
+            db_ok = True
+    except Exception:
+        pass
+
     return {
-        "status": "healthy",
+        "status": "healthy" if db_ok else "degraded",
         "service": settings.PROJECT_NAME,
+        "database": "connected" if db_ok else "unreachable",
         "agents_scheduled": jobs,
     }
+
+
+@app.get("/health", tags=["health"])
+async def health_probe() -> dict:
+    """Lightweight health probe for uptime monitors."""
+    try:
+        from app.db.session import async_session_factory
+        async with async_session_factory() as session:
+            await session.execute(sa.text("SELECT 1"))
+        return {"ok": True}
+    except Exception:
+        from fastapi.responses import JSONResponse
+        return JSONResponse(status_code=503, content={"ok": False, "error": "database unreachable"})
