@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Bell, Calendar, PhoneMissed, Megaphone, Info, X } from "lucide-react";
+import { Bell, Calendar, PhoneMissed, Megaphone, Info, X, Loader2 } from "lucide-react";
 import clsx from "clsx";
+import { fetchWithAuth } from "@/lib/api";
 
 interface Notification {
   id: string;
@@ -11,14 +12,6 @@ interface Notification {
   timestamp: string;
   read: boolean;
 }
-
-const DEMO_NOTIFICATIONS: Notification[] = [
-  { id: "1", type: "new_booking", message: "New appointment booked: Priya Sharma at 3:00 PM today", timestamp: "10 min ago", read: false },
-  { id: "2", type: "missed_call", message: "Missed call from +91 98765 43210", timestamp: "25 min ago", read: false },
-  { id: "3", type: "campaign_update", message: "Google Ads campaign 'Dental Implants' reached 1,000 impressions", timestamp: "1 hour ago", read: false },
-  { id: "4", type: "system", message: "Your monthly report is ready to view", timestamp: "3 hours ago", read: true },
-  { id: "5", type: "new_booking", message: "New appointment booked: Rahul Verma tomorrow at 11:00 AM", timestamp: "5 hours ago", read: true },
-];
 
 const ICON_MAP = {
   new_booking: Calendar,
@@ -36,10 +29,33 @@ const ICON_COLOR_MAP = {
 
 export default function NotificationBell() {
   const [open, setOpen] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>(DEMO_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [isLive, setIsLive] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
+
+  // Fetch notifications when bell opens or on mount
+  useEffect(() => {
+    fetchNotifications();
+    // Refresh every 2 minutes
+    const interval = setInterval(fetchNotifications, 120000);
+    return () => clearInterval(interval);
+  }, []);
+
+  async function fetchNotifications() {
+    try {
+      const res = await fetchWithAuth("/notifications/");
+      const data = await res.json();
+      if (data.notifications && data.notifications.length > 0) {
+        setNotifications(data.notifications);
+        setIsLive(true);
+      }
+    } catch {
+      // Silently fail — don't show errors for notifications
+    }
+  }
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -56,24 +72,29 @@ export default function NotificationBell() {
   return (
     <div className="relative" ref={ref}>
       <button
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={() => { setOpen((prev) => !prev); if (!open) fetchNotifications(); }}
         className="relative p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
         aria-label="Notifications"
       >
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 w-4 h-4 bg-emerald-500 text-[#0A0E1A] text-[10px] font-bold rounded-full flex items-center justify-center">
+          <span className="absolute top-1 right-1 w-4 h-4 bg-emerald-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white border border-slate-200 rounded-xl shadow-2xl shadow-lg z-50 overflow-hidden">
+        <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white border border-slate-200 rounded-xl shadow-2xl z-50 overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200">
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-semibold text-slate-900">Notifications</h3>
-              <span className="text-[10px] font-medium text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">Demo</span>
+              {isLive && (
+                <span className="flex items-center gap-1 text-[10px] font-medium text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
+                  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                  Live
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-1">
               {unreadCount > 0 && (
@@ -86,21 +107,29 @@ export default function NotificationBell() {
           </div>
 
           <div className="max-h-80 overflow-y-auto divide-y divide-slate-100">
-            {notifications.map((n) => {
-              const Icon = ICON_MAP[n.type];
-              return (
-                <div key={n.id} className={clsx("flex gap-3 px-4 py-3 transition-colors", !n.read && "bg-emerald-50")}>
-                  <div className={clsx("w-8 h-8 rounded-full flex items-center justify-center shrink-0", ICON_COLOR_MAP[n.type])}>
-                    <Icon className="w-4 h-4" />
+            {notifications.length === 0 ? (
+              <div className="px-4 py-8 text-center">
+                <Bell className="w-8 h-8 text-slate-200 mx-auto mb-2" />
+                <p className="text-sm text-slate-400">No notifications yet</p>
+                <p className="text-xs text-slate-300 mt-1">You&apos;ll see alerts when appointments are booked, patients arrive, and campaigns hit milestones.</p>
+              </div>
+            ) : (
+              notifications.map((n) => {
+                const Icon = ICON_MAP[n.type] || Info;
+                return (
+                  <div key={n.id} className={clsx("flex gap-3 px-4 py-3 transition-colors", !n.read && "bg-emerald-50")}>
+                    <div className={clsx("w-8 h-8 rounded-full flex items-center justify-center shrink-0", ICON_COLOR_MAP[n.type] || ICON_COLOR_MAP.system)}>
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className={clsx("text-sm leading-snug", !n.read ? "text-slate-900" : "text-slate-500")}>{n.message}</p>
+                      {n.timestamp && <p className="text-xs text-slate-400 mt-0.5">{n.timestamp}</p>}
+                    </div>
+                    {!n.read && <div className="w-2 h-2 bg-emerald-500 rounded-full mt-2 shrink-0" />}
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className={clsx("text-sm leading-snug", !n.read ? "text-slate-900" : "text-slate-500")}>{n.message}</p>
-                    <p className="text-xs text-slate-600 mt-0.5">{n.timestamp}</p>
-                  </div>
-                  {!n.read && <div className="w-2 h-2 bg-emerald-500 rounded-full mt-2 shrink-0" />}
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </div>
       )}
