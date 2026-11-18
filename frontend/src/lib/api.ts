@@ -224,10 +224,14 @@ export async function getAppointmentStats(days = 30) {
   return res.json();
 }
 
-export async function updateAppointmentStatus(id: string, status: string, notes?: string) {
+export async function updateAppointmentStatus(
+  id: string,
+  status: string,
+  options?: { notes?: string; revenue_amount?: number; treatment_done?: string }
+) {
   const res = await fetchWithAuth(`/appointments/${id}/status`, {
     method: "PUT",
-    body: JSON.stringify({ status, notes }),
+    body: JSON.stringify({ status, ...options }),
   });
   return res.json();
 }

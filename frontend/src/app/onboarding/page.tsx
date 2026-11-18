@@ -141,6 +141,9 @@ export default function OnboardingPage() {
   const [state, setState] = useState("");
   const [pincode, setPincode] = useState("");
   const [geoRadius, setGeoRadius] = useState(5);
+  const [clinicOpenTime, setClinicOpenTime] = useState("09:00");
+  const [clinicCloseTime, setClinicCloseTime] = useState("20:00");
+  const [doctorCount, setDoctorCount] = useState(1);
 
   // Step 3
   const [budget, setBudget] = useState(15000);
@@ -542,6 +545,77 @@ export default function OnboardingPage() {
                     <MapPin className="w-3.5 h-3.5 text-emerald-600" />
                     Patients within {geoRadius} km will see your ads
                   </p>
+                </div>
+
+                {/* Clinic Hours */}
+                <div className="mt-6 pt-4 border-t border-slate-200">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Clinic Hours</label>
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1">
+                      <label className="block text-xs text-slate-500 mb-1">Opens at</label>
+                      <input
+                        type="time"
+                        value={clinicOpenTime}
+                        onChange={(e) => setClinicOpenTime(e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30"
+                      />
+                    </div>
+                    <span className="text-slate-400 mt-5">to</span>
+                    <div className="flex-1">
+                      <label className="block text-xs text-slate-500 mb-1">Closes at</label>
+                      <input
+                        type="time"
+                        value={clinicCloseTime}
+                        onChange={(e) => setClinicCloseTime(e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Number of Doctors */}
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">How many doctors at your clinic?</label>
+                  <div className="flex items-center gap-3">
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <button
+                        key={n}
+                        onClick={() => setDoctorCount(n)}
+                        className={`w-10 h-10 rounded-lg text-sm font-medium transition ${
+                          doctorCount === n
+                            ? "bg-emerald-500 text-white"
+                            : "bg-white border border-slate-300 text-slate-600 hover:border-emerald-300"
+                        }`}
+                      >
+                        {n}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => setDoctorCount(Math.max(6, doctorCount))}
+                      className={`px-3 h-10 rounded-lg text-sm font-medium transition ${
+                        doctorCount >= 6
+                          ? "bg-emerald-500 text-white"
+                          : "bg-white border border-slate-300 text-slate-600 hover:border-emerald-300"
+                      }`}
+                    >
+                      6+
+                    </button>
+                    {doctorCount >= 6 && (
+                      <input
+                        type="number"
+                        min={6}
+                        max={20}
+                        value={doctorCount}
+                        onChange={(e) => setDoctorCount(Number(e.target.value))}
+                        className="w-16 px-2 h-10 text-sm border border-slate-300 rounded-lg text-center focus:outline-none focus:border-emerald-500"
+                      />
+                    )}
+                  </div>
+                  {doctorCount > 1 && (
+                    <p className="text-xs text-emerald-600 mt-2">
+                      You can add each doctor with their specialty after setup in the Staff page.
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   ArrowLeft, Calendar, CheckCircle2, Clock, XCircle, User, Plus,
-  Loader2, Filter, Phone, X, Stethoscope, LayoutGrid, List, IndianRupee,
+  Loader2, Filter, Phone, X, Stethoscope, LayoutGrid, List, IndianRupee, Download,
 } from "lucide-react";
 import { getAppointments, updateAppointmentStatus, getAppointmentStats, bookAppointment, getMe } from "@/lib/api";
 import CalendarView from "@/components/ui/CalendarView";
@@ -45,6 +45,11 @@ export default function AppointmentsPage() {
 
   // View mode: list or calendar
   const [viewMode, setViewMode] = useState<"list" | "calendar">("calendar");
+
+  // Detail modal
+  const [selectedAppt, setSelectedAppt] = useState<Appointment | null>(null);
+  const [revenueInput, setRevenueInput] = useState("");
+  const [treatmentDoneInput, setTreatmentDoneInput] = useState("");
 
   // Booking form
   const [showBooking, setShowBooking] = useState(false);
@@ -104,14 +109,33 @@ export default function AppointmentsPage() {
     }
   }
 
-  async function markStatus(id: string, status: string) {
+  async function markStatus(id: string, status: string, options?: { revenue_amount?: number; treatment_done?: string }) {
     setUpdating(id);
     try {
-      await updateAppointmentStatus(id, status);
+      await updateAppointmentStatus(id, status, options);
+      setSelectedAppt(null);
+      setRevenueInput("");
+      setTreatmentDoneInput("");
       await load();
     } finally {
       setUpdating(null);
     }
+  }
+
+  function exportCSV() {
+    if (appointments.length === 0) return;
+    const headers = ["Patient Name", "Phone", "Treatment", "Date", "Time", "Status", "Notes"];
+    const rows = appointments.map((a) => [
+      a.patient_name, a.patient_phone, a.treatment, a.date, a.time, a.status, a.notes || "",
+    ]);
+    const csv = [headers.join(","), ...rows.map((r) => r.map((v) => `"${v}"`).join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `appointments_${new Date().toISOString().split("T")[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   const statusBadge = (s: string) => {
@@ -135,6 +159,15 @@ export default function AppointmentsPage() {
           <h1 className="text-lg font-bold text-slate-900">Appointments</h1>
         </div>
         <div className="flex items-center gap-2">
+          {/* Export */}
+          <button
+            onClick={exportCSV}
+            disabled={appointments.length === 0}
+            className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition disabled:opacity-30"
+            title="Export CSV"
+          >
+            <Download className="w-4 h-4" />
+          </button>
           {/* View Toggle */}
           <div className="flex gap-0.5 bg-slate-100 rounded-lg p-0.5">
             <button
@@ -264,8 +297,11 @@ export default function AppointmentsPage() {
         <CalendarView
           appointments={appointments}
           onSelectAppointment={(apt) => {
-            // Could open a detail modal; for now just log
-            console.log("Selected appointment:", apt);
+            const found = appointments.find((a) => a.id === apt.id);
+            if (found) {
+              setSelectedAppt(found);
+              setTreatmentDoneInput(found.treatment);
+            }
           }}
         />
       )}
@@ -303,7 +339,7 @@ export default function AppointmentsPage() {
       ) : (
         <div className="space-y-3">
           {appointments.map((a) => (
-            <div key={a.id} className="bg-white rounded-xl border border-slate-200 p-4">
+            <div key={a.id} className="bg-white rounded-xl border border-slate-200 p-4 cursor-pointer hover:border-emerald-200 hover:shadow-sm transition" onClick={() => { setSelectedAppt(a); setTreatmentDoneInput(a.treatment); }}>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-start gap-3">
                   <div className="p-2 bg-slate-50 rounded-lg">
@@ -367,6 +403,113 @@ export default function AppointmentsPage() {
           ))}
         </div>
       ))}
+
+      {/* Appointment Detail Modal */}
+      {selectedAppt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setSelectedAppt(null)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-slate-900">Appointment Details</h3>
+              <button onClick={() => setSelectedAppt(null)} className="text-slate-400 hover:text-slate-700">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-slate-50 rounded-lg">
+                  <User className="w-5 h-5 text-slate-400" />
+                </div>
+                <div>
+                  <div className="font-medium text-slate-900">{selectedAppt.patient_name}</div>
+                  <div className="text-sm text-slate-500 flex items-center gap-2">
+                    <Phone className="w-3 h-3" /> {selectedAppt.patient_phone}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="bg-slate-50 rounded-lg p-3">
+                  <div className="text-xs text-slate-400 mb-0.5">Treatment</div>
+                  <div className="font-medium text-slate-900">{selectedAppt.treatment}</div>
+                </div>
+                <div className="bg-slate-50 rounded-lg p-3">
+                  <div className="text-xs text-slate-400 mb-0.5">Date & Time</div>
+                  <div className="font-medium text-slate-900">{selectedAppt.date} · {selectedAppt.time}</div>
+                </div>
+                <div className="bg-slate-50 rounded-lg p-3">
+                  <div className="text-xs text-slate-400 mb-0.5">Status</div>
+                  <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${statusBadge(selectedAppt.status)}`}>
+                    {selectedAppt.status.replace("_", " ")}
+                  </span>
+                </div>
+                <div className="bg-slate-50 rounded-lg p-3">
+                  <div className="text-xs text-slate-400 mb-0.5">Duration</div>
+                  <div className="font-medium text-slate-900">{selectedAppt.duration_minutes} min</div>
+                </div>
+              </div>
+
+              {selectedAppt.notes && (
+                <div className="text-sm text-slate-600 bg-slate-50 rounded-lg p-3">
+                  <div className="text-xs text-slate-400 mb-0.5">Notes</div>
+                  {selectedAppt.notes}
+                </div>
+              )}
+
+              {/* Revenue Input — shows when marking as Attended */}
+              {(selectedAppt.status === "CONFIRMED" || selectedAppt.status === "REMINDED") && (
+                <div className="border-t border-slate-100 pt-4 space-y-3">
+                  <p className="text-sm font-medium text-slate-700">Complete this appointment:</p>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-500 mb-1">Treatment Done</label>
+                    <input
+                      type="text"
+                      value={treatmentDoneInput}
+                      onChange={(e) => setTreatmentDoneInput(e.target.value)}
+                      placeholder="e.g. Root Canal + Crown"
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-500 mb-1">Amount Charged (₹)</label>
+                    <div className="relative">
+                      <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                      <input
+                        type="number"
+                        value={revenueInput}
+                        onChange={(e) => setRevenueInput(e.target.value)}
+                        placeholder="e.g. 5000"
+                        className="w-full pl-8 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => markStatus(selectedAppt.id, "ATTENDED", {
+                        revenue_amount: revenueInput ? parseFloat(revenueInput) : undefined,
+                        treatment_done: treatmentDoneInput || undefined,
+                      })}
+                      disabled={updating === selectedAppt.id}
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-sm font-medium rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white transition-colors disabled:opacity-50"
+                    >
+                      {updating === selectedAppt.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                      Mark Attended
+                    </button>
+                    <button
+                      onClick={() => markStatus(selectedAppt.id, "NO_SHOW")}
+                      disabled={updating === selectedAppt.id}
+                      className="px-4 py-2.5 text-sm font-medium rounded-lg border border-slate-200 hover:border-red-300 text-slate-500 hover:text-red-600 transition-colors disabled:opacity-50"
+                    >
+                      No-Show
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
