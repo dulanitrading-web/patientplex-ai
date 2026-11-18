@@ -33,6 +33,7 @@ class BookAppointmentRequest(BaseModel):
     source: str = "Walk-in"  # Google Ads, WhatsApp, Walk-in, Phone Call, Referral
     notes: str | None = None
     patient_email: str | None = None
+    staff_id: str | None = None  # UUID of the specific staff member
 
 
 @router.post("/book")
@@ -66,6 +67,7 @@ async def book_appointment(
         notes=body.notes,
         source=body.source,
         patient_email=body.patient_email,
+        staff_id=UUID(body.staff_id) if body.staff_id else None,
     )
     db.add(appointment)
     await db.flush()
@@ -284,5 +286,7 @@ def _serialize_appointment(a: Appointment) -> dict:
         "revenue_amount": getattr(a, "revenue_amount", None),
         "treatment_done": getattr(a, "treatment_done", None),
         "patient_email": getattr(a, "patient_email", None),
+        "staff_id": str(a.staff_id) if getattr(a, "staff_id", None) else None,
+        "staff_name": a.staff.full_name if getattr(a, "staff", None) and a.staff else None,
         "created_at": a.created_at.isoformat(),
     }

@@ -90,6 +90,7 @@ class Appointment(Base):
     revenue_amount: Mapped[float | None] = mapped_column(Float, nullable=True, default=None)
     treatment_done: Mapped[str | None] = mapped_column(String(255), nullable=True, default=None)
     patient_email: Mapped[str | None] = mapped_column(String(255), nullable=True, default=None)
+    staff_id: Mapped[uuid.UUID | None] = mapped_column(UUID(), ForeignKey("clinic_staff.id"), nullable=True, index=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(
@@ -99,3 +100,4 @@ class Appointment(Base):
     )
 
     conversation = relationship("Conversation", back_populates="appointments")
+    staff = relationship("ClinicStaff", backref="appointments")

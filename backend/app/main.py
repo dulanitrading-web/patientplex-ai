@@ -14,7 +14,7 @@ from app.api.v1 import (
     analytics, auth, onboarding, whatsapp, appointments, campaigns, chatgpt_ads,
     landing_pages, intelligence, calls, conversions, bookings, billing,
     marketing_brain, ml, webhooks, payments, signals, ehr, compliance,
-    knowledge, google_my_business, ga4, seo, integrations,
+    knowledge, google_my_business, ga4, seo, integrations, clinic_staff,
 )
 from app.api.v1.agents_router import router as agents_router
 from app.core.config import settings
@@ -61,6 +61,7 @@ async def lifespan(app: FastAPI):
         from app.models.campaign import Campaign  # noqa: F401
         from app.models.call_log import CallLog, ConversionEvent  # noqa: F401
         from app.models.billing import Subscription, Invoice  # noqa: F401
+        from app.models.clinic_staff import ClinicStaff  # noqa: F401
 
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
@@ -179,6 +180,7 @@ app.include_router(payments.router, prefix=settings.API_V1_PREFIX)
 app.include_router(compliance.router, prefix=settings.API_V1_PREFIX)
 app.include_router(knowledge.router, prefix=settings.API_V1_PREFIX)
 app.include_router(integrations.router, prefix=settings.API_V1_PREFIX)
+app.include_router(clinic_staff.router, prefix=settings.API_V1_PREFIX)
 
 # AI Agents — list, trigger, monitor
 app.include_router(agents_router, prefix=settings.API_V1_PREFIX)
