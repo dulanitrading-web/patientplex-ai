@@ -115,7 +115,7 @@ export default function ConversionsPage() {
           <button key={p.value} onClick={() => setDays(p.value)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               days === p.value
-                ? "bg-slate-900 text-white"
+                ? "bg-emerald-600 text-white"
                 : "bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-100 hover:text-slate-900"
             }`}>
             {p.label}

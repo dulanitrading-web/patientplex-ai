@@ -215,7 +215,7 @@ export default function PatientsPage() {
               onClick={() => setStatusFilter(s)}
               className={`px-3 py-2 text-xs font-medium transition-colors ${
                 statusFilter === s
-                  ? "bg-slate-900 text-white"
+                  ? "bg-emerald-600 text-white"
                   : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
               }`}
             >

@@ -342,7 +342,7 @@ export default function CampaignsPage() {
               onClick={() => setPlatformFilter(p)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 platformFilter === p
-                  ? "bg-slate-900 text-white"
+                  ? "bg-emerald-600 text-white"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200"
               }`}
             >

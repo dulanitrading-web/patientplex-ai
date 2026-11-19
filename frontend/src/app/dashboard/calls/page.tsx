@@ -115,7 +115,7 @@ export default function CallsPage() {
         {STATUS_OPTIONS.map((s) => (
           <button key={s} onClick={() => setFilter(s)}
             className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-              filter === s ? "bg-slate-900 text-white" : "bg-slate-50 text-slate-500 border border-slate-200 hover:border-slate-300"
+              filter === s ? "bg-emerald-600 text-white" : "bg-slate-50 text-slate-500 border border-slate-200 hover:border-slate-300"
             }`}>
             {s === "ALL" ? "All" : s.replace("_", " ")}
           </button>
