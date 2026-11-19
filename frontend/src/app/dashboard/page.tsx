@@ -197,7 +197,7 @@ export default function DashboardPage() {
       )}
 
       {/* KPI Cards — Doctor-friendly labels */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         {[
           { icon: <Eye className="w-5 h-5" />, label: "People Reached", value: fmt(campaignOverview?.total_impressions || 0), color: "cyan" as const, sub: `${(campaignOverview?.avg_ctr ?? 0).toFixed(1)}% clicked`, trend: undefined },
           { icon: <MousePointerClick className="w-5 h-5" />, label: "Website Visitors", value: fmt(campaignOverview?.total_clicks || 0), color: "emerald" as const, sub: `₹${(campaignOverview?.avg_cpc ?? 0).toFixed(1)} per visitor`, trend: undefined },

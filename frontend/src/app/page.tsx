@@ -341,7 +341,7 @@ export default function LandingPage() {
       </nav>
 
       {/* ═══ HERO ═══ */}
-      <section className="pt-28 pb-20 px-6 relative overflow-hidden">
+      <section className="pt-24 sm:pt-28 pb-12 sm:pb-20 px-4 sm:px-6 relative overflow-hidden">
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-emerald-100/90 via-teal-50/60 to-cyan-100/80" />
           <div className="absolute top-0 right-0 w-[60%] h-full bg-gradient-to-l from-amber-50/40 to-transparent" />
@@ -361,13 +361,13 @@ export default function LandingPage() {
           <div className="grid lg:grid-cols-2 gap-14 items-center">
             <div>
               <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
-                className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.08] text-slate-900 mb-6">
+                className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-[1.1] text-slate-900 mb-5">
                 AI that books patients<br /><span className="text-gradient-hero">while you sleep</span>
               </motion.h1>
 
               <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.12 }}
-                className="text-lg text-slate-500 leading-relaxed mb-8 max-w-lg">
-                Google &amp; Meta ads, a WhatsApp AI receptionist, and smart appointment booking — all on autopilot. Built for healthcare clinics across 15+ specialties in India.
+                className="text-base sm:text-lg text-slate-500 leading-relaxed mb-6 max-w-lg">
+                Google &amp; Meta ads, WhatsApp AI receptionist, and smart appointment booking — on autopilot. Built for 15+ healthcare specialties in India.
               </motion.p>
 
               {/* Email CTA */}
@@ -380,32 +380,25 @@ export default function LandingPage() {
               </motion.div>
 
               <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4, delay: 0.28 }}
-                className="text-xs text-slate-400 mb-6 flex items-center gap-4">
-                <span className="flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> No credit card required</span>
+                className="text-xs text-slate-400 mb-6 flex flex-wrap items-center gap-x-4 gap-y-1">
+                <span className="flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> No credit card</span>
                 <span className="flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> 14-day free trial</span>
                 <span className="flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Cancel anytime</span>
               </motion.p>
 
-              {/* Trust line */}
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.35 }}
-                className="flex items-center gap-2 mb-6">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                <p className="text-sm text-slate-500">Start your 14-day free trial — no credit card required</p>
-              </motion.div>
-
               {/* Platform icons */}
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.45 }}
-                className="flex items-center gap-3">
+                className="flex flex-wrap items-center gap-2">
                 {[
-                  <GoogleLogo key="g" size={20} />,
-                  <MetaLogo key="m" size={20} />,
-                  <WhatsAppLogo key="w" size={20} />,
-                  <InstagramLogo key="i" size={20} />,
-                  <OpenAILogo key="o" size={20} />,
-                  <LinkedInLogo key="l" size={20} />,
-                  <GoogleCalendarLogo key="c" size={20} />,
+                  <GoogleLogo key="g" size={18} />,
+                  <MetaLogo key="m" size={18} />,
+                  <WhatsAppLogo key="w" size={18} />,
+                  <InstagramLogo key="i" size={18} />,
+                  <OpenAILogo key="o" size={18} />,
+                  <LinkedInLogo key="l" size={18} />,
+                  <GoogleCalendarLogo key="c" size={18} />,
                 ].map((icon, i) => (
-                  <div key={i} className="w-10 h-10 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-center hover:shadow-md hover:scale-105 transition-all">
+                  <div key={i} className="w-9 h-9 rounded-lg bg-white border border-slate-200 shadow-sm flex items-center justify-center hover:shadow-md hover:scale-105 transition-all">
                     {icon}
                   </div>
                 ))}
@@ -536,14 +529,14 @@ export default function LandingPage() {
       </section>
 
       {/* ═══ MISSION & VISION ═══ */}
-      <section className="py-24 px-6 bg-white relative overflow-hidden">
+      <section className="py-16 sm:py-24 px-4 sm:px-6 bg-white relative overflow-hidden">
         {/* Background accent */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-emerald-50 to-transparent rounded-full blur-3xl opacity-60" />
         <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-teal-50 to-transparent rounded-full blur-3xl opacity-50" />
         <div className="max-w-7xl mx-auto relative">
           <Reveal>
             <p className="text-center text-xs font-bold uppercase tracking-[0.2em] text-emerald-600 mb-4">Our purpose</p>
-            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-center mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-16">
               Why we{"’"}re building{" "}
               <span className="text-gradient-hero">PatientPlex</span>
             </h2>
@@ -664,7 +657,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <Reveal>
-              <h2 className="text-3xl sm:text-4xl font-black tracking-tight leading-tight mb-6">AI to manage patients across every channel</h2>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight leading-tight mb-6">AI to manage patients across every channel</h2>
               <p className="text-lg text-slate-500 leading-relaxed">WhatsApp, Google, Instagram, ChatGPT, LinkedIn, phone calls &mdash; PatientPlex captures patients from every touchpoint and funnels them into your calendar.</p>
             </Reveal>
             <Reveal delay={0.15}>
@@ -701,7 +694,7 @@ export default function LandingPage() {
       <section className="py-24 px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <Reveal>
-            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-center mb-4">Built for every type of clinic</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">Built for every type of clinic</h2>
             <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">15+ medical specialties trust PatientPlex</p>
           </Reveal>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -738,7 +731,7 @@ export default function LandingPage() {
       <section className="py-24 px-6 bg-slate-50">
         <div className="max-w-7xl mx-auto">
           <Reveal>
-            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-center mb-4">Connects with tools you already use</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">Connects with tools you already use</h2>
             <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">PatientPlex integrates with the platforms your clinic relies on — no manual data entry.</p>
           </Reveal>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -770,10 +763,10 @@ export default function LandingPage() {
       </section>
 
       {/* ═══ VIDEO DEMO ═══ */}
-      <section className="py-24 px-6">
+      <section className="py-16 sm:py-24 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto">
           <Reveal>
-            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-center mb-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">
               See PatientPlex in action
             </h2>
             <p className="text-center text-slate-500 mb-12 text-lg">
@@ -893,7 +886,7 @@ export default function LandingPage() {
       <section className="py-24 px-6 bg-slate-50">
         <div className="max-w-7xl mx-auto">
           <Reveal>
-            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-center mb-3">What clinics can expect <span className="inline-block">{"💡"}</span></h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-3">What clinics can expect <span className="inline-block">{"💡"}</span></h2>
             <p className="text-center text-slate-500 mb-16 text-lg">Real results from our client and projected scenarios for different specialties.</p>
           </Reveal>
           <div className="columns-1 md:columns-2 lg:columns-3 gap-5 space-y-5">
@@ -945,10 +938,10 @@ export default function LandingPage() {
       </section>
 
       {/* ═══ SUCCESS STORIES ═══ */}
-      <section className="py-24 px-6">
+      <section className="py-16 sm:py-24 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <Reveal>
-            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-center mb-4">Real results & projected outcomes</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">Real results & projected outcomes</h2>
             <p className="text-center text-slate-500 mb-16 text-lg">Bhardwaj Dental Clinic is our active client. Other scenarios show projected outcomes.</p>
           </Reveal>
           <div className="grid md:grid-cols-3 gap-6">
@@ -983,9 +976,9 @@ export default function LandingPage() {
       </section>
 
       {/* ═══ STATS ═══ */}
-      <section className="py-24 px-6">
+      <section className="py-16 sm:py-24 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
-          <Reveal><h2 className="text-3xl sm:text-4xl font-black tracking-tight text-center mb-16">What PatientPlex delivers</h2></Reveal>
+          <Reveal><h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-16">What PatientPlex delivers</h2></Reveal>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             {STATS.map((s, i) => (
               <Reveal key={i} delay={i * 0.1}>
@@ -994,7 +987,7 @@ export default function LandingPage() {
                   <div className="inline-flex p-2.5 rounded-xl bg-emerald-50 mb-3">
                     <s.icon className="w-5 h-5 text-emerald-600" />
                   </div>
-                  <div className="text-3xl sm:text-4xl font-black text-slate-900 mb-2 tabular-nums">
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mb-2 tabular-nums">
                     <Counter target={s.value} suffix={s.suffix} prefix={(s as any).prefix} />
                   </div>
                   <p className="text-sm text-slate-500 font-medium">{s.label}</p>
@@ -1009,7 +1002,7 @@ export default function LandingPage() {
       <section className="py-24 px-6 bg-white">
         <div className="max-w-5xl mx-auto">
           <Reveal>
-            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-center mb-4">Calculate your ROI</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">Calculate your ROI</h2>
             <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">See how much you could save by switching from agencies to PatientPlex.</p>
           </Reveal>
           <ROICalculator />
@@ -1020,7 +1013,7 @@ export default function LandingPage() {
       <section className="py-24 px-6 bg-white">
         <div className="max-w-5xl mx-auto">
           <Reveal>
-            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-center mb-4">The PatientPlex difference</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">The PatientPlex difference</h2>
             <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">See what changes when AI runs your patient acquisition.</p>
           </Reveal>
           <div className="grid md:grid-cols-2 gap-6">
@@ -1061,10 +1054,10 @@ export default function LandingPage() {
       </section>
 
       {/* ═══ COMPARISON TABLE ═══ */}
-      <section className="py-24 px-6">
+      <section className="py-16 sm:py-24 px-4 sm:px-6">
         <div className="max-w-5xl mx-auto">
           <Reveal>
-            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-center mb-4">Why clinics switch to PatientPlex</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">Why clinics switch to PatientPlex</h2>
             <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">Compare us to agencies and DIY — see the difference.</p>
           </Reveal>
           <Reveal delay={0.1}>
@@ -1115,7 +1108,7 @@ export default function LandingPage() {
       <section className="py-24 px-6 bg-white">
         <div className="max-w-5xl mx-auto">
           <Reveal>
-            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-center mb-4">Live in 48 hours, not 10 weeks</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">Live in 48 hours, not 10 weeks</h2>
             <p className="text-center text-lg text-slate-500 mb-16">No agencies, no contracts, no technical setup.</p>
           </Reveal>
           <div className="grid md:grid-cols-3 gap-8 relative">
@@ -1142,10 +1135,10 @@ export default function LandingPage() {
       </section>
 
       {/* ═══ USE CASES ═══ */}
-      <section className="py-24 px-6">
+      <section className="py-16 sm:py-24 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <Reveal>
-            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-center mb-4">How clinics use PatientPlex</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">How clinics use PatientPlex</h2>
             <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">Real use cases across 15+ healthcare specialties.</p>
           </Reveal>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1183,7 +1176,7 @@ export default function LandingPage() {
       <section id="features" className="py-24 px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <Reveal>
-            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-center mb-4">See what PatientPlex does inside your account</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">See what PatientPlex does inside your account</h2>
             <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">Four autonomous AI agents working 24/7 to grow your clinic.</p>
           </Reveal>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -1270,7 +1263,7 @@ export default function LandingPage() {
       </section>
 
       {/* ═══ LIVE RESULTS + CTA ═══ */}
-      <section className="py-24 px-6">
+      <section className="py-16 sm:py-24 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-0 rounded-3xl overflow-hidden border border-slate-200 shadow-2xl shadow-emerald-500/5">
             <div className="bg-gradient-to-br from-emerald-500 via-teal-400 to-cyan-400 p-10 sm:p-14 text-white relative overflow-hidden">
@@ -1278,7 +1271,7 @@ export default function LandingPage() {
               <div className="relative">
                 <Reveal>
                   <h3 className="text-sm font-bold uppercase tracking-widest opacity-80 mb-6">Platform performance targets</h3>
-                  <p className="text-3xl sm:text-4xl font-black mb-10">Built to deliver</p>
+                  <p className="text-2xl sm:text-3xl md:text-4xl font-black mb-10">Built to deliver</p>
                   <div className="space-y-8">
                     {[
                       { category: "PAID ADS", items: [["Target ROAS", "4x+"], ["Revenue potential", "Scales with budget"]] },
@@ -1302,7 +1295,7 @@ export default function LandingPage() {
             </div>
             <div className="bg-white p-10 sm:p-14 flex flex-col justify-center">
               <Reveal delay={0.15}>
-                <h3 className="text-3xl sm:text-4xl font-black text-slate-900 mb-4 leading-tight">Let AI Run<br />Your Clinic</h3>
+                <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mb-4 leading-tight">Let AI Run<br />Your Clinic</h3>
                 <p className="text-slate-500 mb-8 text-lg">Autonomous agents that acquire patients, book appointments and optimize your ads &mdash; around the clock.</p>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <input type="email" placeholder="work@email.com" className="flex-1 px-5 py-3.5 rounded-xl border border-slate-300 bg-white text-slate-900 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all" />
@@ -1317,11 +1310,11 @@ export default function LandingPage() {
       </section>
 
       {/* ═══ PRICING ═══ */}
-      <section id="pricing" className="py-24 px-6 bg-white">
+      <section id="pricing" className="py-16 sm:py-24 px-4 sm:px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <Reveal>
-            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-center mb-4">Simple pricing, real results</h2>
-            <p className="text-center text-lg text-slate-500 mb-8 max-w-2xl mx-auto">Every plan includes a 14-day free trial. No credit card required.</p>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-3">Stop overpaying agencies. Start getting patients.</h2>
+            <p className="text-center text-base sm:text-lg text-slate-500 mb-8 max-w-2xl mx-auto">Every plan includes a 14-day free trial. No credit card required. Cancel anytime.</p>
             {/* Toggle */}
             <div className="flex items-center justify-center gap-3 mb-16">
               <span className={`text-sm font-medium ${!annual ? "text-slate-900" : "text-slate-400"}`}>Monthly</span>
@@ -1332,7 +1325,7 @@ export default function LandingPage() {
               {annual && <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">Save 20%</span>}
             </div>
           </Reveal>
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {pricing.map((p, i) => (
               <Reveal key={`${annual}-${i}`} delay={i * 0.1}>
                 <motion.div whileHover={{ y: -4 }} className={`relative p-7 rounded-2xl border h-full flex flex-col transition-all duration-300 ${p.highlight ? "border-emerald-500 bg-emerald-50/20 shadow-xl shadow-emerald-500/10 ring-1 ring-emerald-500/20" : "border-slate-200 bg-[#FAFAF8] hover:shadow-lg"}`}>
@@ -1365,10 +1358,10 @@ export default function LandingPage() {
       </section>
 
       {/* ═══ AI FEATURES DEEP DIVE ═══ */}
-      <section className="py-24 px-6">
+      <section className="py-16 sm:py-24 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <Reveal>
-            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-center mb-4">AI that gets smarter every day</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">AI that gets smarter every day</h2>
             <p className="text-center text-slate-500 mb-16 text-lg max-w-2xl mx-auto">Our AI learns from every interaction to deliver better results for your clinic.</p>
           </Reveal>
           <div className="grid md:grid-cols-2 gap-6">
@@ -1395,10 +1388,10 @@ export default function LandingPage() {
       </section>
 
       {/* ═══ TRUST & SECURITY ═══ */}
-      <section className="py-24 px-6">
+      <section className="py-16 sm:py-24 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <Reveal>
-            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-center mb-4">Enterprise-grade security for patient data</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">Enterprise-grade security for patient data</h2>
             <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">Built for healthcare compliance from day one.</p>
           </Reveal>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
@@ -1428,7 +1421,7 @@ export default function LandingPage() {
           <div className="bg-gradient-to-br from-emerald-500 to-teal-500 rounded-3xl p-10 sm:p-14 text-center text-white">
             <Reveal>
               <p className="text-sm font-medium text-white/70 uppercase tracking-widest mb-3">Start growing your clinic with AI-powered marketing</p>
-              <h2 className="text-3xl sm:text-4xl font-black tracking-tight mb-6">Ready to stop losing patients?</h2>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight mb-6">Ready to stop losing patients?</h2>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 mb-8">
                 {["14-day free trial — no credit card", "Live campaign within 48 hours", "Cancel anytime, no contracts"].map((t, i) => (
                   <span key={i} className="flex items-center gap-2 text-sm font-medium text-white/90">
@@ -1458,10 +1451,10 @@ export default function LandingPage() {
       </section>
 
       {/* ═══ FAQ ═══ */}
-      <section id="faq" className="py-24 px-6">
+      <section id="faq" className="py-16 sm:py-24 px-4 sm:px-6">
         <div className="max-w-3xl mx-auto">
           <Reveal>
-            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-center mb-4">Common questions</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">Common questions</h2>
             <p className="text-center text-slate-500 mb-12">Everything you need to know about PatientPlex.</p>
           </Reveal>
           <div className="space-y-3">
