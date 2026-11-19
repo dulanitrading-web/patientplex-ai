@@ -177,6 +177,18 @@ try:
     except Exception as e:
         print(f'  ⚠ slug fix — {e}')
 
+    # Migration 009: Set Twilio phone number for BDC
+    try:
+        cur.execute(\"\"\"
+            UPDATE doctors
+            SET twilio_phone_number = '+16067665461'
+            WHERE twilio_phone_number IS NULL
+            AND (clinic_name ILIKE '%bhardwaj%' OR full_name ILIKE '%bhardwaj%')
+        \"\"\")
+        print(f'  ✓ Set Twilio phone for BDC — {cur.statusmessage}')
+    except Exception as e:
+        print(f'  ⚠ Twilio phone — {e}')
+
     cur.close()
     conn.close()
     print('Database migrations complete!')
