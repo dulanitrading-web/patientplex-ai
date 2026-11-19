@@ -280,6 +280,106 @@ async def health_probe() -> dict:
         return JSONResponse(status_code=503, content={"ok": False, "error": "database unreachable"})
 
 
+@app.get("/api/v1/diagnostics/twilio", tags=["diagnostics"])
+async def twilio_diagnostics(key: str = ""):
+    """Check Twilio connectivity — requires diagnostics key for security."""
+    from fastapi import HTTPException
+    if key != settings.SECRET_KEY:
+        raise HTTPException(status_code=403, detail="Invalid diagnostics key")
+    result = {
+        "twilio_configured": bool(settings.TWILIO_ACCOUNT_SID and settings.TWILIO_AUTH_TOKEN),
+        "twilio_phone_set": bool(settings.TWILIO_PHONE_NUMBER),
+        "sms_webhook_url": f"{settings.BACKEND_BASE_URL}/api/v1/calls/sms" if hasattr(settings, 'BACKEND_BASE_URL') else "https://patientplex-ai-g7ce.onrender.com/api/v1/calls/sms",
+        "call_webhook_url": f"{settings.BACKEND_BASE_URL}/api/v1/calls/incoming" if hasattr(settings, 'BACKEND_BASE_URL') else "https://patientplex-ai-g7ce.onrender.com/api/v1/calls/incoming",
+        "free_llm_configured": bool(settings.FREE_LLM_API_KEY and settings.FREE_LLM_BASE_URL),
+        "free_llm_model": settings.FREE_LLM_MODEL if settings.FREE_LLM_API_KEY else None,
+        "claude_api_configured": bool(settings.CLAUDE_API_KEY),
+    }
+
+    # Try Twilio API to check account
+    if settings.TWILIO_ACCOUNT_SID and settings.TWILIO_AUTH_TOKEN:
+        try:
+            import httpx
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(
+                    f"https://api.twilio.com/2010-04-01/Accounts/{settings.TWILIO_ACCOUNT_SID}.json",
+                    auth=(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN),
+                    timeout=10,
+                )
+                if resp.status_code == 200:
+                    data = resp.json()
+                    result["twilio_account_status"] = data.get("status")
+                    result["twilio_account_name"] = data.get("friendly_name")
+                else:
+                    result["twilio_account_status"] = f"error_{resp.status_code}"
+        except Exception as e:
+            result["twilio_account_status"] = f"connection_error: {str(e)[:50]}"
+
+        # Check phone number config
+        try:
+            import httpx
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(
+                    f"https://api.twilio.com/2010-04-01/Accounts/{settings.TWILIO_ACCOUNT_SID}/IncomingPhoneNumbers.json",
+                    auth=(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN),
+                    timeout=10,
+                )
+                if resp.status_code == 200:
+                    numbers = resp.json().get("incoming_phone_numbers", [])
+                    result["twilio_numbers"] = []
+                    for n in numbers:
+                        result["twilio_numbers"].append({
+                            "number": n.get("phone_number"),
+                            "friendly_name": n.get("friendly_name"),
+                            "sms_url": n.get("sms_url"),
+                            "voice_url": n.get("voice_url"),
+                            "sms_method": n.get("sms_method"),
+                            "voice_method": n.get("voice_method"),
+                        })
+        except Exception:
+            pass
+
+        # Check recent messages
+        try:
+            import httpx
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(
+                    f"https://api.twilio.com/2010-04-01/Accounts/{settings.TWILIO_ACCOUNT_SID}/Messages.json?PageSize=5",
+                    auth=(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN),
+                    timeout=10,
+                )
+                if resp.status_code == 200:
+                    msgs = resp.json().get("messages", [])
+                    result["recent_messages"] = len(msgs)
+                    result["messages"] = [
+                        {"from": m.get("from"), "to": m.get("to"), "status": m.get("status"), "direction": m.get("direction"), "date": m.get("date_sent"), "body_preview": (m.get("body") or "")[:30]}
+                        for m in msgs
+                    ]
+        except Exception:
+            pass
+
+        # Check recent calls
+        try:
+            import httpx
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(
+                    f"https://api.twilio.com/2010-04-01/Accounts/{settings.TWILIO_ACCOUNT_SID}/Calls.json?PageSize=5",
+                    auth=(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN),
+                    timeout=10,
+                )
+                if resp.status_code == 200:
+                    calls = resp.json().get("calls", [])
+                    result["recent_calls"] = len(calls)
+                    result["calls"] = [
+                        {"from": c.get("from"), "to": c.get("to"), "status": c.get("status"), "direction": c.get("direction"), "duration": c.get("duration"), "date": c.get("date_created")}
+                        for c in calls
+                    ]
+        except Exception:
+            pass
+
+    return result
+
+
 @app.post("/api/v1/cron/reminders", tags=["cron"])
 async def trigger_reminders():
     """Trigger appointment reminders — call this from an external cron service.
