@@ -8,7 +8,7 @@ import {
   MessageCircle, Calendar, Phone, Globe, Brain, TrendingUp,
   Users, ChevronDown, Target, Award, Lock,
   Instagram, Facebook, Search, BadgeCheck, Mail,
-  Menu, X, Clock, Zap, Activity, Play, TrendingDown, Eye, Heart, Rocket,
+  Menu, X, Clock, Zap, Activity, Play, TrendingDown, Eye, Heart, Rocket, XCircle,
 } from "lucide-react";
 
 import Logo from "@/components/Logo";
@@ -384,6 +384,7 @@ export default function LandingPage() {
                 <span className="flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> No credit card</span>
                 <span className="flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> 14-day free trial</span>
                 <span className="flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Cancel anytime</span>
+                <span className="flex items-center gap-1 text-amber-600 font-semibold"><Clock className="w-3.5 h-3.5" /> Only 7 pilot spots left this month</span>
               </motion.p>
 
               {/* Platform icons */}
@@ -1450,6 +1451,64 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ═══ AGENCY vs PATIENTPLEX ═══ */}
+      <section className="py-16 sm:py-24 px-4 sm:px-6 bg-gradient-to-b from-slate-50 to-white">
+        <div className="max-w-4xl mx-auto">
+          <Reveal>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-3">Why clinics are switching from agencies</h2>
+            <p className="text-center text-slate-500 mb-10">Same results, fraction of the cost, and it works while you sleep.</p>
+          </Reveal>
+          <Reveal delay={0.1}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Agency */}
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 relative overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-red-400" />
+                <h3 className="font-bold text-lg text-slate-900 mb-4 flex items-center gap-2"><TrendingDown className="w-5 h-5 text-red-500" /> Marketing Agency</h3>
+                <ul className="space-y-3 text-sm text-slate-600">
+                  {[
+                    ["₹25,000–₹2,00,000/month", "retainer fees"],
+                    ["Manual campaign setup", "takes 1-2 weeks"],
+                    ["Human responds in hours", "during business hours only"],
+                    ["Monthly PDF reports", "you review, they adjust next month"],
+                    ["Account manager turnover", "new person every 6 months"],
+                    ["No booking integration", "just sends you leads"],
+                    ["Fixed ad copy", "rarely updated"],
+                  ].map(([bold, sub], i) => (
+                    <li key={i} className="flex items-start gap-2"><XCircle className="w-4 h-4 text-red-400 mt-0.5 shrink-0" /><span><strong>{bold}</strong> — {sub}</span></li>
+                  ))}
+                </ul>
+              </div>
+              {/* PatientPlex */}
+              <div className="bg-white rounded-2xl border-2 border-emerald-300 p-6 relative overflow-hidden shadow-lg shadow-emerald-500/10">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-emerald-500" />
+                <div className="absolute -top-1 right-4 bg-emerald-500 text-white text-[10px] font-bold px-3 py-1 rounded-b-lg">RECOMMENDED</div>
+                <h3 className="font-bold text-lg text-slate-900 mb-4 flex items-center gap-2"><TrendingUp className="w-5 h-5 text-emerald-500" /> PatientPlex AI</h3>
+                <ul className="space-y-3 text-sm text-slate-600">
+                  {[
+                    ["₹9,999–₹49,999/month", "all-inclusive, no hidden fees"],
+                    ["AI launches campaigns in minutes", "optimizes 24/7 automatically"],
+                    ["AI responds in 2 seconds", "24/7, in patient's language"],
+                    ["Live dashboard", "real-time metrics, any time"],
+                    ["AI never quits", "consistent performance forever"],
+                    ["Direct booking integration", "ad click → booked patient"],
+                    ["AI-generated, NMC-compliant copy", "tested and refreshed weekly"],
+                  ].map(([bold, sub], i) => (
+                    <li key={i} className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" /><span><strong>{bold}</strong> — {sub}</span></li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </Reveal>
+          <Reveal delay={0.2}>
+            <div className="mt-8 text-center">
+              <Link href="/signup" className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm transition-all hover:scale-[1.03] shadow-lg shadow-emerald-500/25">
+                Switch to AI — Start free trial <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
       {/* ═══ FAQ ═══ */}
       <section id="faq" className="py-16 sm:py-24 px-4 sm:px-6">
         <div className="max-w-3xl mx-auto">
@@ -1494,7 +1553,7 @@ export default function LandingPage() {
             </div>
             <div className="flex gap-3 w-full sm:w-auto">
               <input type="email" placeholder="your@email.com" className="flex-1 sm:w-64 px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500" />
-              <button className="px-5 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition-colors whitespace-nowrap">Subscribe</button>
+              <button className="px-5 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors whitespace-nowrap shadow-sm">Subscribe</button>
             </div>
           </div>
         </div>

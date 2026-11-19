@@ -6,7 +6,8 @@ import {
   ArrowLeft, Calendar, CheckCircle2, Clock, XCircle, User, Plus,
   Loader2, Filter, Phone, X, Stethoscope, LayoutGrid, List, IndianRupee, Download,
 } from "lucide-react";
-import { getAppointments, updateAppointmentStatus, getAppointmentStats, bookAppointment, getMe } from "@/lib/api";
+import { getAppointments, updateAppointmentStatus, getAppointmentStats, bookAppointment, getMe, sendFeedbackRequest } from "@/lib/api";
+import { MessageCircle as MessageCircleIcon } from "lucide-react";
 import CalendarView from "@/components/ui/CalendarView";
 import WalkInQueue from "@/components/ui/WalkInQueue";
 
@@ -397,9 +398,18 @@ export default function AppointmentsPage() {
                     </>
                   )}
                   {a.status === "ATTENDED" && (
-                    <span className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-emerald-600">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Done
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-emerald-600">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Done
+                      </span>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); sendFeedbackRequest(a.id).catch(() => {}); }}
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-violet-600 bg-violet-50 hover:bg-violet-100 rounded-lg transition-colors"
+                        title="Send feedback request via WhatsApp"
+                      >
+                        <MessageCircleIcon className="w-3.5 h-3.5" /> Feedback
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>

@@ -587,4 +587,11 @@ export async function createPatient(data: { name: string; phone: string; email?:
   return res.json();
 }
 
+export async function sendFeedbackRequest(appointmentId: string) {
+  const res = await fetchWithAuth(`/appointments/${appointmentId}/feedback`, {
+    method: "POST",
+  });
+  return res.json();
+}
+
 export { ApiError, fetchWithAuth };
