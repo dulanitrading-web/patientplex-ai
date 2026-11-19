@@ -32,6 +32,8 @@ try:
         ('meta_ads_page_id', 'VARCHAR(100)'),
         ('meta_ads_connected', 'BOOLEAN DEFAULT FALSE'),
         ('twilio_phone_number', 'VARCHAR(20)'),
+        ('reset_token', 'VARCHAR(100)'),
+        ('reset_token_expires', 'TIMESTAMPTZ'),
     ]
 
     for col_name, col_type in columns:

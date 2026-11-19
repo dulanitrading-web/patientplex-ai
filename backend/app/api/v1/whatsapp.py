@@ -51,8 +51,12 @@ async def verify_meta_signature(request: Request) -> None:
     """Validate the X-Hub-Signature-256 header against META_APP_SECRET."""
     app_secret = settings.META_APP_SECRET
     if not app_secret:
+        env = os.environ.get("ENVIRONMENT", "development")
+        if env in ("production", "staging"):
+            logger.error("META_APP_SECRET is empty in production — rejecting webhook")
+            raise HTTPException(status_code=403, detail="Webhook verification not configured")
         logger.warning(
-            "META_APP_SECRET is empty — skipping webhook signature verification (dev mode)"
+            "META_APP_SECRET is empty — skipping signature verification (dev mode only)"
         )
         return
 

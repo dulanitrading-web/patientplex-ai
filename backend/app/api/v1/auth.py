@@ -28,8 +28,6 @@ from app.schemas.doctor import (
 
 logger = logging.getLogger(__name__)
 
-# In-memory password-reset token store (use Redis in production)
-_reset_tokens: dict[str, dict] = {}
 _RESET_TOKEN_TTL = 3600  # 1 hour
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -192,17 +190,12 @@ async def forgot_password(
     doctor = result.scalar_one_or_none()
 
     if doctor:
-        # Generate token
+        # Generate token and store in database (survives deploys and horizontal scaling)
         token = secrets.token_urlsafe(48)
-        _reset_tokens[token] = {
-            "doctor_id": str(doctor.id),
-            "expires": time.time() + _RESET_TOKEN_TTL,
-        }
-        # Cleanup expired
-        now = time.time()
-        expired = [k for k, v in _reset_tokens.items() if v["expires"] < now]
-        for k in expired:
-            del _reset_tokens[k]
+        from datetime import datetime, timezone, timedelta
+        doctor.reset_token = token
+        doctor.reset_token_expires = datetime.now(timezone.utc) + timedelta(seconds=_RESET_TOKEN_TTL)
+        await db.commit()
 
         reset_url = f"{settings.FRONTEND_BASE_URL}/reset-password?token={token}"
         # TODO: Send actual email via SendGrid/AWS SES
@@ -217,16 +210,23 @@ async def reset_password(
     db: AsyncSession = Depends(get_db),
 ):
     """Reset password using a valid reset token."""
-    entry = _reset_tokens.pop(body.token, None)
-    if not entry or entry["expires"] < time.time():
-        raise HTTPException(status_code=400, detail="Invalid or expired reset token.")
-
-    result = await db.execute(select(Doctor).where(Doctor.id == entry["doctor_id"]))
+    from datetime import datetime, timezone
+    result = await db.execute(
+        select(Doctor).where(Doctor.reset_token == body.token)
+    )
     doctor = result.scalar_one_or_none()
     if not doctor:
-        raise HTTPException(status_code=404, detail="Account not found.")
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token.")
+    if not doctor.reset_token_expires or doctor.reset_token_expires < datetime.now(timezone.utc):
+        # Clear expired token
+        doctor.reset_token = None
+        doctor.reset_token_expires = None
+        await db.commit()
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token.")
 
     doctor.password_hash = hash_password(body.new_password)
+    doctor.reset_token = None
+    doctor.reset_token_expires = None
     await db.commit()
 
     log_audit(action="password_reset", actor_id=str(doctor.id), resource="auth", details={})

@@ -50,6 +50,7 @@ export default function PublicBookingPage() {
   const [slots, setSlots] = useState<Slot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [patientName, setPatientName] = useState("");
+  const [honeypot, setHoneypot] = useState(""); // Anti-bot: hidden field that bots fill
   const [patientPhone, setPatientPhone] = useState("");
   const [patientEmail, setPatientEmail] = useState("");
   const [booking, setBooking] = useState(false);
@@ -96,6 +97,7 @@ export default function PublicBookingPage() {
 
   async function handleBook() {
     if (!patientName.trim() || !patientPhone.trim()) return;
+    if (honeypot) return; // Bot detected — silently reject
     setBooking(true);
     try {
       // Get UTM params from URL
@@ -393,6 +395,17 @@ export default function PublicBookingPage() {
                     className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
                   />
                 </div>
+              </div>
+              {/* Honeypot — invisible to humans, bots fill it */}
+              <div className="absolute -left-[9999px]" aria-hidden="true">
+                <input
+                  type="text"
+                  name="website_url"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={honeypot}
+                  onChange={(e) => setHoneypot(e.target.value)}
+                />
               </div>
             </div>
 

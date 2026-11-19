@@ -46,6 +46,8 @@ class Doctor(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     phone: Mapped[str] = mapped_column(String(20), nullable=False)
     password_hash: Mapped[str] = mapped_column(Text, nullable=False)
+    reset_token: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
+    reset_token_expires: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Clinic details
     clinic_logo: Mapped[str | None] = mapped_column(Text, nullable=True)  # Base64 data URI or URL

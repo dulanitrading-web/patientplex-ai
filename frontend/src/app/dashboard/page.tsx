@@ -143,8 +143,38 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+      <div className="space-y-6 animate-pulse">
+        {/* Greeting skeleton */}
+        <div className="flex items-end justify-between">
+          <div>
+            <div className="h-7 w-56 bg-slate-200 rounded" />
+            <div className="h-4 w-40 bg-slate-100 rounded mt-2" />
+          </div>
+          <div className="h-3 w-24 bg-slate-100 rounded" />
+        </div>
+        {/* KPI skeletons */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-xl p-4 border border-slate-200">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 bg-slate-100 rounded-lg" />
+                <div className="h-3 w-20 bg-slate-100 rounded" />
+              </div>
+              <div className="h-7 w-16 bg-slate-200 rounded" />
+              <div className="h-3 w-28 bg-slate-100 rounded mt-2" />
+            </div>
+          ))}
+        </div>
+        {/* Chart skeletons */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="bg-white rounded-xl p-5 border border-slate-200 h-48" />
+          <div className="bg-white rounded-xl p-5 border border-slate-200 h-48" />
+        </div>
+        {/* Table skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2 bg-white rounded-xl p-5 border border-slate-200 h-56" />
+          <div className="bg-white rounded-xl p-5 border border-slate-200 h-56" />
+        </div>
       </div>
     );
   }
