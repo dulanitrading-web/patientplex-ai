@@ -149,6 +149,55 @@ async def handle_recording_ready(
     return {"status": "ok"}
 
 
+@router.post("/sms", dependencies=[Depends(verify_twilio_signature)])
+@limiter.limit("30/minute")
+async def handle_incoming_sms(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """Twilio SMS webhook — processes incoming text messages through AI receptionist.
+
+    When a patient sends an SMS to the Twilio number, this endpoint:
+    1. Identifies which doctor the number belongs to
+    2. Passes the message to the AI receptionist
+    3. Sends back the AI response as an SMS reply
+    """
+    form = await request.form()
+    sender = form.get("From", "")
+    to_number = form.get("To", "")
+    body = form.get("Body", "").strip()
+
+    if not sender or not body:
+        return Response(content="<Response></Response>", media_type="application/xml")
+
+    logger.info("Incoming SMS from %s to %s: %s", sender, to_number, body[:50])
+
+    # Find the doctor this number belongs to
+    clean_to = to_number.replace("+", "").replace(" ", "")[-10:]
+    result = await db.execute(
+        select(Doctor).where(
+            Doctor.whatsapp_number.contains(clean_to)
+            | Doctor.phone.contains(clean_to)
+        )
+    )
+    doctor = result.scalar_one_or_none()
+
+    if doctor:
+        try:
+            from app.services.ai_receptionist import AIReceptionist
+            receptionist = AIReceptionist(doctor, db)
+            response_text = await receptionist.process_message(sender, body)
+        except Exception as exc:
+            logger.error("AI receptionist error: %s", exc)
+            response_text = f"Thank you for reaching out to {doctor.clinic_name or 'our clinic'}. We'll get back to you shortly."
+    else:
+        response_text = "Thank you for your message. We'll get back to you shortly."
+
+    # Return TwiML response
+    twiml = f'<Response><Message>{response_text}</Message></Response>'
+    return Response(content=twiml, media_type="application/xml")
+
+
 # ---- Dashboard endpoints (protected) ----
 
 @router.get("/logs")

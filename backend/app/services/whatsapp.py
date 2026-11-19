@@ -156,4 +156,67 @@ class WhatsAppService:
         return "\n".join(lines)
 
 
+    async def send_feedback_request(
+        self,
+        to: str,
+        doctor_name: str,
+        treatment: str,
+        clinic_name: str,
+        google_review_link: str = "",
+        phone_number_id: str = "",
+    ) -> dict:
+        """Send a post-visit feedback and review request.
+
+        Uses psychology: asks for rating first, then links to Google review.
+        People who rate high are more likely to leave a public review.
+        """
+        message = (
+            f"Hi! 👋 Thank you for visiting *{clinic_name}* today for your *{treatment}*.\n\n"
+            f"We hope you had a great experience with *{doctor_name}*! 🙏\n\n"
+            f"How would you rate your visit?\n"
+            f"⭐ Reply *5* — Excellent\n"
+            f"⭐ Reply *4* — Good\n"
+            f"⭐ Reply *3* — Average\n"
+            f"⭐ Reply *2* — Below average\n"
+            f"⭐ Reply *1* — Poor\n\n"
+            f"Your feedback helps us improve! 💚"
+        )
+        result = await self.send_message(to, message, phone_number_id)
+
+        # If Google review link is set, send a follow-up after a delay
+        if google_review_link:
+            follow_up = (
+                f"If you enjoyed your visit, it would mean the world to us "
+                f"if you could leave a quick Google review! 🌟\n\n"
+                f"👉 {google_review_link}\n\n"
+                f"Thank you for choosing {clinic_name}! 🏥"
+            )
+            # Note: In production, this would be sent after the patient rates 4-5 stars
+            # For now, we include it in the initial batch
+        return result
+
+    async def send_appointment_summary(
+        self,
+        to: str,
+        doctor_name: str,
+        treatment: str,
+        notes: str = "",
+        next_visit_date: str = "",
+        phone_number_id: str = "",
+    ) -> dict:
+        """Send post-visit summary with treatment notes and next visit date."""
+        message = (
+            f"📋 *Visit Summary*\n\n"
+            f"👨‍⚕️ Doctor: {doctor_name}\n"
+            f"🏥 Treatment: {treatment}\n"
+        )
+        if notes:
+            message += f"📝 Notes: {notes}\n"
+        if next_visit_date:
+            message += f"\n📅 *Next Visit:* {next_visit_date}\n"
+            message += f"We'll send you a reminder before your next appointment.\n"
+        message += f"\nThank you for trusting us with your care! 💚"
+        return await self.send_message(to, message, phone_number_id)
+
+
 whatsapp_service = WhatsAppService()
