@@ -6,7 +6,7 @@ import clsx from "clsx";
 import {
   LayoutDashboard, BarChart3, Calendar, MessageCircle, Globe,
   Phone, TrendingUp, Settings, CreditCard, LogOut, Menu, X, Users,
-  MapPin, LineChart, Search, Stethoscope,
+  MapPin, LineChart, Search, Stethoscope, ChevronDown,
 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/context/auth";
@@ -20,21 +20,24 @@ const NAV_SECTIONS = [
     label: "",
     items: [
       { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
+      { href: "/dashboard/appointments", label: "Appointments", icon: Calendar },
+      { href: "/dashboard/campaigns", label: "Campaigns", icon: TrendingUp },
+      { href: "/dashboard/patients", label: "Patients", icon: Users },
     ],
   },
   {
     label: "Marketing",
+    collapsible: true,
     items: [
-      { href: "/dashboard/campaigns", label: "Campaigns", icon: TrendingUp },
       { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
       { href: "/dashboard/conversions", label: "Funnel", icon: BarChart3 },
+      { href: "/dashboard/landing-pages", label: "Landing Pages", icon: Globe },
     ],
   },
   {
-    label: "Patients",
+    label: "Clinic",
+    collapsible: true,
     items: [
-      { href: "/dashboard/patients", label: "Patients", icon: Users },
-      { href: "/dashboard/appointments", label: "Appointments", icon: Calendar },
       { href: "/dashboard/conversations", label: "WhatsApp", icon: MessageCircle },
       { href: "/dashboard/calls", label: "Calls", icon: Phone },
       { href: "/dashboard/staff", label: "Staff", icon: Stethoscope },
@@ -42,11 +45,11 @@ const NAV_SECTIONS = [
   },
   {
     label: "Channels",
+    collapsible: true,
     items: [
       { href: "/dashboard/google-business", label: "Google Business", icon: MapPin },
       { href: "/dashboard/ga4", label: "GA4 Analytics", icon: LineChart },
       { href: "/dashboard/seo", label: "Website SEO", icon: Search },
-      { href: "/dashboard/landing-pages", label: "Landing Pages", icon: Globe },
     ],
   },
   {
@@ -62,6 +65,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const { doctor, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Track which collapsible sections are expanded
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
+    // Auto-expand the section containing the current page
+    const expanded: Record<string, boolean> = {};
+    for (const section of NAV_SECTIONS) {
+      if (section.label && (section as any).collapsible) {
+        const isActive = section.items.some((item) => pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href)));
+        if (isActive) expanded[section.label] = true;
+      }
+    }
+    return expanded;
+  });
 
   return (
     <div className="min-h-screen bg-[#FAFAF8] flex">
@@ -82,14 +98,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* Nav */}
         <nav className="flex-1 px-2 py-3 overflow-y-auto" aria-label="Dashboard navigation">
-          {NAV_SECTIONS.map((section, si) => (
-            <div key={si} className={section.label ? "mt-4 first:mt-0" : ""}>
+          {NAV_SECTIONS.map((section, si) => {
+            const isCollapsible = !!(section as any).collapsible;
+            const isExpanded = !isCollapsible || expandedSections[section.label] || false;
+            return (
+            <div key={si} className={section.label ? "mt-3 first:mt-0" : ""}>
               {section.label && (
-                <div className="px-3 mb-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                  {section.label}
-                </div>
+                isCollapsible ? (
+                  <button
+                    onClick={() => setExpandedSections((prev) => ({ ...prev, [section.label]: !prev[section.label] }))}
+                    className="w-full flex items-center justify-between px-3 mb-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider hover:text-slate-600 transition-colors"
+                  >
+                    {section.label}
+                    <ChevronDown className={`w-3 h-3 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                  </button>
+                ) : (
+                  <div className="px-3 mb-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                    {section.label}
+                  </div>
+                )
               )}
-              <div className="space-y-0.5">
+              {isExpanded && <div className="space-y-0.5">
                 {section.items.map((item) => {
                   const active = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
                   return (
@@ -106,9 +135,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     </Link>
                   );
                 })}
-              </div>
+              </div>}
             </div>
-          ))}
+          );
+          })}
         </nav>
 
         {/* Doctor info + logout */}
