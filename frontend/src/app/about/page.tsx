@@ -107,7 +107,7 @@ export default function AboutPage() {
 
               {/* Social row */}
               <div className="flex items-center gap-2 mb-8">
-                <a href="mailto:prakash@patientplex.ai" className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors">
+                <a href="mailto:prakash@patientplex.ai" className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors">
                   <Mail className="w-3.5 h-3.5" /> Email
                 </a>
                 <a href="https://www.linkedin.com/in/prakashdulani" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-9 h-9 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-blue-600 hover:border-blue-200 transition-all">
