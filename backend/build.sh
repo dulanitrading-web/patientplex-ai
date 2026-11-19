@@ -212,7 +212,6 @@ try:
             DELETE FROM doctors
             WHERE subdomain_slug = 'anuj-bhardwaj'
               AND (clinic_name IS NULL OR TRIM(clinic_name) = '')
-              AND (services IS NULL OR services = '[]'::jsonb)
         \"\"\")
         print(f'  ✓ Cleaned duplicate empty record — {cur.statusmessage}')
     except Exception as e:
