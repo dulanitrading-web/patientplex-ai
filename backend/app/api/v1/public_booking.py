@@ -12,12 +12,18 @@ A patient clicking a Google Ad lands here and can:
 No login, no WhatsApp, no app download required.
 """
 
+import os
 from datetime import date, time as time_type, timedelta
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 from sqlalchemy import and_, select
+
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
+limiter = Limiter(key_func=get_remote_address, enabled=os.environ.get("TESTING", "").lower() != "true")
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
@@ -158,7 +164,9 @@ async def get_public_availability(
 
 
 @router.post("/{slug}/book")
+@limiter.limit("5/minute")
 async def public_book_appointment(
+    request: Request,
     slug: str,
     body: PublicBookingRequest,
     db: AsyncSession = Depends(get_db),
