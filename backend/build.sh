@@ -49,6 +49,112 @@ try:
         except Exception as e:
             print(f'  ⚠ enum {val} — {e}')
 
+    # Migration 005: Add appointment tracking fields
+    for col_name, col_type in [
+        ('source', \"VARCHAR(50) DEFAULT 'Walk-in' NOT NULL\"),
+        ('revenue_amount', 'FLOAT'),
+        ('treatment_done', 'VARCHAR(255)'),
+        ('patient_email', 'VARCHAR(255)'),
+    ]:
+        try:
+            cur.execute(f'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS {col_name} {col_type}')
+            print(f'  ✓ appointments.{col_name} — OK')
+        except Exception as e:
+            print(f'  ⚠ appointments.{col_name} — {e}')
+
+    # Migration 006: Create staff_role_enum and clinic_staff table
+    try:
+        cur.execute(\"\"\"
+            DO $$ BEGIN
+                CREATE TYPE staff_role_enum AS ENUM ('OWNER', 'DOCTOR', 'SPECIALIST', 'HYGIENIST', 'ASSISTANT');
+            EXCEPTION WHEN duplicate_object THEN NULL;
+            END $$;
+        \"\"\")
+        print('  ✓ staff_role_enum — OK')
+    except Exception as e:
+        print(f'  ⚠ staff_role_enum — {e}')
+
+    try:
+        cur.execute(\"\"\"
+            CREATE TABLE IF NOT EXISTS clinic_staff (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                doctor_id UUID NOT NULL REFERENCES doctors(id),
+                full_name VARCHAR(255) NOT NULL,
+                title VARCHAR(100) DEFAULT 'Dr.',
+                specialty VARCHAR(100) NOT NULL,
+                role staff_role_enum DEFAULT 'DOCTOR',
+                phone VARCHAR(20),
+                email VARCHAR(255),
+                photo_url TEXT,
+                services JSONB,
+                weekly_schedule JSONB,
+                slot_duration_minutes INTEGER DEFAULT 30,
+                max_patients_per_day INTEGER DEFAULT 20,
+                google_calendar_id VARCHAR(255),
+                google_calendar_connected BOOLEAN DEFAULT FALSE,
+                is_active BOOLEAN DEFAULT TRUE,
+                display_order INTEGER DEFAULT 0,
+                calendar_color VARCHAR(7) DEFAULT '#10b981',
+                created_at TIMESTAMPTZ DEFAULT NOW(),
+                updated_at TIMESTAMPTZ DEFAULT NOW()
+            );
+        \"\"\")
+        print('  ✓ clinic_staff table — OK')
+    except Exception as e:
+        print(f'  ⚠ clinic_staff table — {e}')
+
+    # Add staff_id to appointments
+    try:
+        cur.execute('ALTER TABLE appointments ADD COLUMN IF NOT EXISTS staff_id UUID REFERENCES clinic_staff(id)')
+        print('  ✓ appointments.staff_id — OK')
+    except Exception as e:
+        print(f'  ⚠ appointments.staff_id — {e}')
+
+    # Migration 007: Create patients table
+    try:
+        cur.execute(\"\"\"
+            CREATE TABLE IF NOT EXISTS patients (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                doctor_id UUID NOT NULL REFERENCES doctors(id),
+                name VARCHAR(255) NOT NULL,
+                phone VARCHAR(20) NOT NULL,
+                email VARCHAR(255),
+                source VARCHAR(50) DEFAULT 'Walk-in',
+                first_visit_date TIMESTAMPTZ,
+                utm_campaign VARCHAR(255),
+                utm_source VARCHAR(255),
+                total_visits INTEGER DEFAULT 0,
+                total_revenue FLOAT DEFAULT 0,
+                total_no_shows INTEGER DEFAULT 0,
+                last_visit_date TIMESTAMPTZ,
+                treatments JSONB,
+                notes TEXT,
+                tags JSONB,
+                created_at TIMESTAMPTZ DEFAULT NOW(),
+                updated_at TIMESTAMPTZ DEFAULT NOW(),
+                CONSTRAINT uq_patient_phone_clinic UNIQUE (doctor_id, phone)
+            );
+        \"\"\")
+        print('  ✓ patients table — OK')
+    except Exception as e:
+        print(f'  ⚠ patients table — {e}')
+
+    # Migration 008: Performance indexes
+    indexes = [
+        ('ix_appointments_doctor_date', 'appointments', 'doctor_id, appointment_date'),
+        ('ix_appointments_doctor_status', 'appointments', 'doctor_id, status'),
+        ('ix_patients_doctor_phone', 'patients', 'doctor_id, phone'),
+        ('ix_clinic_staff_doctor', 'clinic_staff', 'doctor_id, is_active'),
+        ('ix_appointments_staff', 'appointments', 'staff_id'),
+        ('ix_clinic_staff_doctor_id', 'clinic_staff', 'doctor_id'),
+    ]
+    for idx_name, table, cols in indexes:
+        try:
+            cur.execute(f'CREATE INDEX IF NOT EXISTS {idx_name} ON {table} ({cols})')
+            print(f'  ✓ index {idx_name} — OK')
+        except Exception as e:
+            print(f'  ⚠ index {idx_name} — {e}')
+
     cur.close()
     conn.close()
     print('Database migrations complete!')
