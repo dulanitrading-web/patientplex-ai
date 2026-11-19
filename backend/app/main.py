@@ -104,19 +104,50 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"Failed to create database tables: {e}")
 
-    # Start agent scheduler
+    # Start agent scheduler + keep-alive + reminders
     try:
         from apscheduler.schedulers.asyncio import AsyncIOScheduler
         from app.services.agent_scheduler import setup_agent_scheduler
 
         _scheduler = AsyncIOScheduler()
         count = setup_agent_scheduler(_scheduler)
+
+        # Self-ping keep-alive — prevents Render free tier from sleeping
+        async def _self_ping():
+            try:
+                import httpx
+                async with httpx.AsyncClient() as client:
+                    await client.get("https://patientplex-ai-g7ce.onrender.com/health", timeout=10)
+                logger.debug("Keep-alive ping sent")
+            except Exception:
+                pass
+
+        _scheduler.add_job(_self_ping, "interval", minutes=10, id="keep_alive_ping")
+        count += 1
+
+        # Scheduled reminders — sends WhatsApp reminders + marks no-shows
+        async def _run_reminders():
+            try:
+                from app.db.session import async_session_factory
+                from app.services.reminder_service import ReminderService
+                async with async_session_factory() as db:
+                    service = ReminderService()
+                    summary = await service.check_and_send_reminders(db)
+                    no_shows = await service.mark_no_shows(db)
+                    await db.commit()
+                    logger.info("Reminders: %s, no-shows marked: %d", summary, no_shows)
+            except Exception as exc:
+                logger.error("Reminder job failed: %s", exc)
+
+        _scheduler.add_job(_run_reminders, "interval", minutes=30, id="auto_reminders")
+        count += 1
+
         _scheduler.start()
-        logger.info(f"Agent scheduler started with {count} scheduled agents")
+        logger.info(f"Scheduler started with {count} jobs (incl. keep-alive + reminders)")
     except ImportError:
-        logger.warning("APScheduler not installed — agent scheduling disabled")
+        logger.warning("APScheduler not installed — scheduling disabled")
     except Exception as e:
-        logger.error(f"Failed to start agent scheduler: {e}")
+        logger.error(f"Failed to start scheduler: {e}")
 
     yield
 
