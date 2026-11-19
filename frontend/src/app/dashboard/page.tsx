@@ -58,6 +58,7 @@ interface AppointmentStats {
   cancelled: number;
   upcoming: number;
   attendance_rate: number;
+  total_revenue: number;
   by_treatment: Record<string, number>;
 }
 
@@ -259,13 +260,22 @@ export default function DashboardPage() {
           <h3 className="font-semibold text-slate-900 flex items-center gap-2 mb-4">
             <IndianRupee className="w-5 h-5 text-emerald-600" /> Ad spend (30 days)
           </h3>
-          <div className="text-3xl font-bold text-slate-900 tabular-nums">₹{fmt(campaignOverview?.total_spend || 0)}</div>
+          <div className="flex items-baseline gap-3">
+            <div className="text-3xl font-bold text-slate-900 tabular-nums">₹{fmt(campaignOverview?.total_spend || 0)}</div>
+            {(appointmentStats?.total_revenue || 0) > 0 && (
+              <div className="text-sm font-medium text-emerald-600">
+                Revenue: ₹{fmt(appointmentStats?.total_revenue || 0)}
+              </div>
+            )}
+          </div>
           <div className="mt-2 text-sm text-slate-600">
-            {appointmentStats?.attended
-              ? `Cost per patient: ₹${fmt(Math.round((campaignOverview?.total_spend || 0) / appointmentStats.attended))}`
-              : (campaignOverview?.total_conversions || 0) > 0
-                ? `Cost per enquiry: ₹${fmt(Math.round((campaignOverview?.total_spend || 0) / (campaignOverview?.total_conversions || 1)))}`
-                : "No conversion data yet"}
+            {(appointmentStats?.total_revenue || 0) > 0 && (campaignOverview?.total_spend || 0) > 0
+              ? `${((appointmentStats!.total_revenue / (campaignOverview?.total_spend || 1)) * 100).toFixed(0)}% ROI · ₹${fmt(Math.round((campaignOverview?.total_spend || 0) / Math.max(appointmentStats?.attended || 1, 1)))} per patient`
+              : appointmentStats?.attended
+                ? `Cost per patient: ₹${fmt(Math.round((campaignOverview?.total_spend || 0) / appointmentStats.attended))}`
+                : (campaignOverview?.total_conversions || 0) > 0
+                  ? `Cost per enquiry: ₹${fmt(Math.round((campaignOverview?.total_spend || 0) / (campaignOverview?.total_conversions || 1)))}`
+                  : "No conversion data yet"}
           </div>
           <div className="mt-4">
             <Link href="/dashboard/campaigns"
@@ -293,6 +303,12 @@ export default function DashboardPage() {
               total={campaignOverview?.total_clicks || 1} color="bg-emerald-500" />
             <FunnelRow label="Attended" value={appointmentStats?.attended || 0}
               total={campaignOverview?.total_clicks || 1} color="bg-emerald-400" />
+            {(appointmentStats?.total_revenue || 0) > 0 && (
+              <div className="flex justify-between text-sm mt-2 pt-2 border-t border-slate-100">
+                <span className="text-slate-500 font-medium">Revenue earned</span>
+                <span className="font-bold text-emerald-600 tabular-nums">₹{fmt(appointmentStats?.total_revenue || 0)}</span>
+              </div>
+            )}
           </div>
           {/* Booking tracking warning */}
           {(campaignOverview?.total_conversions || 0) > 0 && (appointmentStats?.total_booked || 0) === 0 && (
@@ -306,6 +322,40 @@ export default function DashboardPage() {
           )}
         </motion.div>
       </div>
+
+      {/* Integration Status Bar */}
+      {integrations && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.48 }}
+          className="flex flex-wrap gap-2"
+        >
+          {[
+            { key: "google_ads", label: "Google Ads", icon: "📊" },
+            { key: "google_calendar", label: "Calendar", icon: "📅" },
+            { key: "whatsapp", label: "WhatsApp", icon: "💬" },
+            { key: "twilio", label: "Calls", icon: "📞" },
+            { key: "meta_ads", label: "Meta Ads", icon: "📱" },
+          ].map((item) => {
+            const status = integrations?.[item.key]?.status;
+            const isConnected = status === "connected";
+            return (
+              <Link key={item.key} href="/dashboard/settings"
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                  isConnected
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                    : "bg-slate-50 text-slate-500 border-slate-200 hover:border-slate-300"
+                }`}
+              >
+                <span>{item.icon}</span>
+                {item.label}
+                <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? "bg-emerald-500" : "bg-slate-300"}`} />
+              </Link>
+            );
+          })}
+        </motion.div>
+      )}
 
       {/* AI Insights */}
       {aiInsights && (
