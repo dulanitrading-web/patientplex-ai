@@ -983,3 +983,36 @@ async def twilio_status(
         "clinic_tracking_number": getattr(doctor, 'twilio_phone_number', None),
         "whatsapp_number": doctor.whatsapp_number,
     }
+
+
+@router.get("/booking-urls")
+async def get_booking_urls(
+    doctor: Doctor = Depends(get_current_doctor),
+):
+    """Get all booking-related URLs for this clinic.
+
+    Useful for:
+    - Setting Google Ads final URL
+    - Sharing booking link with patients
+    - QR code generation for clinic display
+    """
+    slug = doctor.subdomain_slug
+    frontend = settings.FRONTEND_BASE_URL.rstrip("/")
+
+    if not slug:
+        return {
+            "booking_page": None,
+            "message": "No booking slug set. Complete onboarding or the system will auto-generate one on next deploy.",
+        }
+
+    booking_url = f"{frontend}/book/{slug}"
+
+    return {
+        "booking_page": booking_url,
+        "booking_page_with_utm": f"{booking_url}?utm_source=google&utm_campaign={{campaign_name}}",
+        "google_ads_final_url": booking_url,
+        "google_ads_final_url_template": f"{booking_url}?utm_source=google&utm_medium=cpc&utm_campaign={{campaignid}}&utm_term={{keyword}}&gclid={{gclid}}",
+        "whatsapp_link": f"https://wa.me/91{doctor.whatsapp_number[-10:]}?text=Hi%2C%20I%27d%20like%20to%20book%20an%20appointment" if doctor.whatsapp_number else None,
+        "qr_code_url": f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={booking_url}",
+        "slug": slug,
+    }
