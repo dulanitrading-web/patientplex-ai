@@ -155,13 +155,25 @@ try:
     try:
         cur.execute(\"\"\"
             UPDATE doctors
-            SET subdomain_slug = LOWER(REPLACE(REPLACE(full_name, ' ', '-'), '.', ''))
+            SET subdomain_slug = TRIM(BOTH '-' FROM LOWER(REPLACE(REPLACE(full_name, ' ', '-'), '.', '')))
             WHERE subdomain_slug IS NULL OR subdomain_slug = ''
         \"\"\")
         updated = cur.statusmessage
         print(f'  ✓ Set subdomain slugs — {updated}')
     except Exception as e:
         print(f'  ⚠ subdomain slugs — {e}')
+
+    # Fix trailing dashes in existing slugs
+    try:
+        cur.execute(\"\"\"
+            UPDATE doctors
+            SET subdomain_slug = TRIM(BOTH '-' FROM subdomain_slug)
+            WHERE subdomain_slug LIKE '%-' OR subdomain_slug LIKE '-%'
+        \"\"\")
+        fixed = cur.statusmessage
+        print(f'  ✓ Fixed slug formatting — {fixed}')
+    except Exception as e:
+        print(f'  ⚠ slug fix — {e}')
 
     cur.close()
     conn.close()
