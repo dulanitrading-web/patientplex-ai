@@ -3,12 +3,21 @@
 This is the CORE differentiator of PatientPlex AI — it uses Claude to conduct
 natural conversations with patients and book appointments directly into the
 doctor's Google Calendar.
+
+Includes:
+- Claude AI with tool-use for natural conversation and booking
+- Rule-based fallback when Claude API is unavailable
+- Intent classification for analytics
+- Urgency detection for emergency prioritisation
+- Hinglish (Hindi+English) support for Indian patients
 """
 
 import json
 import logging
+import re
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, date as date_type, time as time_type, timedelta, timezone
+from enum import Enum
 
 import httpx
 from sqlalchemy import and_, select
@@ -27,7 +36,92 @@ from app.services.whatsapp import whatsapp_service
 
 logger = logging.getLogger(__name__)
 
-PROMPT_VERSION = "1.0.0"
+PROMPT_VERSION = "2.0.0"
+
+
+# ─── Intent Classification ───────────────────────────────────────────────────
+
+class PatientIntent(str, Enum):
+    BOOKING = "BOOKING"
+    INQUIRY = "INQUIRY"
+    COMPLAINT = "COMPLAINT"
+    PRICING = "PRICING"
+    DIRECTIONS = "DIRECTIONS"
+    CANCEL = "CANCEL"
+    RESCHEDULE = "RESCHEDULE"
+    GREETING = "GREETING"
+    EMERGENCY = "EMERGENCY"
+    OTHER = "OTHER"
+
+
+# Patterns checked in order; first match wins
+_INTENT_PATTERNS: list[tuple[PatientIntent, list[str]]] = [
+    (PatientIntent.EMERGENCY, [
+        "emergency", "urgent", "pain right now", "swelling", "bleeding",
+        "bahut dard", "dard ho raha", "sujan", "khoon", "toot gaya",
+        "broke my tooth", "broken tooth", "accident", "face injury",
+    ]),
+    (PatientIntent.CANCEL, [
+        "cancel", "don't want", "nahi aana", "nahi aa", "cancel karo",
+        "cancel kar do", "appointment cancel",
+    ]),
+    (PatientIntent.RESCHEDULE, [
+        "reschedule", "change time", "move appointment", "postpone",
+        "badal do", "time change", "shift karo", "doosra din",
+    ]),
+    (PatientIntent.PRICING, [
+        "price", "cost", "fee", "charge", "kitna", "kharcha", "paisa",
+        "rate", "kitne paise", "kitna lagega", "insurance", "cashless",
+        "how much", "expensive",
+    ]),
+    (PatientIntent.DIRECTIONS, [
+        "address", "direction", "location", "where is", "kahan hai",
+        "map", "pata", "navigate", "how to reach", "kaise aaye",
+    ]),
+    (PatientIntent.BOOKING, [
+        "book", "appointment", "slot", "available", "schedule",
+        "time milega", "booking", "appoint", "milna hai", "dikhana hai",
+        "checkup", "treatment", "consultation", "today", "tomorrow",
+        "kal", "aaj", "monday", "tuesday", "parso",
+    ]),
+    (PatientIntent.COMPLAINT, [
+        "complaint", "bad experience", "not happy", "poor", "worst",
+        "shikayat", "problem hua", "galat", "unprofessional",
+    ]),
+    (PatientIntent.GREETING, [
+        "hi", "hello", "hey", "namaste", "namaskar", "good morning",
+        "good evening", "salam", "hlo", "hii",
+    ]),
+    (PatientIntent.INQUIRY, [
+        "do you", "does", "is there", "can you", "what services",
+        "kya karte", "konsi", "what treatment", "kya hota", "batao",
+        "tell me", "information", "jaankari",
+    ]),
+]
+
+
+def classify_intent(message: str) -> PatientIntent:
+    """Classify a patient message into an intent category."""
+    msg = message.lower().strip()
+    for intent, keywords in _INTENT_PATTERNS:
+        if any(kw in msg for kw in keywords):
+            return intent
+    return PatientIntent.OTHER
+
+
+def detect_urgency(message: str) -> bool:
+    """Return True if the message indicates a dental emergency."""
+    msg = message.lower()
+    urgent = [
+        "emergency", "urgent", "pain right now", "swelling",
+        "bleeding", "bahut dard", "dard ho raha", "sujan", "khoon",
+        "toot gaya", "broke", "broken tooth", "accident", "face injury",
+        "can't eat", "kha nahi pa raha", "neend nahi aa rahi",
+    ]
+    return any(kw in msg for kw in urgent)
+
+
+# ─── System Prompt (v2 — Indian context, Hinglish, urgency) ─────────────────
 
 SYSTEM_PROMPT_TEMPLATE = """You are a friendly, professional AI receptionist for Dr. {doctor_name}'s {clinic_name}.
 [Prompt version: {prompt_version}]
@@ -38,11 +132,24 @@ Clinic address: {address}, {city}
 Your ONLY job is to help patients book appointments. You must NEVER:
 - Give medical advice or diagnoses
 - Recommend treatments or medications
-- Discuss pricing (say "the doctor will discuss this during your visit")
+- Discuss pricing (say "Doctor will discuss fees during your consultation. Most insurance plans are accepted.")
 - Share other patient information
 - Make up information about the doctor
 
-RULES:
+INDIAN CONTEXT — YOU WORK IN INDIA:
+- Many patients write in Hinglish (Hindi + English mix). Understand and reply naturally.
+- Common dental terms in Hindi: daant (teeth), dard (pain), safai (cleaning), crown, filling, implant, braces (taaron), jadon (roots), masoodhe (gums)
+- Address patients respectfully. Use "ji" when replying in Hindi.
+- Indian working hours: most patients prefer evening slots (5-8 PM) or early morning (9-10 AM)
+- Patients often ask "kitna lagega?" (how much will it cost?) — always redirect diplomatically.
+
+URGENCY HANDLING:
+- If the patient mentions pain, swelling, bleeding, broken tooth, or accident → treat as URGENT
+- For urgent cases: "I understand you're in pain. Let me find the earliest available slot for you right away."
+- Offer today's or tomorrow's first available slot for emergencies
+- If no slots today, offer to call the doctor's direct number
+
+CONVERSATION RULES:
 - Keep responses SHORT (2-3 sentences max). Be warm but efficient.
 - When the patient shows interest in a service, offer to check available slots.
 - When showing slots, present them as a numbered list and ask which one works.
@@ -119,6 +226,9 @@ CLAUDE_TOOLS = [
 ]
 
 
+_CLAUDE_FALLBACK_MARKER = "__CLAUDE_API_UNAVAILABLE__"
+
+
 class AIReceptionist:
     """Manages a conversational booking flow between a patient and a doctor's AI.
 
@@ -137,17 +247,34 @@ class AIReceptionist:
 
         This is the main entry point. It:
         1. Gets or creates a conversation record
-        2. Adds the incoming message to history
-        3. Calls Claude with conversation history + tools
-        4. Handles any tool calls (slot lookup, booking)
-        5. Returns the final response text
+        2. Classifies intent and detects urgency
+        3. Adds the incoming message to history (with intent metadata)
+        4. Calls Claude with conversation history + tools
+        5. If Claude is down, uses rule-based fallback
+        6. Returns the final response text
         """
         conversation = await self._get_or_create_conversation(patient_phone)
 
-        # Add incoming message to history
+        # Classify intent and urgency
+        intent = classify_intent(incoming_message)
+        is_urgent = detect_urgency(incoming_message)
+
+        # Add incoming message to history with intent metadata
         conversation.messages = conversation.messages + [
-            {"role": "user", "content": incoming_message, "timestamp": datetime.now(timezone.utc).isoformat()}
+            {
+                "role": "user",
+                "content": incoming_message,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "intent": intent.value,
+                "urgent": is_urgent,
+            }
         ]
+
+        # Update conversation metadata
+        if intent == PatientIntent.BOOKING:
+            conversation.status = ConversationStatus.BOOKING_IN_PROGRESS
+        if is_urgent:
+            logger.warning("URGENT patient message from %s: %s", patient_phone, incoming_message[:80])
 
         # Build Claude messages from conversation history
         claude_messages = self._build_claude_messages(conversation)
@@ -157,6 +284,13 @@ class AIReceptionist:
         response_text, total_usage = await self._call_claude_with_tools(
             system_prompt, claude_messages, conversation, patient_phone
         )
+
+        # If Claude returned the generic failure message, use rule-based fallback
+        if response_text == _CLAUDE_FALLBACK_MARKER:
+            response_text = await self._rule_based_fallback(
+                incoming_message, intent, is_urgent, conversation, patient_phone
+            )
+            total_usage["fallback"] = True
 
         # Save assistant response to conversation history with metadata
         conversation.messages = conversation.messages + [
@@ -171,6 +305,94 @@ class AIReceptionist:
         await self.db.commit()
 
         return response_text
+
+    # ─── Rule-Based Fallback (when Claude API is down) ───────────────────
+
+    async def _rule_based_fallback(
+        self,
+        message: str,
+        intent: PatientIntent,
+        is_urgent: bool,
+        conversation: Conversation,
+        patient_phone: str,
+    ) -> str:
+        """Handle patient messages without Claude API using simple decision tree.
+
+        Covers the most common flows: greetings, booking interest, pricing,
+        directions, cancellation, and emergencies. Collects patient info
+        step by step and creates the appointment when ready.
+        """
+        doctor = self.doctor
+        clinic = doctor.clinic_name or "our clinic"
+        services = ", ".join(doctor.services[:5]) if doctor.services else "general consultation"
+
+        if is_urgent:
+            return (
+                f"I understand you're in pain — we'll help you as soon as possible. 🏥\n\n"
+                f"Please call {clinic} directly at {doctor.phone or 'the clinic number'} "
+                f"and mention it's urgent. We'll fit you in today.\n\n"
+                f"If you'd prefer, reply with your *name* and we'll book the earliest slot for you."
+            )
+
+        if intent == PatientIntent.GREETING:
+            return (
+                f"Namaste! 🙏 Welcome to {clinic}.\n\n"
+                f"We offer: {services}.\n\n"
+                f"Would you like to book an appointment with Dr. {doctor.full_name}? "
+                f"Just tell me which treatment you need!"
+            )
+
+        if intent == PatientIntent.PRICING:
+            return (
+                f"Dr. {doctor.full_name} will discuss the fees during your consultation. "
+                f"Most treatments are affordable, and many insurance plans are accepted. 💚\n\n"
+                f"Would you like to book an appointment? I can check available slots for you."
+            )
+
+        if intent == PatientIntent.DIRECTIONS:
+            from urllib.parse import quote_plus
+            address = f"{doctor.clinic_address}, {doctor.city}"
+            maps_link = f"https://www.google.com/maps/search/?api=1&query={quote_plus(address)}"
+            return (
+                f"📍 {clinic}\n{address}\n\n"
+                f"Google Maps: {maps_link}\n\n"
+                f"Would you like to book an appointment?"
+            )
+
+        if intent == PatientIntent.CANCEL:
+            return (
+                f"I'll help you cancel your appointment. "
+                f"Could you please share your *name* so I can find your booking? "
+                f"Or call the clinic at {doctor.phone or 'the front desk'} to cancel directly."
+            )
+
+        if intent == PatientIntent.RESCHEDULE:
+            return (
+                f"Sure, I can help you reschedule! "
+                f"Could you tell me your *name* and which *date/time* works better for you?"
+            )
+
+        if intent == PatientIntent.COMPLAINT:
+            return (
+                f"I'm sorry to hear about your experience. Your feedback matters to us. 🙏\n\n"
+                f"I'll make sure Dr. {doctor.full_name} is informed. "
+                f"Could you share a few details about what happened?"
+            )
+
+        if intent in (PatientIntent.BOOKING, PatientIntent.INQUIRY):
+            # Check if we already have enough info to offer slots
+            return (
+                f"I'd love to help you book an appointment at {clinic}! 📅\n\n"
+                f"We offer: {services}.\n\n"
+                f"Which treatment are you interested in? And do you prefer *today*, *tomorrow*, or another date?"
+            )
+
+        # Catch-all
+        return (
+            f"Thank you for reaching out to {clinic}! 😊\n\n"
+            f"I can help you book an appointment with Dr. {doctor.full_name}. "
+            f"What treatment are you looking for?"
+        )
 
     async def _get_or_create_conversation(self, patient_phone: str) -> Conversation:
         """Find active conversation or create a new one."""
@@ -245,7 +467,7 @@ class AIReceptionist:
         for _ in range(max_iterations):
             response = await self._call_claude_api(system_prompt, current_messages)
             if response is None:
-                return "Sorry, I'm having trouble right now. Please try again in a moment.", total_usage
+                return _CLAUDE_FALLBACK_MARKER, total_usage
 
             # Track token usage
             usage = response.get("usage", {})

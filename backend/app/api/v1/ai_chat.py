@@ -324,11 +324,89 @@ def _rule_based_response(message: str, context: dict, doctor: Doctor) -> dict:
         return {"reply": f"You have **{count} appointment{'s' if count > 1 else ''}** today. Check the full schedule in the **Appointments** page → Calendar view.", "data": {"today_appointments": count}}
 
     # This week
-    if "week" in msg and ("appointment" in msg or "patient" in msg or "who" in msg or "schedule" in msg):
+    if "week" in msg and ("appointment" in msg or "patient" in msg or "who" in msg or "schedule" in msg or "how many" in msg):
         return {
             "reply": f"This week: **{context['this_week_total']} appointments** booked, **{context['upcoming_appointments']} upcoming**.\n\nView the full week in **Appointments** → Calendar view (Week mode).",
             "data": {"this_week": context["this_week_total"], "upcoming": context["upcoming_appointments"]},
         }
+
+    # This month stats
+    if ("month" in msg or "mahina" in msg) and ("appointment" in msg or "patient" in msg or "how many" in msg or "kitne" in msg or "total" in msg):
+        attended = context["attended"]
+        total = context["this_month_total"]
+        no_shows = context["no_shows"]
+        rate = round(attended / max(total, 1) * 100)
+        return {
+            "reply": f"**This month:** {total} appointments booked\n"
+                     f"• ✅ Attended: {attended}\n"
+                     f"• ❌ No-shows: {no_shows}\n"
+                     f"• 📊 Attendance rate: {rate}%\n\n"
+                     f"Revenue: ₹{context['total_revenue']:,.0f}",
+            "data": {"total": total, "attended": attended, "no_shows": no_shows, "revenue": context["total_revenue"]},
+        }
+
+    # Best performing ad / top campaign
+    if any(w in msg for w in ["best ad", "top ad", "best campaign", "top campaign", "best performing", "which ad"]):
+        if context["active_campaigns"] > 0:
+            clicks = context["total_clicks"]
+            conversions = context["total_conversions"]
+            spend = context["total_spend"]
+            return {
+                "reply": f"**Ad Performance Summary:**\n"
+                         f"• {context['active_campaigns']} active campaigns\n"
+                         f"• {clicks:,} clicks for ₹{spend:,.0f} spend\n"
+                         f"• {conversions} enquiries from ads\n\n"
+                         f"For detailed campaign-level breakdown, check **Campaigns** page. "
+                         f"The AI automatically pauses underperforming keywords.",
+                "data": {"clicks": clicks, "spend": spend, "conversions": conversions},
+            }
+        return {"reply": "No active ad campaigns right now. Launch campaigns from the **Campaigns** page to start getting patients from Google.", "data": None}
+
+    # Treatment breakdown
+    if any(w in msg for w in ["treatment", "which service", "top treatment", "popular", "konsa treatment", "sabse zyada"]):
+        treatments = context["treatments"]
+        if treatments:
+            sorted_t = sorted(treatments.items(), key=lambda x: -x[1])[:5]
+            lines = "\n".join(f"  {i+1}. **{t}** — {c} patients" for i, (t, c) in enumerate(sorted_t))
+            return {
+                "reply": f"**Top treatments this month:**\n\n{lines}\n\n"
+                         f"Total patients: {context['this_month_total']}",
+                "data": {"treatments": treatments},
+            }
+        return {"reply": "No treatment data yet this month. As patients visit and you mark their treatments, this data will build up automatically.", "data": None}
+
+    # No-shows
+    if any(w in msg for w in ["no show", "no-show", "missed", "nahi aaye", "didn't come"]):
+        no_shows = context["no_shows"]
+        total = context["this_month_total"]
+        rate = round(no_shows / max(total, 1) * 100)
+        return {
+            "reply": f"**No-shows this month:** {no_shows} out of {total} appointments ({rate}% no-show rate)\n\n"
+                     f"💡 **Tip:** Enable WhatsApp AI to send automatic reminders 24h and 2h before appointments. "
+                     f"This typically reduces no-shows by 40-60%.",
+            "data": {"no_shows": no_shows, "rate": rate},
+        }
+
+    # ROI / cost per patient
+    if any(w in msg for w in ["roi", "cost per patient", "return on investment", "kitna fayda", "worth it"]):
+        spend = context["total_spend"]
+        rev = context["total_revenue"]
+        attended = context["attended"]
+        if spend > 0 and rev > 0:
+            roi = round((rev / spend) * 100)
+            cpp = round(spend / max(attended, 1))
+            return {
+                "reply": f"**ROI Analysis:**\n"
+                         f"• Ad spend: ₹{spend:,.0f}\n"
+                         f"• Revenue from patients: ₹{rev:,.0f}\n"
+                         f"• ROI: **{roi}%** (₹{roi / 100:.1f} earned per ₹1 spent)\n"
+                         f"• Cost per patient: ₹{cpp:,}\n\n"
+                         f"{'Great ROI! Keep the campaigns running. 🚀' if roi > 200 else 'The ROI will improve as Google Ads learns from more conversions.'}",
+                "data": {"roi": roi, "cost_per_patient": cpp},
+            }
+        if spend > 0:
+            return {"reply": f"You've spent ₹{spend:,.0f} on ads. Mark appointments as 'Attended' with the revenue amount to calculate your ROI.", "data": None}
+        return {"reply": "No ad spend yet. Launch campaigns from the **Campaigns** page to start tracking ROI.", "data": None}
 
     # Revenue
     if any(w in msg for w in ["revenue", "income", "earning", "money", "paisa", "kamai"]):
