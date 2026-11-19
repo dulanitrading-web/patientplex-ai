@@ -314,7 +314,7 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center gap-3">
             <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors hidden sm:block">Sign in</Link>
-            <Link href="/signup" className="text-sm font-semibold px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white transition-all hover:scale-[1.03] active:scale-[0.97] hidden sm:inline-flex">Get started</Link>
+            <Link href="/signup" className="text-sm font-semibold px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition-all hover:scale-[1.03] active:scale-[0.97] hidden sm:inline-flex shadow-sm">Get started free</Link>
             <button onClick={() => setMobileMenu(!mobileMenu)} className="md:hidden p-2 rounded-lg hover:bg-slate-100 transition-colors">
               {mobileMenu ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -332,7 +332,7 @@ export default function LandingPage() {
                 <a href="/about" onClick={() => setMobileMenu(false)} className="block text-sm font-medium text-slate-600 hover:text-slate-900 py-2">About</a>
                 <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
                   <Link href="/login" className="text-sm font-medium text-slate-600 py-2">Sign in</Link>
-                  <Link href="/signup" className="text-sm font-semibold px-5 py-2.5 rounded-xl bg-slate-900 text-white text-center">Get started</Link>
+                  <Link href="/signup" className="text-sm font-semibold px-5 py-2.5 rounded-xl bg-emerald-600 text-white text-center shadow-sm">Get started free →</Link>
                 </div>
               </div>
             </motion.div>
@@ -374,8 +374,8 @@ export default function LandingPage() {
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.22 }}
                 className="flex flex-col sm:flex-row gap-3 mb-6">
                 <input type="email" placeholder="Enter your email" className="flex-1 px-5 py-3.5 rounded-xl border border-slate-300 bg-white text-slate-900 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all shadow-sm" />
-                <Link href="/signup" className="group inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm transition-all hover:scale-[1.03] active:scale-[0.97] shadow-lg shadow-slate-900/20 whitespace-nowrap">
-                  Get started <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                <Link href="/signup" className="group inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm transition-all hover:scale-[1.03] active:scale-[0.97] shadow-lg shadow-emerald-500/25 whitespace-nowrap">
+                  Start free trial <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
               </motion.div>
 
@@ -1537,6 +1537,21 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
+      {/* ═══ STICKY MOBILE CTA BAR ═══ */}
+      {scrolled && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 sm:hidden bg-white/95 backdrop-blur-lg border-t border-slate-200 px-4 py-3 safe-area-pb shadow-[0_-4px_12px_rgba(0,0,0,0.08)]">
+          <div className="flex items-center gap-3">
+            <div className="flex-1 min-w-0">
+              <div className="text-xs font-bold text-slate-900">Start free — 14 days</div>
+              <div className="text-[10px] text-slate-500">No credit card needed</div>
+            </div>
+            <Link href="/signup" className="shrink-0 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold transition-colors shadow-lg shadow-emerald-500/20">
+              Get Started
+            </Link>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
