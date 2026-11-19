@@ -247,3 +247,38 @@ async def health_probe() -> dict:
     except Exception:
         from fastapi.responses import JSONResponse
         return JSONResponse(status_code=503, content={"ok": False, "error": "database unreachable"})
+
+
+@app.post("/api/v1/cron/reminders", tags=["cron"])
+async def trigger_reminders():
+    """Trigger appointment reminders — call this from an external cron service.
+
+    Sends WhatsApp reminders for appointments 24h and 2h away,
+    and marks past appointments without attendance as no-shows.
+
+    Set up a free cron job at cron-job.org to call this every 30 minutes:
+    POST https://patientplex-ai-g7ce.onrender.com/api/v1/cron/reminders
+    """
+    from app.db.session import async_session_factory
+    from app.services.reminder_service import ReminderService
+
+    async with async_session_factory() as db:
+        service = ReminderService()
+        reminder_summary = await service.check_and_send_reminders(db)
+        no_show_count = await service.mark_no_shows(db)
+        await db.commit()
+
+    return {
+        "reminders": reminder_summary,
+        "no_shows_marked": no_show_count,
+    }
+
+
+@app.get("/api/v1/cron/keep-alive", tags=["cron"])
+async def keep_alive():
+    """Keep-alive endpoint to prevent Render free tier from sleeping.
+
+    Set up a free cron job to ping this every 10 minutes:
+    GET https://patientplex-ai-g7ce.onrender.com/api/v1/cron/keep-alive
+    """
+    return {"alive": True}
