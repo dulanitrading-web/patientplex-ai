@@ -180,4 +180,70 @@ async def send_appointment_reminder(
     return await send_email(patient_email, subject, html)
 
 
+async def send_welcome_email(
+    doctor_email: str,
+    doctor_name: str,
+    clinic_name: str,
+) -> dict:
+    """Send welcome email when a new doctor signs up."""
+    subject = f"Welcome to PatientPlex AI, {doctor_name.split()[0]}!"
+    html = f"""
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 520px; margin: 0 auto; padding: 24px;">
+        <div style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 24px; border-radius: 12px 12px 0 0; text-align: center;">
+            <h1 style="margin: 0; font-size: 24px;">Welcome to PatientPlex AI</h1>
+            <p style="margin: 8px 0 0; opacity: 0.9; font-size: 14px;">AI-powered patient acquisition for your clinic</p>
+        </div>
+        <div style="border: 1px solid #e2e8f0; border-top: none; padding: 24px; border-radius: 0 0 12px 12px;">
+            <p style="margin: 0 0 16px; color: #334155;">Hi <strong>{doctor_name}</strong>,</p>
+            <p style="margin: 0 0 20px; color: #334155;">Your PatientPlex AI account for <strong>{clinic_name}</strong> is ready. Here's what you can do:</p>
+            <div style="space-y: 12px;">
+                <div style="display: flex; align-items: start; gap: 12px; margin-bottom: 12px;">
+                    <span style="font-size: 20px;">📊</span>
+                    <div><strong style="color: #0f172a;">Smart Ads</strong><br><span style="color: #64748b; font-size: 13px;">AI runs Google & Meta ads on autopilot</span></div>
+                </div>
+                <div style="display: flex; align-items: start; gap: 12px; margin-bottom: 12px;">
+                    <span style="font-size: 20px;">🤖</span>
+                    <div><strong style="color: #0f172a;">AI Receptionist</strong><br><span style="color: #64748b; font-size: 13px;">WhatsApp bot books patients 24/7</span></div>
+                </div>
+                <div style="display: flex; align-items: start; gap: 12px; margin-bottom: 12px;">
+                    <span style="font-size: 20px;">📅</span>
+                    <div><strong style="color: #0f172a;">Smart Booking</strong><br><span style="color: #64748b; font-size: 13px;">Patients book online, you get notified</span></div>
+                </div>
+            </div>
+            <div style="text-align: center; margin: 24px 0;">
+                <a href="https://patientplex-ai.vercel.app/dashboard" style="display: inline-block; background: #10b981; color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600;">Open Dashboard →</a>
+            </div>
+            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+            <p style="margin: 0; color: #64748b; font-size: 13px;">Need help? Reply to this email or WhatsApp us.</p>
+        </div>
+    </div>
+    """
+    return await send_email(doctor_email, subject, html)
+
+
+async def send_password_reset_email(
+    email: str,
+    name: str,
+    reset_token: str,
+) -> dict:
+    """Send password reset email with secure link."""
+    reset_url = f"https://patientplex-ai.vercel.app/reset-password?token={reset_token}"
+    subject = "Reset your PatientPlex password"
+    html = f"""
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 520px; margin: 0 auto; padding: 24px;">
+        <div style="border: 1px solid #e2e8f0; padding: 24px; border-radius: 12px;">
+            <h2 style="margin: 0 0 16px; color: #0f172a; font-size: 20px;">Reset Your Password</h2>
+            <p style="margin: 0 0 16px; color: #334155;">Hi {name},</p>
+            <p style="margin: 0 0 20px; color: #334155;">You requested a password reset. Click the button below to set a new password:</p>
+            <div style="text-align: center; margin: 24px 0;">
+                <a href="{reset_url}" style="display: inline-block; background: #10b981; color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600;">Reset Password</a>
+            </div>
+            <p style="margin: 16px 0 0; color: #94a3b8; font-size: 13px;">This link expires in 1 hour. If you didn't request this, ignore this email.</p>
+        </div>
+        <p style="text-align: center; margin: 16px 0 0; color: #94a3b8; font-size: 12px;">PatientPlex AI</p>
+    </div>
+    """
+    return await send_email(email, subject, html)
+
+
 email_service_configured = _is_configured
