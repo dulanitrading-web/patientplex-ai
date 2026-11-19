@@ -150,6 +150,19 @@ try:
         except Exception as e:
             print(f'  ⚠ index {idx_name} — {e}')
 
+    # Set subdomain_slug for doctors that don't have one yet
+    # This enables the public booking page at /book/{slug}
+    try:
+        cur.execute(\"\"\"
+            UPDATE doctors
+            SET subdomain_slug = LOWER(REPLACE(REPLACE(full_name, ' ', '-'), '.', ''))
+            WHERE subdomain_slug IS NULL OR subdomain_slug = ''
+        \"\"\")
+        updated = cur.statusmessage
+        print(f'  ✓ Set subdomain slugs — {updated}')
+    except Exception as e:
+        print(f'  ⚠ subdomain slugs — {e}')
+
     cur.close()
     conn.close()
     print('Database migrations complete!')
