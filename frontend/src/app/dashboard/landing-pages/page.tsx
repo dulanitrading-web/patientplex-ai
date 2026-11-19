@@ -61,7 +61,7 @@ export default function LandingPagesPage() {
         <button
           onClick={handleGenerate}
           disabled={generating}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-sm font-medium transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors disabled:opacity-50 shadow-sm shadow-emerald-500/20"
         >
           {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
           {pages.length > 0 ? "Regenerate" : "Generate Pages"}
@@ -96,7 +96,7 @@ export default function LandingPagesPage() {
           <button
             onClick={handleGenerate}
             disabled={generating}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-medium text-sm transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm transition-colors disabled:opacity-50 shadow-sm shadow-emerald-500/20"
           >
             {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
             Generate Landing Pages

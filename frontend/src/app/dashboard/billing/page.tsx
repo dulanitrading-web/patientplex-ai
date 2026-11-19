@@ -110,7 +110,7 @@ export default function BillingPage() {
             <button
               onClick={handleStartTrial}
               disabled={startingTrial}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-500 hover:bg-slate-800 text-[#0A0E1A] font-semibold text-sm transition-colors whitespace-nowrap disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition-colors whitespace-nowrap disabled:opacity-50 shadow-sm shadow-emerald-500/20"
             >
               {startingTrial ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
               Start Free Trial <ArrowRight className="w-5 h-5" />
@@ -348,7 +348,7 @@ function PlanCard({ plan, isCurrent, isPopular }: {
           isCurrent
             ? "bg-slate-50 text-slate-600 cursor-not-allowed"
             : isPopular
-              ? "bg-emerald-500 hover:bg-slate-800 text-[#0A0E1A]"
+              ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-500/20"
               : "border border-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-900"
         }`}
       >

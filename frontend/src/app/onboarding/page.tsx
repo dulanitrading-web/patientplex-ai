@@ -771,7 +771,7 @@ export default function OnboardingPage() {
             <button
               onClick={handleNext}
               disabled={loading}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-emerald-500 hover:bg-slate-800 text-slate-900 font-semibold text-sm transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition-colors disabled:opacity-50 shadow-sm shadow-emerald-500/20"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               {currentStep === 4 ? (
