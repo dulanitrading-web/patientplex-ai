@@ -83,6 +83,12 @@ class Settings(BaseSettings):
     # Claude API (AI ad copy generation + receptionist)
     CLAUDE_API_KEY: str = ""
 
+    # Free/alternative LLM (OpenAI-compatible endpoint — Groq, Together, Ollama, etc.)
+    # Set these to use a free model instead of Claude API for the receptionist
+    FREE_LLM_API_KEY: str = ""          # e.g. Groq API key
+    FREE_LLM_BASE_URL: str = ""         # e.g. https://api.groq.com/openai/v1
+    FREE_LLM_MODEL: str = "llama-3.3-70b-versatile"  # Model to use
+
     # Google Ads API
     GOOGLE_ADS_DEVELOPER_TOKEN: str = ""
     GOOGLE_ADS_LOGIN_CUSTOMER_ID: str = ""

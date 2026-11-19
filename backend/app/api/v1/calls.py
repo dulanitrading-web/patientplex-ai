@@ -173,14 +173,35 @@ async def handle_incoming_sms(
     logger.info("Incoming SMS from %s to %s: %s", sender, to_number, body[:50])
 
     # Find the doctor this number belongs to
+    # Match on twilio_phone_number first (exact match), then whatsapp/phone
     clean_to = to_number.replace("+", "").replace(" ", "")[-10:]
     result = await db.execute(
         select(Doctor).where(
-            Doctor.whatsapp_number.contains(clean_to)
+            Doctor.twilio_phone_number.contains(clean_to)
+            | Doctor.whatsapp_number.contains(clean_to)
             | Doctor.phone.contains(clean_to)
         )
     )
     doctor = result.scalar_one_or_none()
+
+    if not doctor:
+        # Fallback: try matching the full Twilio number with + prefix
+        result = await db.execute(
+            select(Doctor).where(
+                Doctor.twilio_phone_number == to_number
+            )
+        )
+        doctor = result.scalar_one_or_none()
+
+    if not doctor:
+        # Last resort: if only one doctor exists, use them (single-clinic mode)
+        result = await db.execute(select(Doctor).limit(2))
+        doctors = result.scalars().all()
+        if len(doctors) == 1:
+            doctor = doctors[0]
+            logger.info("Single-clinic fallback: routing SMS to %s", doctor.clinic_name)
+
+    logger.info("Doctor lookup for %s: %s", to_number, doctor.clinic_name if doctor else "NOT FOUND")
 
     if doctor:
         try:

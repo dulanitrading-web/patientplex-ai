@@ -517,9 +517,23 @@ class AIReceptionist:
         return "I'd be happy to help you book an appointment. What treatment are you interested in?", total_usage
 
     async def _call_claude_api(self, system_prompt: str, messages: list[dict]) -> dict | None:
-        """Make a request to the Claude Messages API."""
+        """Make a request to an AI API — tries free LLM first, then Claude.
+
+        Priority order:
+        1. Free/OpenAI-compatible LLM (Groq, Together, etc.) — saves credits
+        2. Claude API — best quality but costs money
+        3. None → triggers rule-based fallback
+        """
+        # Try free LLM first (Groq, Together, Ollama, etc.)
+        if settings.FREE_LLM_API_KEY and settings.FREE_LLM_BASE_URL:
+            result = await self._call_free_llm(system_prompt, messages)
+            if result is not None:
+                return result
+            logger.warning("Free LLM failed, falling through to Claude API")
+
+        # Try Claude API
         if not settings.CLAUDE_API_KEY:
-            logger.warning("CLAUDE_API_KEY not set — using fallback response")
+            logger.warning("No AI API key set (CLAUDE_API_KEY or FREE_LLM_API_KEY) — using fallback")
             return None
 
         payload = {
@@ -546,6 +560,79 @@ class AIReceptionist:
                 return resp.json()
         except httpx.HTTPError as exc:
             logger.error("Claude API call failed: %s", exc)
+            return None
+
+    async def _call_free_llm(self, system_prompt: str, messages: list[dict]) -> dict | None:
+        """Call a free/OpenAI-compatible LLM (Groq, Together.ai, Ollama, etc.).
+
+        Converts Claude-format messages to OpenAI format, calls the API,
+        and converts the response back to Claude format for the tool-use loop.
+        """
+        # Build OpenAI-format messages
+        oai_messages = [{"role": "system", "content": system_prompt}]
+        for msg in messages:
+            if isinstance(msg.get("content"), str):
+                oai_messages.append({"role": msg["role"], "content": msg["content"]})
+            elif isinstance(msg.get("content"), list):
+                # Extract text from content blocks
+                text_parts = []
+                for block in msg["content"]:
+                    if isinstance(block, dict) and block.get("type") == "text":
+                        text_parts.append(block["text"])
+                    elif isinstance(block, dict) and block.get("type") == "tool_result":
+                        text_parts.append(str(block.get("content", "")))
+                if text_parts:
+                    oai_messages.append({"role": msg["role"], "content": " ".join(text_parts)})
+
+        # Note: free models generally don't support tool use, so we include
+        # tool descriptions in the system prompt and parse structured output
+        enhanced_system = system_prompt + (
+            "\n\nIMPORTANT: You cannot use tools directly. When a patient wants to book, "
+            "ask for their name, preferred date/time, and treatment. Then say: "
+            "'Let me check available slots for you.' and list some example times. "
+            "Keep your responses SHORT (2-3 sentences). Be warm and professional."
+        )
+        oai_messages[0]["content"] = enhanced_system
+
+        payload = {
+            "model": settings.FREE_LLM_MODEL,
+            "messages": oai_messages,
+            "max_tokens": 300,
+            "temperature": 0.7,
+        }
+
+        try:
+            async with httpx.AsyncClient() as client:
+                resp = await client.post(
+                    f"{settings.FREE_LLM_BASE_URL.rstrip('/')}/chat/completions",
+                    json=payload,
+                    headers={
+                        "Authorization": f"Bearer {settings.FREE_LLM_API_KEY}",
+                        "Content-Type": "application/json",
+                    },
+                    timeout=30,
+                )
+                resp.raise_for_status()
+                data = resp.json()
+
+            # Convert OpenAI response to Claude format
+            choice = data.get("choices", [{}])[0]
+            reply_text = choice.get("message", {}).get("content", "")
+
+            if not reply_text:
+                return None
+
+            usage = data.get("usage", {})
+            return {
+                "content": [{"type": "text", "text": reply_text}],
+                "stop_reason": "end_turn",
+                "usage": {
+                    "input_tokens": usage.get("prompt_tokens", 0),
+                    "output_tokens": usage.get("completion_tokens", 0),
+                },
+            }
+        except Exception as exc:
+            logger.error("Free LLM API call failed: %s", exc)
             return None
 
     async def _execute_tool(

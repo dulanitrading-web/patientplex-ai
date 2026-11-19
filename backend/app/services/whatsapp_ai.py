@@ -1,7 +1,8 @@
 """
 WhatsApp AI Auto-Reply Service.
 
-Handles incoming patient messages with AI-generated responses using OpenAI.
+Handles incoming patient messages with AI-generated responses.
+Supports: OpenAI, Groq, Together.ai, or any OpenAI-compatible API.
 Covers appointment booking, treatment enquiries, clinic info, and follow-ups.
 """
 
@@ -11,8 +12,11 @@ from typing import Dict, Optional
 
 logger = logging.getLogger(__name__)
 
-# OpenAI setup
+# AI setup — supports multiple providers
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+FREE_LLM_API_KEY = os.getenv("FREE_LLM_API_KEY", "")
+FREE_LLM_BASE_URL = os.getenv("FREE_LLM_BASE_URL", "")
+FREE_LLM_MODEL = os.getenv("FREE_LLM_MODEL", "llama-3.3-70b-versatile")
 
 SYSTEM_PROMPT = """You are the AI receptionist for {clinic_name}, a {specialty} clinic.
 
@@ -50,17 +54,32 @@ class WhatsAppAI:
         self._initialize()
 
     def _initialize(self):
-        if OPENAI_API_KEY:
+        # Try free LLM first (saves credits), then OpenAI
+        if FREE_LLM_API_KEY and FREE_LLM_BASE_URL:
+            try:
+                from openai import AsyncOpenAI
+                self.openai_client = AsyncOpenAI(
+                    api_key=FREE_LLM_API_KEY,
+                    base_url=FREE_LLM_BASE_URL,
+                )
+                self._model = FREE_LLM_MODEL
+                logger.info("WhatsApp AI initialized with free LLM (%s)", FREE_LLM_MODEL)
+            except ImportError:
+                logger.error("openai package not installed")
+            except Exception as e:
+                logger.error(f"Free LLM init failed: {e}")
+        elif OPENAI_API_KEY:
             try:
                 from openai import AsyncOpenAI
                 self.openai_client = AsyncOpenAI(api_key=OPENAI_API_KEY)
+                self._model = "gpt-4o-mini"
                 logger.info("WhatsApp AI initialized with OpenAI")
             except ImportError:
                 logger.error("openai package not installed")
             except Exception as e:
                 logger.error(f"OpenAI init failed: {e}")
         else:
-            logger.warning("OPENAI_API_KEY not set — AI replies disabled")
+            logger.warning("No AI API key set (FREE_LLM_API_KEY or OPENAI_API_KEY) — AI replies use rule-based fallback")
 
     @property
     def is_active(self) -> bool:
@@ -99,7 +118,7 @@ class WhatsAppAI:
 
         try:
             response = await self.openai_client.chat.completions.create(
-                model="gpt-4o-mini",  # Cost-effective for chat
+                model=getattr(self, '_model', 'gpt-4o-mini'),  # Uses free model or OpenAI
                 messages=messages,
                 max_tokens=300,
                 temperature=0.7,
