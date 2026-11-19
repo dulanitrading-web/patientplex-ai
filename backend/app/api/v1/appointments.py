@@ -267,6 +267,42 @@ async def update_appointment_status(
     return {"message": f"Appointment marked as {body.status.value}", "appointment": _serialize_appointment(appointment)}
 
 
+@router.post("/{appointment_id}/feedback")
+async def send_feedback_request(
+    appointment_id: UUID,
+    doctor: Doctor = Depends(get_current_doctor),
+    db: AsyncSession = Depends(get_db),
+):
+    """Send a post-visit feedback request via WhatsApp to the patient.
+
+    Uses psychology-driven flow: asks for rating first, then Google review link.
+    """
+    result = await db.execute(
+        select(Appointment).where(
+            and_(Appointment.id == appointment_id, Appointment.doctor_id == doctor.id)
+        )
+    )
+    appointment = result.scalar_one_or_none()
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+
+    if appointment.status != AppointmentStatus.ATTENDED:
+        raise HTTPException(status_code=400, detail="Can only request feedback for attended appointments")
+
+    from app.services.whatsapp import whatsapp_service
+
+    try:
+        await whatsapp_service.send_feedback_request(
+            to=appointment.patient_phone,
+            doctor_name=doctor.full_name,
+            treatment=appointment.treatment_done or appointment.treatment,
+            clinic_name=doctor.clinic_name or "our clinic",
+        )
+        return {"message": "Feedback request sent", "patient": appointment.patient_name}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to send: {str(exc)}")
+
+
 def _serialize_appointment(a: Appointment) -> dict:
     return {
         "id": str(a.id),
