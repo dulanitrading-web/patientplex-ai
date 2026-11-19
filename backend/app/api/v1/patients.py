@@ -129,7 +129,7 @@ async def patient_stats(
 
 @router.get("/export")
 async def export_patients(
-    format: str = Query("csv", regex="^(csv|json)$"),
+    format: str = Query("csv", pattern="^(csv|json)$"),
     doctor: Doctor = Depends(get_current_doctor),
     db: AsyncSession = Depends(get_db),
 ):

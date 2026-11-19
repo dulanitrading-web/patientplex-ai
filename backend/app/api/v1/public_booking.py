@@ -64,14 +64,14 @@ async def get_doctor_profile(
 
     return {
         "slug": slug,
-        "doctor_name": doctor.full_name,
-        "clinic_name": doctor.clinic_name or "",
+        "doctor_name": (doctor.full_name or "").strip(),
+        "clinic_name": (doctor.clinic_name or "").strip(),
         "specialty": doctor.specialty.value if doctor.specialty else "General",
-        "city": doctor.city or "",
-        "address": doctor.clinic_address or "",
+        "city": (doctor.city or "").strip(),
+        "address": (doctor.clinic_address or "").strip(),
         "services": doctor.services or [],
         "logo": doctor.clinic_logo,
-        "phone": doctor.phone,
+        "phone": (doctor.phone or "").strip(),
     }
 
 
@@ -155,8 +155,8 @@ async def get_public_availability(
 
     return {
         "date": target_date.isoformat(),
-        "doctor_name": doctor.full_name,
-        "clinic_name": doctor.clinic_name or "",
+        "doctor_name": (doctor.full_name or "").strip(),
+        "clinic_name": (doctor.clinic_name or "").strip(),
         "slots": slots,
         "total_slots": len(slots),
         "available_slots": sum(1 for s in slots if s["available"]),
@@ -257,12 +257,12 @@ async def public_book_appointment(
         "message": "Appointment booked successfully!",
         "appointment": {
             "id": str(appointment.id),
-            "doctor_name": doctor.full_name,
-            "clinic_name": doctor.clinic_name or "",
+            "doctor_name": (doctor.full_name or "").strip(),
+            "clinic_name": (doctor.clinic_name or "").strip(),
             "treatment": body.treatment,
             "date": body.date.isoformat(),
             "time": body.time,
-            "address": doctor.clinic_address or "",
-            "phone": doctor.phone or "",
+            "address": (doctor.clinic_address or "").strip(),
+            "phone": (doctor.phone or "").strip(),
         },
     }
