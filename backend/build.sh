@@ -64,12 +64,7 @@ try:
 
     # Migration 006: Create staff_role_enum and clinic_staff table
     try:
-        cur.execute(\"\"\"
-            DO $$ BEGIN
-                CREATE TYPE staff_role_enum AS ENUM ('OWNER', 'DOCTOR', 'SPECIALIST', 'HYGIENIST', 'ASSISTANT');
-            EXCEPTION WHEN duplicate_object THEN NULL;
-            END $$;
-        \"\"\")
+        cur.execute(\"DO \\$\\$BEGIN CREATE TYPE staff_role_enum AS ENUM ('OWNER','DOCTOR','SPECIALIST','HYGIENIST','ASSISTANT'); EXCEPTION WHEN duplicate_object THEN NULL; END\\$\\$;\")
         print('  ✓ staff_role_enum — OK')
     except Exception as e:
         print(f'  ⚠ staff_role_enum — {e}')
