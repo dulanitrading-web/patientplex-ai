@@ -1,0 +1,8 @@
+# PatientPlex AI - robots.txt
+User-agent: *
+Allow: /
+Disallow: /dashboard/
+Disallow: /api/
+Disallow: /onboarding/
+
+Sitemap: https://patientplex-ai.vercel.app/sitemap.xml
