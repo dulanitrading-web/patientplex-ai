@@ -189,6 +189,35 @@ try:
     except Exception as e:
         print(f'  ⚠ Twilio phone — {e}')
 
+    # Migration 010: Fix data quality — capitalize names, trim whitespace
+    try:
+        cur.execute(\"\"\"
+            UPDATE doctors
+            SET full_name = INITCAP(TRIM(full_name)),
+                clinic_name = INITCAP(TRIM(clinic_name)),
+                city = INITCAP(TRIM(city)),
+                clinic_address = TRIM(clinic_address)
+            WHERE full_name != INITCAP(TRIM(full_name))
+               OR clinic_name != INITCAP(TRIM(clinic_name))
+               OR city != INITCAP(TRIM(city))
+               OR clinic_address != TRIM(clinic_address)
+        \"\"\")
+        print(f'  ✓ Fixed name capitalization/whitespace — {cur.statusmessage}')
+    except Exception as e:
+        print(f'  ⚠ name capitalization — {e}')
+
+    # Migration 011: Remove empty duplicate doctor record (anuj-bhardwaj with no clinic_name)
+    try:
+        cur.execute(\"\"\"
+            DELETE FROM doctors
+            WHERE subdomain_slug = 'anuj-bhardwaj'
+              AND (clinic_name IS NULL OR TRIM(clinic_name) = '')
+              AND (services IS NULL OR services = '[]'::jsonb)
+        \"\"\")
+        print(f'  ✓ Cleaned duplicate empty record — {cur.statusmessage}')
+    except Exception as e:
+        print(f'  ⚠ duplicate cleanup — {e}')
+
     cur.close()
     conn.close()
     print('Database migrations complete!')

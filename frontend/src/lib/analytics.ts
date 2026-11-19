@@ -86,9 +86,11 @@ export const trackBookingCompleted = (doctorSlug: string, treatment: string) => 
   event({ action: "booking_completed", category: "conversion", label: `${doctorSlug}:${treatment}`, value: 1 });
 
   // Google Ads Conversion — this is what Google Ads optimizes for
-  if (typeof window !== "undefined" && (window as any).gtag) {
+  // Set NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_ID in Vercel env vars (format: AW-123456789/abcDEF)
+  const gadsConvId = process.env.NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_ID;
+  if (typeof window !== "undefined" && (window as any).gtag && gadsConvId) {
     (window as any).gtag("event", "conversion", {
-      send_to: "AW-CONVERSION_ID/CONVERSION_LABEL", // Will be replaced with actual values
+      send_to: gadsConvId,
       event_callback: () => {},
     });
     // Also fire as a "generate_lead" event for GA4
