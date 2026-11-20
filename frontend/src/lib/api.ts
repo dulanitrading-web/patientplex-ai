@@ -362,14 +362,14 @@ export async function importGoogleAdsCampaigns() {
   return res.json();
 }
 
-// Twilio — Provision tracking number
-export async function provisionTwilioNumber() {
-  const res = await fetchWithAuth("/integrations/twilio/provision", { method: "POST" });
+// Exotel — Provision tracking number
+export async function provisionExotelNumber() {
+  const res = await fetchWithAuth("/calls/tracking/provision", { method: "POST" });
   return res.json();
 }
 
-export async function getTwilioStatus() {
-  const res = await fetchWithAuth("/integrations/twilio/status");
+export async function getExotelStatus() {
+  const res = await fetchWithAuth("/calls/tracking/numbers");
   return res.json();
 }
 

@@ -37,7 +37,7 @@ const Reveal = ({ children, delay = 0 }: { children: React.ReactNode; delay?: nu
 const JOURNEY = [
   { step: "01", title: "The Problem", text: "Indian clinics losing patients daily — missed calls, agencies charging ₹50K+ with zero transparency, no ad tracking." },
   { step: "02", title: "The Idea", text: "What if AI handled everything — ads, WhatsApp, bookings, optimization — at a fraction of agency cost?" },
-  { step: "03", title: "Building", text: "Full-stack platform from scratch: Google Ads, Meta, ChatGPT Ads, LinkedIn, WhatsApp, Twilio — one engine." },
+  { step: "03", title: "Building", text: "Full-stack platform from scratch: Google Ads, Meta, ChatGPT Ads, LinkedIn, WhatsApp, Voice AI — one engine." },
   { step: "04", title: "First Client", text: "Bhardwaj Dental Clinic — our first pilot. Real campaigns, real data, real patients." },
   { step: "05", title: "The Vision", text: "World-class performance marketing for every healthcare clinic in India." },
 ];

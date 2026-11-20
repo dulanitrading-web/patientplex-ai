@@ -142,12 +142,12 @@ const TESTIMONIALS = [
 
 const PRICING_DATA = {
   monthly: [
-    { name: "Starter", price: "9,999", period: "/mo", desc: "For solo clinics with 1 location", agencyPrice: "25,000", perPatient: "~₹200/patient", annualSave: "", valueTag: "", features: ["Google Ads — fully AI-managed", "WhatsApp AI receptionist (1,000 conversations)", "AI phone receptionist (Twilio)", "5 auto-generated landing pages", "Google My Business management", "Website SEO audit + keyword tracking", "Smart appointment booking", "Conversion analytics dashboard", "Email + chat support"], cta: "Start free trial", highlight: false },
+    { name: "Starter", price: "9,999", period: "/mo", desc: "For solo clinics with 1 location", agencyPrice: "25,000", perPatient: "~₹200/patient", annualSave: "", valueTag: "", features: ["Google Ads — fully AI-managed", "WhatsApp AI receptionist (1,000 conversations)", "AI phone receptionist (24/7)", "5 auto-generated landing pages", "Google My Business management", "Website SEO audit + keyword tracking", "Smart appointment booking", "Conversion analytics dashboard", "Email + chat support"], cta: "Start free trial", highlight: false },
     { name: "Growth", price: "24,999", period: "/mo", desc: "For clinics scaling to 50+ new patients/month", agencyPrice: "75,000", perPatient: "~₹125/patient", annualSave: "", valueTag: "Best value — 2.5x more features vs Starter", features: ["4 ad platforms: Google + Meta + ChatGPT + LinkedIn", "WhatsApp AI receptionist (unlimited)", "AI phone receptionist (unlimited)", "Unlimited landing pages", "Google My Business + review automation", "Full SEO suite — audit, keywords, schema, AI blogs", "GA4 analytics with full-funnel attribution", "ML-powered bid optimization", "No-show prediction & auto-reminders", "Priority WhatsApp support", "Google Calendar sync"], cta: "Start free trial", highlight: true, badge: "78% of clinics choose this" },
     { name: "Enterprise", price: "49,999", period: "/mo", desc: "For multi-location clinics and hospital chains", agencyPrice: "2,00,000", perPatient: "~₹85/patient", annualSave: "", valueTag: "", features: ["Everything in Growth", "All 6 ad platforms + Instagram Reels", "Up to 10 locations managed", "Advanced SEO — competitor reports + content calendar", "Custom AI training on your clinic data", "Dedicated account manager", "API access for EHR/EMR integration", "DPDP-compliant audit logs", "White-label reporting", "Quarterly strategy reviews"], cta: "Contact sales", highlight: false },
   ],
   annual: [
-    { name: "Starter", price: "7,999", period: "/mo", desc: "For solo clinics with 1 location", agencyPrice: "25,000", perPatient: "~₹160/patient", annualSave: "Save ₹24,000/yr", features: ["Google Ads — fully AI-managed", "WhatsApp AI receptionist (1,000 conversations)", "AI phone receptionist (Twilio)", "5 auto-generated landing pages", "Google My Business management", "Website SEO audit + keyword tracking", "Smart appointment booking", "Conversion analytics dashboard", "Email + chat support"], cta: "Start free trial", highlight: false },
+    { name: "Starter", price: "7,999", period: "/mo", desc: "For solo clinics with 1 location", agencyPrice: "25,000", perPatient: "~₹160/patient", annualSave: "Save ₹24,000/yr", features: ["Google Ads — fully AI-managed", "WhatsApp AI receptionist (1,000 conversations)", "AI phone receptionist (24/7)", "5 auto-generated landing pages", "Google My Business management", "Website SEO audit + keyword tracking", "Smart appointment booking", "Conversion analytics dashboard", "Email + chat support"], cta: "Start free trial", highlight: false },
     { name: "Growth", price: "19,999", period: "/mo", desc: "For clinics scaling to 50+ new patients/month", agencyPrice: "75,000", perPatient: "~₹100/patient", annualSave: "Save ₹60,000/yr", valueTag: "Best value — 2.5x more features vs Starter", features: ["4 ad platforms: Google + Meta + ChatGPT + LinkedIn", "WhatsApp AI receptionist (unlimited)", "AI phone receptionist (unlimited)", "Unlimited landing pages", "Google My Business + review automation", "Full SEO suite — audit, keywords, schema, AI blogs", "GA4 analytics with full-funnel attribution", "ML-powered bid optimization", "No-show prediction & auto-reminders", "Priority WhatsApp support", "Google Calendar sync"], cta: "Start free trial", highlight: true, badge: "78% of clinics choose this" },
     { name: "Enterprise", price: "39,999", period: "/mo", desc: "For multi-location clinics and hospital chains", agencyPrice: "2,00,000", perPatient: "~₹70/patient", annualSave: "Save ₹1,20,000/yr", features: ["Everything in Growth", "All 6 ad platforms + Instagram Reels", "Up to 10 locations managed", "Advanced SEO — competitor reports + content calendar", "Custom AI training on your clinic data", "Dedicated account manager", "API access for EHR/EMR integration", "DPDP-compliant audit logs", "White-label reporting", "Quarterly strategy reviews"], cta: "Contact sales", highlight: false },
   ],
@@ -170,7 +170,7 @@ const MOCK_QUEUE = [
   { name: "Deepak S.", treatment: "Dental implant consult", time: "5m ago", amount: "₹500" },
 ];
 
-const TECH_STACK = ["WhatsApp Business API", "Google Ads API", "Meta Marketing API", "ChatGPT Ads API", "LinkedIn Marketing API", "Twilio Voice API"];
+const TECH_STACK = ["WhatsApp Business API", "Google Ads API", "Meta Marketing API", "ChatGPT Ads API", "LinkedIn Marketing API", "Exotel Voice API"];
 
 const CHANNELS_DATA = [
   { name: "WhatsApp", border: "hover:border-green-300" },
@@ -745,7 +745,7 @@ export default function LandingPage() {
               { name: "Google Calendar", desc: "Appointment sync", logo: <GoogleCalendarLogo size={24} /> },
               { name: "Google My Business", desc: "Review management", logo: <GoogleLogo size={24} /> },
               { name: "Google Reviews", desc: "Automated review collection", logo: <GoogleLogo size={24} /> },
-              { name: "Twilio Voice", desc: "AI phone call receptionist", logo: <Phone className="w-5 h-5 text-red-500" /> },
+              { name: "Exotel Voice", desc: "AI phone call receptionist", logo: <Phone className="w-5 h-5 text-red-500" /> },
             ].map((item, i) => (
               <Reveal key={i} delay={i * 0.05}>
                 <motion.div whileHover={{ y: -3 }} className="bg-[#FAFAF8] rounded-2xl border border-slate-200 p-5 flex items-start gap-4 hover:shadow-lg transition-all duration-300 cursor-default">
@@ -844,7 +844,7 @@ export default function LandingPage() {
                   )}
                   {demoScreen === 3 && (
                     <motion.div key="s3" initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-10}} transition={{duration:0.3}}>
-                      <p className="text-orange-400 text-xs font-bold uppercase tracking-widest mb-4">AI Call Receptionist — Twilio Voice</p>
+                      <p className="text-orange-400 text-xs font-bold uppercase tracking-widest mb-4">AI Call Receptionist — Exotel Voice</p>
                       <div className="bg-slate-800/60 rounded-2xl p-6 border border-slate-700/30 mb-4">
                         <div className="flex items-center gap-4 mb-5">
                           <div className="w-14 h-14 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-lg shadow-orange-500/20"><Phone className="w-7 h-7 text-white" /></div>
@@ -1117,7 +1117,7 @@ export default function LandingPage() {
             <div className="hidden md:block absolute top-10 left-[18%] right-[18%] h-px bg-gradient-to-r from-emerald-300 via-teal-300 to-cyan-300" />
             {[
               { step: "01", title: "Tell us about your clinic", desc: "Specialty, location, treatments, budget. Takes about 5 minutes. We generate your landing pages and ad creatives automatically.", icon: Users, color: "bg-emerald-50 text-emerald-600" },
-              { step: "02", title: "Connect WhatsApp, Phone & Calendar", desc: "Link your WhatsApp Business number, clinic phone (via Twilio), and Google Calendar. The AI receptionist handles calls and messages immediately.", icon: MessageCircle, color: "bg-teal-50 text-teal-600" },
+              { step: "02", title: "Connect WhatsApp, Phone & Calendar", desc: "Link your WhatsApp Business number, clinic phone, and Google Calendar. The AI receptionist handles calls and messages immediately.", icon: MessageCircle, color: "bg-teal-50 text-teal-600" },
               { step: "03", title: "Patients start booking", desc: "Campaigns go live within 48 hours. The AI qualifies leads, books appointments, and sends reminders. You focus on patient care.", icon: Calendar, color: "bg-cyan-50 text-cyan-600" },
             ].map((s, i) => (
               <Reveal key={i} delay={i * 0.15}>
@@ -1182,7 +1182,7 @@ export default function LandingPage() {
           </Reveal>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { title: "Autonomous\nAI receptionist", gradient: "from-emerald-400 to-teal-400", bullets: ["24/7 WhatsApp + Phone (Twilio)", "Multi-language: Hindi, English & more", "Smart lead qualification", "Instant appointment booking"], icon: Brain,
+              { title: "Autonomous\nAI receptionist", gradient: "from-emerald-400 to-teal-400", bullets: ["24/7 WhatsApp + Phone (24/7)", "Multi-language: Hindi, English & more", "Smart lead qualification", "Instant appointment booking"], icon: Brain,
                 mockup: (
                   <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 mt-6 space-y-3">
                     <div className="flex items-start gap-2"><div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center shrink-0 mt-0.5"><MessageCircle className="w-3 h-3 text-green-600" /></div><div className="bg-green-50 rounded-lg rounded-tl-sm p-2.5 text-xs text-slate-700 border border-green-100">Hi! I want to book a teeth whitening appointment.</div></div>
@@ -1222,7 +1222,7 @@ export default function LandingPage() {
                     ))}
                   </div>
                 )},
-              { title: "AI Call\nReceptionist", gradient: "from-orange-400 to-red-400", bullets: ["Twilio-powered voice AI", "Answers calls 24/7", "Hindi + English support", "Transfers urgent to doctor"], icon: Phone,
+              { title: "AI Call\nReceptionist", gradient: "from-orange-400 to-red-400", bullets: ["AI-powered voice calls", "Answers calls 24/7", "Hindi + English support", "Transfers urgent to doctor"], icon: Phone,
                 mockup: (
                   <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 mt-6 space-y-2.5">
                     <div className="flex items-center gap-3 bg-white rounded-lg p-3 border border-slate-100">
@@ -1444,7 +1444,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto text-center">
           <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Powered by</p>
           <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10">
-            {["Google Ads API", "Meta Marketing API", "ChatGPT Ads API", "LinkedIn Marketing API", "WhatsApp Business API", "Twilio Voice API", "OpenAI"].map((p, i) => (
+            {["Google Ads API", "Meta Marketing API", "ChatGPT Ads API", "LinkedIn Marketing API", "WhatsApp Business API", "Exotel Voice API", "OpenAI"].map((p, i) => (
               <span key={i} className="text-sm sm:text-base font-bold text-slate-300 tracking-tight">{p}</span>
             ))}
           </div>

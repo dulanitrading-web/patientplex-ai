@@ -45,20 +45,20 @@ class Settings(BaseSettings):
     WHATSAPP_VERIFY_TOKEN: str = ""
     WHATSAPP_PHONE_NUMBER_ID: str = ""  # Meta Cloud API phone number ID
 
-    # Twilio (Voice calls + SMS + WhatsApp)
-    TWILIO_ACCOUNT_SID: str = ""
-    TWILIO_AUTH_TOKEN: str = ""
-    TWILIO_PHONE_NUMBER: str = ""  # Twilio number for outbound calls
-    TWILIO_WHATSAPP_NUMBER: str = ""  # Twilio WhatsApp sandbox or business number
-
-    # Exotel (India-specific voice — alternative to Twilio)
+    # Exotel (Primary — Indian voice calls + SMS)
     EXOTEL_API_KEY: str = ""
     EXOTEL_API_TOKEN: str = ""
     EXOTEL_SID: str = ""
-    EXOTEL_CALLER_ID: str = ""  # Virtual number
+    EXOTEL_CALLER_ID: str = ""  # ExoPhone virtual number
+
+    # Twilio (Backup — international only, not used for India)
+    TWILIO_ACCOUNT_SID: str = ""
+    TWILIO_AUTH_TOKEN: str = ""
+    TWILIO_PHONE_NUMBER: str = ""
+    TWILIO_WHATSAPP_NUMBER: str = ""
 
     # Call handling
-    CALL_PROVIDER: str = "twilio"  # "twilio" or "exotel"
+    CALL_PROVIDER: str = "exotel"  # "exotel" (India) or "twilio" (international)
     MISSED_CALL_WHATSAPP_DELAY_SECONDS: int = 30  # Wait before sending WhatsApp after missed call
     CLINIC_DEFAULT_OPEN_TIME: str = "09:00"
     CLINIC_DEFAULT_CLOSE_TIME: str = "20:00"

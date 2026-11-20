@@ -365,7 +365,7 @@ export default function DashboardPage() {
             { key: "google_ads", label: "Google Ads", icon: "📊" },
             { key: "google_calendar", label: "Calendar", icon: "📅" },
             { key: "whatsapp", label: "WhatsApp", icon: "💬" },
-            { key: "twilio", label: "Calls", icon: "📞" },
+            { key: "exotel", label: "Calls", icon: "📞" },
             { key: "meta_ads", label: "Meta Ads", icon: "📱" },
           ].map((item) => {
             const status = integrations?.[item.key]?.status;

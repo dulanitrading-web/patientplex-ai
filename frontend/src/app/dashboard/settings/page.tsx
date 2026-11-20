@@ -31,7 +31,7 @@ import {
   verifyWhatsApp,
   importGoogleAdsCampaigns,
   resyncGoogleAdsCampaigns,
-  provisionTwilioNumber,
+  provisionExotelNumber,
   updateProfile,
 } from "@/lib/api";
 
@@ -86,7 +86,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [importingCampaigns, setImportingCampaigns] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{ text: string; type: "success" | "error" | "info" } | null>(null);
-  const [provisioningTwilio, setProvisioningTwilio] = useState(false);
+  const [provisioningExotel, setProvisioningExotel] = useState(false);
   const [editingProfile, setEditingProfile] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState({
@@ -442,15 +442,15 @@ export default function SettingsPage() {
           />
           <IntegrationRow
             icon={<BarChart3 className="w-4 h-4" />}
-            name="Twilio Call Tracking"
-            status={mapIntegrationStatus(integrations?.twilio_calls?.status)}
-            detail={integrations?.twilio_calls?.detail || "Call tracking & recording"}
-            extraAction={mapIntegrationStatus(integrations?.twilio_calls?.status) === "connected" ? (
+            name="Exotel Call Tracking"
+            status={mapIntegrationStatus(integrations?.exotel_calls?.status || integrations?.twilio_calls?.status)}
+            detail={integrations?.exotel_calls?.detail || integrations?.twilio_calls?.detail || "AI call tracking & recording"}
+            extraAction={mapIntegrationStatus(integrations?.exotel_calls?.status || integrations?.twilio_calls?.status) === "connected" ? (
               <button
                 onClick={async () => {
-                  setProvisioningTwilio(true);
+                  setProvisioningExotel(true);
                   try {
-                    const result = await provisionTwilioNumber();
+                    const result = await provisionExotelNumber();
                     if (result.status === "success") {
                       setStatusMessage({ text: result.message || `Number: ${result.phone_number}`, type: "success" });
                       setTimeout(() => window.location.reload(), 2000);
@@ -458,15 +458,15 @@ export default function SettingsPage() {
                       setStatusMessage({ text: result.message || "Provisioning failed", type: "error" });
                     }
                   } catch (err: unknown) {
-                    const msg = err instanceof Error ? err.message : "Failed to provision Twilio number";
+                    const msg = err instanceof Error ? err.message : "Failed to provision number";
                     setStatusMessage({ text: msg, type: "error" });
                   }
-                  finally { setProvisioningTwilio(false); }
+                  finally { setProvisioningExotel(false); }
                 }}
-                disabled={provisioningTwilio}
+                disabled={provisioningExotel}
                 className="px-3 py-1 rounded-lg text-xs font-medium bg-cyan-500 text-white hover:bg-cyan-600 transition-colors disabled:opacity-50"
               >
-                {provisioningTwilio ? "Provisioning…" : "Provision Number"}
+                {provisioningExotel ? "Provisioning…" : "Provision Number"}
               </button>
             ) : undefined}
           />
