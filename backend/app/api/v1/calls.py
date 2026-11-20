@@ -26,7 +26,7 @@ limiter = Limiter(key_func=get_remote_address, enabled=os.environ.get("TESTING",
 from app.db.session import get_db
 from app.models.call_log import CallDirection, CallLog, CallStatus
 from app.models.doctor import Doctor
-from app.services.call_handler import CallHandler, TwilioVoiceHandler
+from app.services.call_handler import CallHandler, TwilioVoiceHandler, ExotelVoiceHandler
 from app.services.call_tracking import call_tracking_service
 
 logger = logging.getLogger(__name__)
@@ -217,6 +217,107 @@ async def handle_incoming_sms(
     # Return TwiML response
     twiml = f'<Response><Message>{response_text}</Message></Response>'
     return Response(content=twiml, media_type="application/xml")
+
+
+# ---- Exotel webhook endpoints ----
+
+
+async def verify_exotel_signature(request: Request) -> None:
+    """Validate that the request came from Exotel.
+
+    Exotel sends a custom header or IP-based verification.
+    For now, we check that CALL_PROVIDER is set to exotel.
+    In production, verify the source IP against Exotel's IP range.
+    """
+    if settings.CALL_PROVIDER != "exotel":
+        raise HTTPException(status_code=403, detail="Exotel provider not configured")
+    # TODO: Add IP whitelist verification for production
+    # Exotel IPs: check https://developer.exotel.com/api/#ip-whitelist
+
+
+@router.post("/exotel/incoming")
+@limiter.limit("30/minute")
+async def handle_exotel_incoming_call(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """Exotel passthru applet webhook — called when a patient dials the ExoPhone.
+
+    Returns JSON response telling Exotel to:
+    1. Connect the call to the doctor's real phone
+    2. Record the call
+    3. Send status callback when call ends
+    """
+    form = await request.form()
+    form_data = {k: v for k, v in form.items()}
+    parsed = ExotelVoiceHandler.parse_incoming_webhook(form_data)
+
+    logger.info(
+        "Exotel incoming call: %s → %s (SID: %s)",
+        parsed["caller"], parsed["called"], parsed["call_sid"],
+    )
+
+    handler = CallHandler(db)
+    call_log = await handler.handle_inbound_call(
+        caller_phone=parsed["caller"],
+        clinic_phone=parsed["called"],
+        call_sid=parsed["call_sid"],
+    )
+    await db.commit()
+
+    # Find doctor to forward to
+    clean_called = parsed["called"].replace("+", "").replace(" ", "")[-10:]
+    result = await db.execute(
+        select(Doctor).where(
+            Doctor.whatsapp_number.contains(clean_called)
+            | Doctor.phone.contains(clean_called)
+        )
+    )
+    doctor = result.scalar_one_or_none()
+
+    if not doctor:
+        # Try ExoPhone number match or single-clinic fallback
+        result = await db.execute(select(Doctor).limit(2))
+        doctors = result.scalars().all()
+        if len(doctors) == 1:
+            doctor = doctors[0]
+
+    if doctor:
+        response = ExotelVoiceHandler.generate_connect_response(doctor)
+    else:
+        response = ExotelVoiceHandler.generate_greeting_response("the clinic")
+
+    return response
+
+
+@router.post("/exotel/status")
+@limiter.limit("30/minute")
+async def handle_exotel_call_status(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """Exotel status callback — called when a call completes or fails.
+
+    Detects missed calls and triggers WhatsApp follow-up.
+    """
+    form = await request.form()
+    form_data = {k: v for k, v in form.items()}
+    parsed = ExotelVoiceHandler.parse_status_webhook(form_data)
+
+    logger.info(
+        "Exotel call status: SID=%s status=%s duration=%ds",
+        parsed["call_sid"], parsed["status"], parsed["duration"],
+    )
+
+    handler = CallHandler(db)
+    call_log = await handler.handle_call_completed(
+        call_sid=parsed["call_sid"],
+        status=parsed["status"],
+        duration=parsed["duration"],
+        recording_url=parsed["recording_url"],
+    )
+
+    return {"status": "ok"}
 
 
 # ---- Dashboard endpoints (protected) ----

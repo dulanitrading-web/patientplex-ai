@@ -286,3 +286,89 @@ class TwilioVoiceHandler:
         Thank you!
     </Say>
 </Response>"""
+
+
+class ExotelVoiceHandler:
+    """Handle Exotel call routing via their passthru applet API.
+
+    Exotel uses a different model than Twilio:
+    - Calls come in to the ExoPhone (virtual number)
+    - Exotel hits your webhook (passthru applet) for routing instructions
+    - You return JSON (not XML) telling Exotel what to do
+    - Status callbacks come as POST with Exotel-specific parameters
+
+    Exotel webhook parameters (incoming):
+        CallSid, From, To, CurrentTime, DialWhomNumber, CallType, Direction
+
+    Status callback parameters:
+        CallSid, Status (completed/busy/no-answer/failed), RecordingUrl,
+        StartTime, EndTime, Duration, Direction, From, To
+    """
+
+    @staticmethod
+    def generate_connect_response(doctor: Doctor) -> dict:
+        """Generate Exotel passthru response to connect call to doctor.
+
+        Returns a dict that Exotel's passthru applet understands.
+        The call is forwarded to the doctor's real phone with recording enabled.
+        """
+        doctor_phone = doctor.whatsapp_number or doctor.phone
+        # Exotel expects 10-digit Indian number or full international format
+        clean_phone = doctor_phone.replace("+", "").replace(" ", "").replace("-", "")
+        if len(clean_phone) == 10:
+            clean_phone = "0" + clean_phone  # Add STD prefix for Exotel
+
+        return {
+            "connect": {
+                "phone_number": clean_phone,
+                "timeout": 20,
+                "record": True,
+                "recording_channels": "dual",
+            },
+            "on_timeout": {
+                "action": "hangup",
+                "play": f"Thank you for calling {doctor.clinic_name or 'the clinic'}. "
+                        f"We will send you a WhatsApp message shortly to help you "
+                        f"book an appointment.",
+            },
+        }
+
+    @staticmethod
+    def generate_greeting_response(clinic_name: str) -> dict:
+        """Response when no doctor is found — play greeting and hang up."""
+        return {
+            "play": f"Thank you for calling {clinic_name}. "
+                    f"We will reach you on WhatsApp shortly to help you "
+                    f"book an appointment. Thank you!",
+            "action": "hangup",
+        }
+
+    @staticmethod
+    def parse_incoming_webhook(form_data: dict) -> dict:
+        """Parse Exotel incoming call webhook parameters to a standard format."""
+        return {
+            "call_sid": form_data.get("CallSid", ""),
+            "caller": form_data.get("From", ""),
+            "called": form_data.get("To", form_data.get("DialWhomNumber", "")),
+            "direction": form_data.get("Direction", "incoming"),
+            "call_type": form_data.get("CallType", ""),
+        }
+
+    @staticmethod
+    def parse_status_webhook(form_data: dict) -> dict:
+        """Parse Exotel status callback parameters to a standard format."""
+        status_map = {
+            "completed": "completed",
+            "busy": "busy",
+            "no-answer": "no-answer",
+            "failed": "failed",
+            "canceled": "canceled",
+        }
+        raw_status = form_data.get("Status", form_data.get("DialCallStatus", "")).lower()
+
+        return {
+            "call_sid": form_data.get("CallSid", ""),
+            "status": status_map.get(raw_status, raw_status),
+            "duration": int(form_data.get("Duration", form_data.get("DialCallDuration", "0"))),
+            "recording_url": form_data.get("RecordingUrl", form_data.get("RecordingURL", None)),
+        }
