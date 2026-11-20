@@ -380,6 +380,49 @@ async def twilio_diagnostics(key: str = ""):
     return result
 
 
+@app.get("/api/v1/diagnostics/telephony", tags=["diagnostics"])
+async def telephony_diagnostics(key: str = ""):
+    """Check telephony provider status — Exotel (primary) + Twilio (backup)."""
+    from fastapi import HTTPException
+    if key != settings.SECRET_KEY:
+        raise HTTPException(status_code=403, detail="Invalid diagnostics key")
+
+    result = {
+        "call_provider": settings.CALL_PROVIDER,
+        "exotel_configured": bool(settings.EXOTEL_SID and settings.EXOTEL_API_KEY and settings.EXOTEL_API_TOKEN),
+        "exotel_sid": settings.EXOTEL_SID or None,
+        "exotel_caller_id": settings.EXOTEL_CALLER_ID or None,
+        "exotel_webhook_incoming": f"{settings.BACKEND_BASE_URL}/api/v1/calls/exotel/incoming",
+        "exotel_webhook_status": f"{settings.BACKEND_BASE_URL}/api/v1/calls/exotel/status",
+        "twilio_configured": bool(settings.TWILIO_ACCOUNT_SID and settings.TWILIO_AUTH_TOKEN),
+        "free_llm_configured": bool(settings.FREE_LLM_API_KEY and settings.FREE_LLM_BASE_URL),
+        "free_llm_model": settings.FREE_LLM_MODEL if settings.FREE_LLM_API_KEY else None,
+        "claude_api_configured": bool(settings.CLAUDE_API_KEY),
+    }
+
+    # Check Exotel API connectivity
+    if settings.EXOTEL_SID and settings.EXOTEL_API_KEY:
+        try:
+            import httpx
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(
+                    f"https://api.exotel.com/v1/Accounts/{settings.EXOTEL_SID}.json",
+                    auth=(settings.EXOTEL_API_KEY, settings.EXOTEL_API_TOKEN),
+                    timeout=10,
+                )
+                if resp.status_code == 200:
+                    data = resp.json().get("Account", {})
+                    result["exotel_account_status"] = data.get("Status", "active")
+                    result["exotel_account_name"] = data.get("FriendlyName", "")
+                    result["exotel_balance"] = data.get("AccountBalance", "")
+                else:
+                    result["exotel_account_status"] = f"error_{resp.status_code}"
+        except Exception as e:
+            result["exotel_account_status"] = f"connection_error: {str(e)[:50]}"
+
+    return result
+
+
 @app.post("/api/v1/cron/reminders", tags=["cron"])
 async def trigger_reminders():
     """Trigger appointment reminders — call this from an external cron service.
