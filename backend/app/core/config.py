@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     META_APP_SECRET: str = ""
 
     # WhatsApp Business API
-    WHATSAPP_API_URL: str = "https://graph.facebook.com/v18.0"
+    WHATSAPP_API_URL: str = "https://graph.facebook.com/v25.0"
     WHATSAPP_API_TOKEN: str = ""
     WHATSAPP_VERIFY_TOKEN: str = ""
     WHATSAPP_PHONE_NUMBER_ID: str = ""  # Meta Cloud API phone number ID

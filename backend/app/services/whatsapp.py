@@ -16,12 +16,17 @@ class WhatsAppService:
     def __init__(self):
         self.api_url = settings.WHATSAPP_API_URL
         self.token = settings.WHATSAPP_API_TOKEN
+        self.phone_number_id = settings.WHATSAPP_PHONE_NUMBER_ID
         self.headers = {
             "Authorization": f"Bearer {self.token}",
             "Content-Type": "application/json",
         }
 
-    async def send_message(self, to: str, message: str, phone_number_id: str = "") -> dict:
+    @property
+    def is_connected(self) -> bool:
+        return bool(self.token and self.phone_number_id)
+
+    async def send_message(self, to: str, message: str, phone_number_id: str = None) -> dict:
         """Send a plain text WhatsApp message.
 
         Args:
@@ -35,9 +40,12 @@ class WhatsAppService:
             "type": "text",
             "text": {"body": message},
         }
+        pid = phone_number_id or self.phone_number_id
+        if not pid:
+            return {"error": "WHATSAPP_PHONE_NUMBER_ID not configured"}
         try:
             async with httpx.AsyncClient() as client:
-                url = f"{self.api_url}/{phone_number_id}/messages"
+                url = f"{self.api_url}/{pid}/messages"
                 resp = await client.post(url, json=payload, headers=self.headers, timeout=30)
                 resp.raise_for_status()
                 logger.info("WhatsApp message sent to %s", to)

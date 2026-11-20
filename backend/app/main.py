@@ -398,6 +398,9 @@ async def telephony_diagnostics(key: str = ""):
         "free_llm_configured": bool(settings.FREE_LLM_API_KEY and settings.FREE_LLM_BASE_URL),
         "free_llm_model": settings.FREE_LLM_MODEL if settings.FREE_LLM_API_KEY else None,
         "claude_api_configured": bool(settings.CLAUDE_API_KEY),
+        "whatsapp_configured": bool(settings.WHATSAPP_API_TOKEN and settings.WHATSAPP_PHONE_NUMBER_ID),
+        "whatsapp_phone_number_id": settings.WHATSAPP_PHONE_NUMBER_ID or None,
+        "whatsapp_api_url": settings.WHATSAPP_API_URL,
     }
 
     # Check Exotel API connectivity
