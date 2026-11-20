@@ -658,7 +658,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <Reveal>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight leading-tight mb-6">AI to manage patients across every channel</h2>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight leading-tight mb-6">One AI. Every patient channel. Zero missed leads.</h2>
               <p className="text-lg text-slate-500 leading-relaxed">WhatsApp, Google, Instagram, ChatGPT, LinkedIn, phone calls &mdash; PatientPlex captures patients from every touchpoint and funnels them into your calendar.</p>
             </Reveal>
             <Reveal delay={0.15}>
@@ -695,7 +695,7 @@ export default function LandingPage() {
       <section className="py-24 px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <Reveal>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">Built for every type of clinic</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">15+ specialties. One platform.</h2>
             <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">15+ medical specialties trust PatientPlex</p>
           </Reveal>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -732,7 +732,7 @@ export default function LandingPage() {
       <section className="py-24 px-6 bg-slate-50">
         <div className="max-w-7xl mx-auto">
           <Reveal>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">Connects with tools you already use</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">Plugs into your existing tools in minutes</h2>
             <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">PatientPlex integrates with the platforms your clinic relies on — no manual data entry.</p>
           </Reveal>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -887,7 +887,7 @@ export default function LandingPage() {
       <section className="py-24 px-6 bg-slate-50">
         <div className="max-w-7xl mx-auto">
           <Reveal>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-3">What clinics can expect <span className="inline-block">{"💡"}</span></h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-3">Your clinic in 90 days <span className="inline-block">{"🚀"}</span></h2>
             <p className="text-center text-slate-500 mb-16 text-lg">Real results from our client and projected scenarios for different specialties.</p>
           </Reveal>
           <div className="columns-1 md:columns-2 lg:columns-3 gap-5 space-y-5">
@@ -942,7 +942,7 @@ export default function LandingPage() {
       <section className="py-16 sm:py-24 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <Reveal>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">Real results & projected outcomes</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">Real numbers. Real clinics. Real growth.</h2>
             <p className="text-center text-slate-500 mb-16 text-lg">Bhardwaj Dental Clinic is our active client. Other scenarios show projected outcomes.</p>
           </Reveal>
           <div className="grid md:grid-cols-3 gap-6">
@@ -979,7 +979,7 @@ export default function LandingPage() {
       {/* ═══ STATS ═══ */}
       <section className="py-16 sm:py-24 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
-          <Reveal><h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-16">What PatientPlex delivers</h2></Reveal>
+          <Reveal><h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-16">The numbers that matter</h2></Reveal>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             {STATS.map((s, i) => (
               <Reveal key={i} delay={i * 0.1}>
@@ -1003,7 +1003,7 @@ export default function LandingPage() {
       <section className="py-24 px-6 bg-white">
         <div className="max-w-5xl mx-auto">
           <Reveal>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">Calculate your ROI</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">See how much you save vs an agency</h2>
             <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">See how much you could save by switching from agencies to PatientPlex.</p>
           </Reveal>
           <ROICalculator />
@@ -1014,7 +1014,7 @@ export default function LandingPage() {
       <section className="py-24 px-6 bg-white">
         <div className="max-w-5xl mx-auto">
           <Reveal>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">The PatientPlex difference</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">Agency vs PatientPlex — no contest</h2>
             <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">See what changes when AI runs your patient acquisition.</p>
           </Reveal>
           <div className="grid md:grid-cols-2 gap-6">
@@ -1058,7 +1058,7 @@ export default function LandingPage() {
       <section className="py-16 sm:py-24 px-4 sm:px-6">
         <div className="max-w-5xl mx-auto">
           <Reveal>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">Why clinics switch to PatientPlex</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">Doctors who switched never went back</h2>
             <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">Compare us to agencies and DIY — see the difference.</p>
           </Reveal>
           <Reveal delay={0.1}>
@@ -1109,7 +1109,7 @@ export default function LandingPage() {
       <section className="py-24 px-6 bg-white">
         <div className="max-w-5xl mx-auto">
           <Reveal>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">Live in 48 hours, not 10 weeks</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">Go live in 48 hours. Not 10 weeks.</h2>
             <p className="text-center text-lg text-slate-500 mb-16">No agencies, no contracts, no technical setup.</p>
           </Reveal>
           <div className="grid md:grid-cols-3 gap-8 relative">
@@ -1139,7 +1139,7 @@ export default function LandingPage() {
       <section className="py-16 sm:py-24 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <Reveal>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">How clinics use PatientPlex</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">How top clinics grow with PatientPlex</h2>
             <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">Real use cases across 15+ healthcare specialties.</p>
           </Reveal>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1177,7 +1177,7 @@ export default function LandingPage() {
       <section id="features" className="py-24 px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <Reveal>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">See what PatientPlex does inside your account</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">See PatientPlex in action</h2>
             <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">Four autonomous AI agents working 24/7 to grow your clinic.</p>
           </Reveal>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -1314,7 +1314,7 @@ export default function LandingPage() {
       <section id="pricing" className="py-16 sm:py-24 px-4 sm:px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <Reveal>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-3">Stop overpaying agencies. Start getting patients.</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-3">Fire your agency. Keep your patients.</h2>
             <p className="text-center text-base sm:text-lg text-slate-500 mb-8 max-w-2xl mx-auto">Every plan includes a 14-day free trial. No credit card required. Cancel anytime.</p>
             {/* Toggle */}
             <div className="flex items-center justify-center gap-3 mb-16">
@@ -1362,7 +1362,7 @@ export default function LandingPage() {
       <section className="py-16 sm:py-24 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <Reveal>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">AI that gets smarter every day</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">AI that learns your clinic and gets better daily</h2>
             <p className="text-center text-slate-500 mb-16 text-lg max-w-2xl mx-auto">Our AI learns from every interaction to deliver better results for your clinic.</p>
           </Reveal>
           <div className="grid md:grid-cols-2 gap-6">
@@ -1392,7 +1392,7 @@ export default function LandingPage() {
       <section className="py-16 sm:py-24 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <Reveal>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">Enterprise-grade security for patient data</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">Your patient data is locked down tight</h2>
             <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">Built for healthcare compliance from day one.</p>
           </Reveal>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
@@ -1422,7 +1422,7 @@ export default function LandingPage() {
           <div className="bg-gradient-to-br from-emerald-500 to-teal-500 rounded-3xl p-10 sm:p-14 text-center text-white">
             <Reveal>
               <p className="text-sm font-medium text-white/70 uppercase tracking-widest mb-3">Start growing your clinic with AI-powered marketing</p>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight mb-6">Ready to stop losing patients?</h2>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight mb-6">Every hour without AI is patients lost to competitors</h2>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 mb-8">
                 {["14-day free trial — no credit card", "Live campaign within 48 hours", "Cancel anytime, no contracts"].map((t, i) => (
                   <span key={i} className="flex items-center gap-2 text-sm font-medium text-white/90">
@@ -1455,7 +1455,7 @@ export default function LandingPage() {
       <section className="py-16 sm:py-24 px-4 sm:px-6 bg-gradient-to-b from-slate-50 to-white">
         <div className="max-w-4xl mx-auto">
           <Reveal>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-3">Why clinics are switching from agencies</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-3">₹50K/month to agencies with zero transparency? Those days are over.</h2>
             <p className="text-center text-slate-500 mb-10">Same results, fraction of the cost, and it works while you sleep.</p>
           </Reveal>
           <Reveal delay={0.1}>
@@ -1513,7 +1513,7 @@ export default function LandingPage() {
       <section id="faq" className="py-16 sm:py-24 px-4 sm:px-6">
         <div className="max-w-3xl mx-auto">
           <Reveal>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">Common questions</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">Got questions? We{"'"}ve got answers.</h2>
             <p className="text-center text-slate-500 mb-12">Everything you need to know about PatientPlex.</p>
           </Reveal>
           <div className="space-y-3">
