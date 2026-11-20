@@ -415,7 +415,7 @@ async def list_tracking_numbers(
 ):
     """List all provisioned Twilio tracking numbers."""
     numbers = await call_tracking_service.list_numbers()
-    return {"numbers": numbers, "twilio_connected": call_tracking_service.is_connected}
+    return {"numbers": numbers, "provider": settings.CALL_PROVIDER, "connected": call_tracking_service.is_connected}
 
 
 @router.post("/callback")
@@ -448,7 +448,7 @@ async def initiate_callback(
             status=CallStatus.RINGING,
             started_at=datetime.now(timezone.utc),
             platform_call_sid=result.get("call_sid"),
-            platform_provider="twilio",
+            platform_provider=settings.CALL_PROVIDER,
         )
         db.add(call_log)
         await db.commit()
