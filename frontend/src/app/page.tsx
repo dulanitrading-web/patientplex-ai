@@ -375,7 +375,7 @@ export default function LandingPage() {
                 className="flex flex-col sm:flex-row gap-3 mb-6">
                 <input type="email" placeholder="Enter your email" className="flex-1 px-5 py-3.5 rounded-xl border border-slate-300 bg-white text-slate-900 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all shadow-sm" />
                 <Link href="/signup" className="group inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm transition-all hover:scale-[1.03] active:scale-[0.97] shadow-lg shadow-emerald-500/25 whitespace-nowrap">
-                  Start free trial <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                  Join the pilot <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
               </motion.div>
 
@@ -696,7 +696,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <Reveal>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-center mb-4">15+ specialties. One platform.</h2>
-            <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">15+ medical specialties trust PatientPlex</p>
+            <p className="text-center text-lg text-slate-500 mb-16 max-w-2xl mx-auto">Built for 15+ medical specialties across India</p>
           </Reveal>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {[
@@ -803,7 +803,7 @@ export default function LandingPage() {
                       <div className="flex items-start gap-2 justify-end"><div className="bg-emerald-900/30 rounded-xl rounded-tr-sm px-3.5 py-2.5 text-sm text-emerald-100 max-w-[75%] border border-emerald-800/30">Namaste! 🙏 Dr. Bhardwaj has slots on Wed 10am and Fri 3pm. Teeth cleaning costs ₹1,500. Shall I book?</div><div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shrink-0"><Brain className="w-3.5 h-3.5 text-white" /></div></div>
                       <div className="flex items-start gap-2"><div className="w-7 h-7 rounded-full bg-green-900/40 flex items-center justify-center shrink-0"><MessageCircle className="w-3.5 h-3.5 text-green-400" /></div><div className="bg-slate-700/50 rounded-xl rounded-tl-sm px-3.5 py-2.5 text-sm text-slate-200 max-w-[75%]">Wednesday 10am please!</div></div>
                       <div className="flex items-start gap-2 justify-end"><div className="bg-emerald-900/30 rounded-xl rounded-tr-sm px-3.5 py-2.5 text-sm text-emerald-100 max-w-[75%] border border-emerald-800/30"><span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Booked! Wed 10am with Dr. Bhardwaj. Confirmation sent. See you! 😊</span></div><div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shrink-0"><Brain className="w-3.5 h-3.5 text-white" /></div></div>
-                      <div className="mt-3 flex items-center gap-2 text-xs text-slate-500"><Clock className="w-3 h-3" /> Response time: 8 seconds &bull; Language: Auto-detected Hindi/English</div>
+                      <div className="mt-3 flex items-center gap-2 text-xs text-slate-500"><Clock className="w-3 h-3" /> Illustrative demo &bull; Language: Auto-detected Hindi/English</div>
                     </motion.div>
                   )}
                   {demoScreen === 1 && (
@@ -1502,7 +1502,7 @@ export default function LandingPage() {
           <Reveal delay={0.2}>
             <div className="mt-8 text-center">
               <Link href="/signup" className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm transition-all hover:scale-[1.03] shadow-lg shadow-emerald-500/25">
-                Switch to AI — Start free trial <ArrowRight className="w-4 h-4" />
+                Switch to AI — Join the pilot <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
           </Reveal>
