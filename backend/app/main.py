@@ -52,57 +52,15 @@ async def lifespan(app: FastAPI):
         logger.warning("SECRET_KEY is set to the default value.")
     logger.info(f"{settings.PROJECT_NAME} API starting up")
 
-    # Create database tables if they don't exist
+    # Verify database connectivity (schema managed exclusively by Alembic)
     try:
         from app.db.session import engine
-        from app.db.base import Base
-        # Import all models so they register with Base
-        from app.models.doctor import Doctor  # noqa: F401
-        from app.models.conversation import Conversation, Appointment  # noqa: F401
-        from app.models.campaign import Campaign  # noqa: F401
-        from app.models.call_log import CallLog, ConversionEvent  # noqa: F401
-        from app.models.billing import Subscription, Invoice  # noqa: F401
-        from app.models.clinic_staff import ClinicStaff  # noqa: F401
-        from app.models.patient import Patient  # noqa: F401
-
         async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-            # Safety net: ensure columns exist even if Alembic migration 004
-            # hasn't been run yet.  The canonical source of truth is the
-            # migration file; this block is a fallback for existing deployments.
-            _safety_columns = [
-                ("doctors", "clinic_logo", "TEXT"),
-                ("doctors", "google_ads_customer_id", "VARCHAR(20)"),
-                ("doctors", "google_ads_refresh_token", "TEXT"),
-                ("doctors", "google_ads_connected", "BOOLEAN DEFAULT FALSE"),
-                ("doctors", "meta_ads_access_token", "TEXT"),
-                ("doctors", "meta_ads_account_id", "VARCHAR(100)"),
-                ("doctors", "meta_ads_page_id", "VARCHAR(100)"),
-                ("doctors", "meta_ads_connected", "BOOLEAN DEFAULT FALSE"),
-                ("doctors", "twilio_phone_number", "VARCHAR(20)"),
-                ("subscriptions", "razorpay_order_id", "VARCHAR(255)"),
-                ("subscriptions", "razorpay_payment_id", "VARCHAR(255)"),
-            ]
-            for table, col, col_type in _safety_columns:
-                try:
-                    await conn.execute(
-                        sa.text(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {col} {col_type}")
-                    )
-                except Exception:
-                    pass
-
-            # Enum expansion safety net
-            for new_val in ("CHATGPT", "INSTAGRAM", "GMB", "WHATSAPP", "PHYSIOTHERAPIST"):
-                try:
-                    await conn.execute(
-                        sa.text(f"ALTER TYPE ad_platform_enum ADD VALUE IF NOT EXISTS '{new_val}'")
-                    )
-                except Exception:
-                    pass
-
-        logger.info("Database tables verified/created")
+            result = await conn.execute(sa.text("SELECT 1"))
+            result.close()
+        logger.info("Database connection verified — schema managed by Alembic migrations")
     except Exception as e:
-        logger.error(f"Failed to create database tables: {e}")
+        logger.error(f"Database connection failed: {e}. Run 'alembic upgrade head' to initialize.")
 
     # Start agent scheduler + keep-alive + reminders
     try:

@@ -198,8 +198,24 @@ async def forgot_password(
         await db.commit()
 
         reset_url = f"{settings.FRONTEND_BASE_URL}/reset-password?token={token}"
-        # TODO: Send actual email via SendGrid/AWS SES
-        logger.info("Password reset requested for %s", body.email)
+
+        # Send email if email service is configured
+        try:
+            from app.services.email_service import send_password_reset_email, email_service_configured
+            if email_service_configured():
+                await send_password_reset_email(
+                    email=doctor.email,
+                    name=doctor.clinic_name or doctor.name or "Doctor",
+                    reset_token=token,
+                )
+                logger.info("Password reset email sent to %s", body.email)
+            else:
+                logger.warning(
+                    "Password reset requested for %s but email service not configured. "
+                    "Token generated but not delivered — configure EMAIL_PROVIDER.", body.email
+                )
+        except Exception as e:
+            logger.error("Failed to send password reset email: %s", e)
 
     return {"message": "If an account with that email exists, a reset link has been sent."}
 

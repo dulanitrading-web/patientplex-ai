@@ -227,7 +227,8 @@ async def send_password_reset_email(
     reset_token: str,
 ) -> dict:
     """Send password reset email with secure link."""
-    reset_url = f"https://patientplex-ai.vercel.app/reset-password?token={reset_token}"
+    from app.core.config import settings as _settings
+    reset_url = f"{_settings.FRONTEND_BASE_URL}/reset-password?token={reset_token}"
     subject = "Reset your PatientPlex password"
     html = f"""
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 520px; margin: 0 auto; padding: 24px;">
