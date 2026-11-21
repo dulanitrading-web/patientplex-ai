@@ -123,41 +123,53 @@ def detect_urgency(message: str) -> bool:
 
 # ─── System Prompt (v2 — Indian context, Hinglish, urgency) ─────────────────
 
-SYSTEM_PROMPT_TEMPLATE = """You are a friendly, professional AI receptionist for Dr. {doctor_name}'s {clinic_name}.
+SYSTEM_PROMPT_TEMPLATE = """You are the Business Brain for {clinic_name} — a warm, professional clinic assistant who speaks natural Hinglish.
 [Prompt version: {prompt_version}]
+
+Doctor: Dr. {doctor_name}
 Specialty: {specialty}
-Services offered: {services}
-Clinic address: {address}, {city}
+Services: {services}
+Address: {address}, {city}
+Hours: Mon-Sat, 9 AM to 8 PM
 
-Your ONLY job is to help patients book appointments. You must NEVER:
-- Give medical advice or diagnoses
-- Recommend treatments or medications
-- Discuss pricing (say "Doctor will discuss fees during your consultation. Most insurance plans are accepted.")
-- Share other patient information
-- Make up information about the doctor
+## YOUR PERSONALITY
+- Speak natural Hinglish — the way real people in Indian clinics talk. Auto-detect the patient's language from their message and match it. Code-switch naturally between Hindi and English. NOT formal translated Hindi.
+- Be warm, respectful (use "ji" with Hindi), and efficient. Keep replies SHORT — 2-3 sentences max.
+- You are a helpful assistant, not a doctor. Never pretend to be a medical professional.
 
-INDIAN CONTEXT — YOU WORK IN INDIA:
-- Many patients write in Hinglish (Hindi + English mix). Understand and reply naturally.
-- Common dental terms in Hindi: daant (teeth), dard (pain), safai (cleaning), crown, filling, implant, braces (taaron), jadon (roots), masoodhe (gums)
-- Address patients respectfully. Use "ji" when replying in Hindi.
-- Indian working hours: most patients prefer evening slots (5-8 PM) or early morning (9-10 AM)
-- Patients often ask "kitna lagega?" (how much will it cost?) — always redirect diplomatically.
+## HARD SAFETY RAIL — MEDICAL QUESTIONS
+If the patient asks about symptoms, diagnosis, medication, treatment advice, dosage, or any medical question:
+→ ALWAYS respond: "Iske liye doctor se baat karna best rahega. Kya main aapka appointment book kar doon?"
+→ NEVER give medical advice, suggest treatments, or discuss medications. This is non-negotiable.
 
-URGENCY HANDLING:
-- If the patient mentions pain, swelling, bleeding, broken tooth, or accident → treat as URGENT
-- For urgent cases: "I understand you're in pain. Let me find the earliest available slot for you right away."
-- Offer today's or tomorrow's first available slot for emergencies
-- If no slots today, offer to call the doctor's direct number
+If the patient mentions chest pain, difficulty breathing, uncontrolled bleeding, or any life-threatening emergency:
+→ IMMEDIATELY respond: "Yeh emergency lagti hai — please turant 112 call karein ya nearest hospital jayein. Doctor ko bhi inform kar deta/deti hoon."
+→ Do NOT try to book an appointment for emergencies.
 
-CONVERSATION RULES:
-- Keep responses SHORT (2-3 sentences max). Be warm but efficient.
-- When the patient shows interest in a service, offer to check available slots.
-- When showing slots, present them as a numbered list and ask which one works.
-- Always confirm: patient name, treatment interest, and chosen slot before booking.
-- Respond in the same language the patient uses (Hindi, Telugu, English, etc.)
-- If the patient asks something outside your scope, politely redirect to booking.
-- If the patient says CANCEL, RESCHEDULE, or similar, handle accordingly.
-- Use the tools provided to check slots and book appointments.
+## WHAT YOU CAN DO
+1. BOOK APPOINTMENTS: Check available slots (use show_available_slots tool), show numbered options, confirm name + treatment + time, then book (use book_appointment tool).
+2. RESCHEDULE/CANCEL: Handle "cancel karo" or "time change" requests.
+3. ANSWER CLINIC FAQs: Hours, location, services offered, general price ranges (say "approximately" and suggest confirming with doctor).
+4. TAKE MESSAGES: If a patient wants to leave a message for the doctor, note it and confirm.
+5. GIVE DIRECTIONS: Share clinic address and Google Maps link.
+
+## HOW TO BOOK
+1. When patient wants an appointment → ask what service they need
+2. Use show_available_slots to check real availability
+3. Present slots as numbered list: "1. 10:00 AM  2. 11:30 AM  3. 4:00 PM"
+4. Patient picks a number → confirm: "Dr. {doctor_name} ke saath [treatment] ka appointment [date] ko [time] pe? Name bata dijiye confirm karne ke liye."
+5. After patient confirms → use book_appointment tool
+6. Send confirmation with address
+
+## PRICING QUESTIONS
+When asked "kitna lagega?" → give the range from services list if available, then add: "Final fees doctor consultation ke baad decide hongi." Never invent prices.
+
+## CONVERSATION RULES
+- First message greeting: "Namaste! {clinic_name} mein aapka swagat hai. Main aapki kaise madad kar sakti/sakta hoon?"
+- Always confirm before booking — never assume.
+- If patient says "C" or "cancel" → cancel the ongoing booking flow.
+- If you don't understand → ask politely to rephrase, don't guess.
+- If asked anything outside your scope → "Main sirf appointment aur clinic info mein help kar sakti/sakta hoon. Doctor se directly baat karne ke liye main message forward kar deti/deta hoon."
 """
 
 CLAUDE_TOOLS = [
@@ -563,10 +575,10 @@ class AIReceptionist:
             return None
 
     async def _call_free_llm(self, system_prompt: str, messages: list[dict]) -> dict | None:
-        """Call a free/OpenAI-compatible LLM (Groq, Together.ai, Ollama, etc.).
+        """Call a free/OpenAI-compatible LLM (Groq, Together.ai, etc.) WITH tool use.
 
-        Converts Claude-format messages to OpenAI format, calls the API,
-        and converts the response back to Claude format for the tool-use loop.
+        Groq supports OpenAI-compatible function calling, so we convert
+        Claude tools to OpenAI format and enable real slot checking + booking.
         """
         # Build OpenAI-format messages
         oai_messages = [{"role": "system", "content": system_prompt}]
@@ -574,31 +586,37 @@ class AIReceptionist:
             if isinstance(msg.get("content"), str):
                 oai_messages.append({"role": msg["role"], "content": msg["content"]})
             elif isinstance(msg.get("content"), list):
-                # Extract text from content blocks
                 text_parts = []
                 for block in msg["content"]:
                     if isinstance(block, dict) and block.get("type") == "text":
                         text_parts.append(block["text"])
                     elif isinstance(block, dict) and block.get("type") == "tool_result":
                         text_parts.append(str(block.get("content", "")))
+                    elif isinstance(block, dict) and block.get("type") == "tool_use":
+                        # Convert Claude tool_use to OpenAI function call format
+                        text_parts.append(f"[Calling {block.get('name', '')}]")
                 if text_parts:
                     oai_messages.append({"role": msg["role"], "content": " ".join(text_parts)})
 
-        # Note: free models generally don't support tool use, so we include
-        # tool descriptions in the system prompt and parse structured output
-        enhanced_system = system_prompt + (
-            "\n\nIMPORTANT: You cannot use tools directly. When a patient wants to book, "
-            "ask for their name, preferred date/time, and treatment. Then say: "
-            "'Let me check available slots for you.' and list some example times. "
-            "Keep your responses SHORT (2-3 sentences). Be warm and professional."
-        )
-        oai_messages[0]["content"] = enhanced_system
+        # Convert Claude tools to OpenAI function-calling format
+        oai_tools = []
+        for tool in CLAUDE_TOOLS:
+            oai_tools.append({
+                "type": "function",
+                "function": {
+                    "name": tool["name"],
+                    "description": tool["description"],
+                    "parameters": tool["input_schema"],
+                },
+            })
 
         payload = {
             "model": settings.FREE_LLM_MODEL,
             "messages": oai_messages,
-            "max_tokens": 300,
+            "max_tokens": 400,
             "temperature": 0.7,
+            "tools": oai_tools,
+            "tool_choice": "auto",
         }
 
         try:
@@ -615,10 +633,38 @@ class AIReceptionist:
                 resp.raise_for_status()
                 data = resp.json()
 
-            # Convert OpenAI response to Claude format
             choice = data.get("choices", [{}])[0]
-            reply_text = choice.get("message", {}).get("content", "")
+            message = choice.get("message", {})
+            finish_reason = choice.get("finish_reason", "stop")
 
+            # Handle tool calls from Groq (OpenAI format → Claude format)
+            tool_calls = message.get("tool_calls", [])
+            if tool_calls and finish_reason == "tool_calls":
+                content = []
+                for tc in tool_calls:
+                    fn = tc.get("function", {})
+                    try:
+                        args = json.loads(fn.get("arguments", "{}"))
+                    except json.JSONDecodeError:
+                        args = {}
+                    content.append({
+                        "type": "tool_use",
+                        "id": tc.get("id", f"toolu_{uuid.uuid4().hex[:12]}"),
+                        "name": fn.get("name", ""),
+                        "input": args,
+                    })
+                usage = data.get("usage", {})
+                return {
+                    "content": content,
+                    "stop_reason": "tool_use",
+                    "usage": {
+                        "input_tokens": usage.get("prompt_tokens", 0),
+                        "output_tokens": usage.get("completion_tokens", 0),
+                    },
+                }
+
+            # Regular text response
+            reply_text = message.get("content", "")
             if not reply_text:
                 return None
 
