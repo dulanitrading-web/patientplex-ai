@@ -3,6 +3,29 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --primary: 160 84% 39%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --ring: 160 84% 39%;
+    --radius: 0.75rem;
+  }
+
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -10,7 +33,7 @@
   }
 
   body {
-    @apply bg-[#FAFAF8] text-slate-800;
+    @apply bg-white text-slate-800;
   }
 
   ::selection {
@@ -34,6 +57,18 @@
       text-sm py-2.5 px-3 transition-colors
       placeholder:text-slate-400;
   }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent;
+  }
+
+  .gradient-bg {
+    @apply bg-gradient-to-br from-emerald-50 via-white to-teal-50;
+  }
+
+  .glass {
+    @apply bg-white/80 backdrop-blur-xl border border-white/20;
+  }
 }
 
 @layer utilities {
@@ -43,6 +78,10 @@
 
   .animate-fade-in {
     animation: fadeIn 0.4s ease-out;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
   }
 
   .tabular-nums {
@@ -58,4 +97,9 @@
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
