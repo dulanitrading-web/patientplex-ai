@@ -10,8 +10,8 @@ Revises: 008
 from alembic import op
 import sqlalchemy as sa
 
-revision = "009"
-down_revision = "008"
+revision = "009_add_clinic_logo_and_enum"
+down_revision = "008_add_performance_indexes"
 branch_labels = None
 depends_on = None
 
