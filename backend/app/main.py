@@ -391,16 +391,28 @@ async def telephony_diagnostics(key: str = ""):
     return result
 
 
-@app.post("/api/v1/cron/reminders", tags=["cron"])
-async def trigger_reminders():
-    """Trigger appointment reminders — call this from an external cron service.
+def _verify_cron_secret(request: Request):
+    """Verify X-Cron-Key header matches CRON_SECRET. Fail closed."""
+    import hmac
+    if not settings.CRON_SECRET:
+        raise HTTPException(
+            status_code=503,
+            detail="Cron endpoints disabled — CRON_SECRET not configured",
+        )
+    key = request.headers.get("X-Cron-Key", "")
+    if not hmac.compare_digest(key, settings.CRON_SECRET):
+        raise HTTPException(status_code=403, detail="Invalid cron key")
 
-    Sends WhatsApp reminders for appointments 24h and 2h away,
-    and marks past appointments without attendance as no-shows.
+
+@app.post("/api/v1/cron/reminders", tags=["cron"])
+async def trigger_reminders(request: Request):
+    """Trigger appointment reminders — requires X-Cron-Key header.
 
     Set up a free cron job at cron-job.org to call this every 30 minutes:
     POST https://patientplex-ai-g7ce.onrender.com/api/v1/cron/reminders
+    Headers: X-Cron-Key: <your CRON_SECRET value>
     """
+    _verify_cron_secret(request)
     from app.db.session import async_session_factory
     from app.services.reminder_service import ReminderService
 
@@ -417,12 +429,9 @@ async def trigger_reminders():
 
 
 @app.post("/api/v1/cron/slot-filler", tags=["cron"])
-async def trigger_slot_filler():
-    """Fill empty next-day slots by messaging hot leads.
-
-    Set up a cron job to call this daily at 10 AM IST:
-    POST https://patientplex-ai-g7ce.onrender.com/api/v1/cron/slot-filler
-    """
+async def trigger_slot_filler(request: Request):
+    """Fill empty next-day slots — requires X-Cron-Key header."""
+    _verify_cron_secret(request)
     from app.db.session import async_session_factory
     from app.services.revenue_agents import SlotFillerAgent
 
@@ -434,12 +443,9 @@ async def trigger_slot_filler():
 
 
 @app.post("/api/v1/cron/win-back", tags=["cron"])
-async def trigger_win_back():
-    """Win back patients overdue for recurring treatments.
-
-    Set up a cron job to call this weekly (e.g., Monday 11 AM IST):
-    POST https://patientplex-ai-g7ce.onrender.com/api/v1/cron/win-back
-    """
+async def trigger_win_back(request: Request):
+    """Win back overdue patients — requires X-Cron-Key header."""
+    _verify_cron_secret(request)
     from app.db.session import async_session_factory
     from app.services.revenue_agents import WinBackAgent
 
@@ -451,12 +457,9 @@ async def trigger_win_back():
 
 
 @app.post("/api/v1/cron/review-requests", tags=["cron"])
-async def trigger_review_requests():
-    """Request Google reviews after completed appointments.
-
-    Set up a cron job to call this every 2 hours:
-    POST https://patientplex-ai-g7ce.onrender.com/api/v1/cron/review-requests
-    """
+async def trigger_review_requests(request: Request):
+    """Request Google reviews — requires X-Cron-Key header."""
+    _verify_cron_secret(request)
     from app.db.session import async_session_factory
     from app.services.revenue_agents import ReviewAgent
 
@@ -468,12 +471,9 @@ async def trigger_review_requests():
 
 
 @app.post("/api/v1/cron/doctor-digest", tags=["cron"])
-async def trigger_doctor_digest():
-    """Send daily business digest to doctors at 8 AM IST.
-
-    Set up a cron job for 8 AM IST (2:30 AM UTC):
-    POST https://patientplex-ai-g7ce.onrender.com/api/v1/cron/doctor-digest
-    """
+async def trigger_doctor_digest(request: Request):
+    """Send daily doctor digest — requires X-Cron-Key header."""
+    _verify_cron_secret(request)
     from app.db.session import async_session_factory
     from app.services.revenue_agents import DoctorDigestAgent
 

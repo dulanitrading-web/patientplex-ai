@@ -90,6 +90,9 @@ class Settings(BaseSettings):
     FREE_LLM_BASE_URL: str = ""         # e.g. https://api.groq.com/openai/v1
     FREE_LLM_MODEL: str = "llama-3.3-70b-versatile"  # Model to use
 
+    # Cron endpoint protection — set to a random string; pass as X-Cron-Key header
+    CRON_SECRET: str = ""
+
     # Feature flags
     ADS_ENABLED: bool = False  # Set True to enable ad platform integrations (Google/Meta/LinkedIn/GMB/GA4)
 
