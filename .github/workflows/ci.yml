@@ -89,12 +89,12 @@ jobs:
       - name: TypeScript check
         run: |
           cd frontend
-          npx tsc --noEmit || true
+          npx tsc --noEmit
 
       - name: Lint
         run: |
           cd frontend
-          npm run lint || true
+          npm run lint
 
       - name: Build
         run: |
@@ -152,7 +152,7 @@ jobs:
         run: |
           pip install pip-audit
           cd backend
-          pip-audit -r requirements.txt || true
+          pip-audit -r requirements.txt
 
       - uses: actions/setup-node@v4
         with:
@@ -161,4 +161,4 @@ jobs:
       - name: npm audit
         run: |
           cd frontend
-          npm audit --audit-level=high || true
+          npm audit --audit-level=high
