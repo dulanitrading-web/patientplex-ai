@@ -458,6 +458,74 @@ async def trigger_reminders():
     }
 
 
+@app.post("/api/v1/cron/slot-filler", tags=["cron"])
+async def trigger_slot_filler():
+    """Fill empty next-day slots by messaging hot leads.
+
+    Set up a cron job to call this daily at 10 AM IST:
+    POST https://patientplex-ai-g7ce.onrender.com/api/v1/cron/slot-filler
+    """
+    from app.db.session import async_session_factory
+    from app.services.revenue_agents import SlotFillerAgent
+
+    async with async_session_factory() as db:
+        agent = SlotFillerAgent(db)
+        result = await agent.run()
+        await db.commit()
+    return result
+
+
+@app.post("/api/v1/cron/win-back", tags=["cron"])
+async def trigger_win_back():
+    """Win back patients overdue for recurring treatments.
+
+    Set up a cron job to call this weekly (e.g., Monday 11 AM IST):
+    POST https://patientplex-ai-g7ce.onrender.com/api/v1/cron/win-back
+    """
+    from app.db.session import async_session_factory
+    from app.services.revenue_agents import WinBackAgent
+
+    async with async_session_factory() as db:
+        agent = WinBackAgent(db)
+        result = await agent.run()
+        await db.commit()
+    return result
+
+
+@app.post("/api/v1/cron/review-requests", tags=["cron"])
+async def trigger_review_requests():
+    """Request Google reviews after completed appointments.
+
+    Set up a cron job to call this every 2 hours:
+    POST https://patientplex-ai-g7ce.onrender.com/api/v1/cron/review-requests
+    """
+    from app.db.session import async_session_factory
+    from app.services.revenue_agents import ReviewAgent
+
+    async with async_session_factory() as db:
+        agent = ReviewAgent(db)
+        result = await agent.run()
+        await db.commit()
+    return result
+
+
+@app.post("/api/v1/cron/doctor-digest", tags=["cron"])
+async def trigger_doctor_digest():
+    """Send daily business digest to doctors at 8 AM IST.
+
+    Set up a cron job for 8 AM IST (2:30 AM UTC):
+    POST https://patientplex-ai-g7ce.onrender.com/api/v1/cron/doctor-digest
+    """
+    from app.db.session import async_session_factory
+    from app.services.revenue_agents import DoctorDigestAgent
+
+    async with async_session_factory() as db:
+        agent = DoctorDigestAgent(db)
+        result = await agent.run()
+        await db.commit()
+    return result
+
+
 @app.get("/api/v1/cron/keep-alive", tags=["cron"])
 async def keep_alive():
     """Keep-alive endpoint to prevent Render free tier from sleeping.

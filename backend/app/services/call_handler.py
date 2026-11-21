@@ -172,14 +172,14 @@ class CallHandler:
 
         clinic_name = doctor.clinic_name or f"Dr. {doctor.full_name}'s clinic"
 
-        # Send WhatsApp message to the patient
+        # Send Hinglish WhatsApp message to the patient (Business Brain persona)
         message = (
-            f"Hi! We noticed you just called {clinic_name}. "
-            f"Sorry we couldn't pick up right now. 😊\n\n"
-            f"I'm the AI assistant for Dr. {doctor.full_name}. "
-            f"I can help you book an appointment right away!\n\n"
-            f"What treatment are you looking for? "
-            f"Or just tell me when you'd like to visit, and I'll check available slots."
+            f"Namaste! 🙏 Aapne abhi {clinic_name} pe call kiya tha — "
+            f"sorry hum pick nahi kar paaye.\n\n"
+            f"Main Dr. {doctor.full_name} ki assistant hoon. "
+            f"Aapka appointment abhi book kar sakti hoon!\n\n"
+            f"Aapko kaunsi treatment chahiye? Ya batayein kab aana hai — "
+            f"main available slots check kar leti hoon. 😊"
         )
 
         result = await whatsapp_service.send_message(
