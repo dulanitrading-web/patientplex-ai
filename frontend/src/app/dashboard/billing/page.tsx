@@ -342,18 +342,27 @@ function PlanCard({ plan, isCurrent, isPopular }: {
         )}
       </div>
 
-      <button
-        disabled={isCurrent}
-        className={`w-full py-2.5 rounded-lg text-sm font-medium transition-colors ${
-          isCurrent
-            ? "bg-slate-50 text-slate-600 cursor-not-allowed"
-            : isPopular
+      {isCurrent ? (
+        <button
+          disabled
+          className="w-full py-2.5 rounded-lg text-sm font-medium bg-slate-50 text-slate-600 cursor-not-allowed"
+        >
+          Current Plan
+        </button>
+      ) : (
+        <a
+          href="https://wa.me/918447804080?text=Hi%2C%20I%27d%20like%20to%20join%20the%20PatientPlex%20pilot%20program"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`block w-full py-2.5 rounded-lg text-sm font-medium text-center transition-colors ${
+            isPopular
               ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-500/20"
               : "border border-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-900"
-        }`}
-      >
-        {isCurrent ? "Current Plan" : "Upgrade"}
-      </button>
+          }`}
+        >
+          Join Pilot — WhatsApp Us
+        </a>
+      )}
     </div>
   );
 }
