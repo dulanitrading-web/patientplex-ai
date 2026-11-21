@@ -276,6 +276,21 @@ export default function SettingsPage() {
         )}
       </div>
 
+      {/* Google OAuth Verification Warning */}
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+        <AlertTriangle className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" />
+        <div>
+          <p className="text-sm font-medium text-amber-800">Google OAuth in Testing Mode</p>
+          <p className="text-xs text-amber-700 mt-1">
+            Google Ads and Calendar connections work for 1 test user only until Google verification is complete.
+            New clinic owners will see &quot;Google hasn&apos;t verified this app&quot; — click Advanced → Go to PatientPlex → Allow.
+          </p>
+          <p className="text-xs text-amber-600 mt-1">
+            <strong>To fix:</strong> Google Cloud Console → APIs → OAuth consent screen → Publish to Production → Submit for verification.
+          </p>
+        </div>
+      </div>
+
       {/* Integration Status */}
       <div className="bg-white rounded-xl border border-slate-200 p-5">
         <SectionHeader icon={<Link2 className="w-5 h-5 text-violet-600" />} title="Integration Status" />
