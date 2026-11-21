@@ -89,7 +89,10 @@ class Settings(BaseSettings):
     FREE_LLM_BASE_URL: str = ""         # e.g. https://api.groq.com/openai/v1
     FREE_LLM_MODEL: str = "llama-3.3-70b-versatile"  # Model to use
 
-    # Google Ads API
+    # Feature flags
+    ADS_ENABLED: bool = False  # Set True to enable ad platform integrations (Google/Meta/LinkedIn/GMB/GA4)
+
+    # Google Ads API (requires ADS_ENABLED=true + developer token approval)
     GOOGLE_ADS_DEVELOPER_TOKEN: str = ""
     GOOGLE_ADS_LOGIN_CUSTOMER_ID: str = ""
 
