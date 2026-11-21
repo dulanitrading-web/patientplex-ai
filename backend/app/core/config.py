@@ -72,6 +72,7 @@ class Settings(BaseSettings):
     # Razorpay (Billing / Payments)
     RAZORPAY_KEY_ID: str = ""
     RAZORPAY_KEY_SECRET: str = ""
+    RAZORPAY_WEBHOOK_SECRET: str = ""  # For verifying Razorpay webhook signatures
 
     # Field-level encryption for sensitive data (e.g. OAuth tokens)
     # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"

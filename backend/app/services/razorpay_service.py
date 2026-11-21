@@ -13,28 +13,28 @@ from typing import Dict, Optional
 
 logger = logging.getLogger(__name__)
 
-# Plan definitions matching the pricing page
+# Plan definitions — test mode pricing (update amounts when going live)
 PLANS = {
     "starter": {
         "name": "Starter",
-        "amount": 999900,  # ₹9,999 in paise
+        "amount": 299900,  # ₹2,999 in paise
         "currency": "INR",
         "period": "monthly",
-        "description": "PatientPlex Starter — Google Ads + WhatsApp + Phone AI + GMB",
+        "description": "PatientPlex Starter — Call tracking + AI receptionist + Booking",
     },
     "growth": {
         "name": "Growth",
-        "amount": 2499900,  # ₹24,999 in paise
+        "amount": 499900,  # ₹4,999 in paise
         "currency": "INR",
         "period": "monthly",
-        "description": "PatientPlex Growth — 4 ad platforms, unlimited AI, ML optimization",
+        "description": "PatientPlex Growth — + WhatsApp automation + Analytics dashboard",
     },
     "enterprise": {
         "name": "Enterprise",
-        "amount": 4999900,  # ₹49,999 in paise
+        "amount": 999900,  # ₹9,999 in paise
         "currency": "INR",
         "period": "monthly",
-        "description": "PatientPlex Enterprise — 10 locations, dedicated manager, API access",
+        "description": "PatientPlex Enterprise — Multi-location + Priority support",
     },
 }
 

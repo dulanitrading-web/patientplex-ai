@@ -1,13 +1,26 @@
 """
 Payment API routes — Razorpay integration for PatientPlex subscriptions.
+
+NOTE: Currently configured for Razorpay TEST MODE only.
+Set RAZORPAY_KEY_ID (rzp_test_...) and RAZORPAY_KEY_SECRET in env vars.
+Complete Razorpay KYC to go live.
 """
 
 import logging
+from datetime import datetime, timezone
 from typing import Optional
+from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
+from sqlalchemy import select, update
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.v1.auth import get_current_doctor
+from app.core.config import settings
+from app.db.session import get_db
+from app.models.billing import Subscription, SubscriptionStatus, PlanTier
+from app.models.doctor import Doctor
 from app.services.razorpay_service import razorpay_service, PLANS, ANNUAL_PLANS
 
 logger = logging.getLogger(__name__)
@@ -59,7 +72,10 @@ async def create_order(req: CreateOrderRequest):
 
 
 @router.post("/verify-payment")
-async def verify_payment(req: VerifyPaymentRequest):
+async def verify_payment(
+    req: VerifyPaymentRequest,
+    db: AsyncSession = Depends(get_db),
+):
     """Verify payment after Razorpay checkout completes.
 
     Called from the frontend after successful Razorpay checkout.
@@ -71,42 +87,79 @@ async def verify_payment(req: VerifyPaymentRequest):
         razorpay_signature=req.razorpay_signature,
     )
 
-    if result["status"] == "verified":
-        # TODO: Update doctor's subscription status in DB
-        # await db.execute(
-        #     update(Doctor).where(Doctor.id == req.doctor_id).values(
-        #         plan=req.plan_id, subscription_status="active",
-        #         razorpay_payment_id=req.razorpay_payment_id,
-        #     )
-        # )
-        logger.info(f"Payment verified for doctor {req.doctor_id}, plan {req.plan_id}")
+    if result["status"] in ("verified", "demo_mode"):
+        # Map plan_id to tier
+        tier_map = {"starter": PlanTier.STARTER, "growth": PlanTier.GROWTH, "enterprise": PlanTier.ENTERPRISE}
+        tier = tier_map.get(req.plan_id, PlanTier.STARTER)
+
+        # Upsert subscription
+        doctor_uuid = UUID(req.doctor_id)
+        existing = await db.execute(
+            select(Subscription).where(Subscription.doctor_id == doctor_uuid)
+        )
+        sub = existing.scalar_one_or_none()
+        if sub:
+            sub.plan_tier = tier
+            sub.status = SubscriptionStatus.ACTIVE
+            sub.razorpay_payment_id = req.razorpay_payment_id
+            sub.current_period_start = datetime.now(timezone.utc)
+        else:
+            sub = Subscription(
+                doctor_id=doctor_uuid,
+                plan_tier=tier,
+                status=SubscriptionStatus.ACTIVE,
+                razorpay_payment_id=req.razorpay_payment_id,
+                current_period_start=datetime.now(timezone.utc),
+            )
+            db.add(sub)
+        await db.commit()
+
+        logger.info("Payment verified for doctor %s, plan %s", req.doctor_id, req.plan_id)
         return {
             "status": "success",
             "message": "Payment verified and subscription activated",
-            "payment_id": result["payment_id"],
+            "payment_id": result.get("payment_id", "demo"),
+            "plan": req.plan_id,
         }
 
     raise HTTPException(status_code=400, detail="Payment verification failed")
 
 
-@router.get("/subscription/{doctor_id}")
-async def get_subscription(doctor_id: str):
-    """Get current subscription status for a doctor."""
-    # TODO: Fetch from DB
+@router.get("/subscription")
+async def get_subscription(
+    doctor: Doctor = Depends(get_current_doctor),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get current subscription status for the authenticated doctor."""
+    result = await db.execute(
+        select(Subscription).where(Subscription.doctor_id == doctor.id)
+    )
+    sub = result.scalar_one_or_none()
+
+    if not sub:
+        return {
+            "doctor_id": str(doctor.id),
+            "status": "inactive",
+            "plan": None,
+            "message": "No active subscription. Choose a plan to get started.",
+        }
+
     return {
-        "doctor_id": doctor_id,
-        "status": "inactive",
-        "plan": None,
-        "message": "No active subscription. Choose a plan to get started.",
+        "doctor_id": str(doctor.id),
+        "status": sub.status.value,
+        "plan": sub.plan_tier.value,
+        "current_period_start": sub.current_period_start.isoformat() if sub.current_period_start else None,
+        "current_period_end": sub.current_period_end.isoformat() if sub.current_period_end else None,
     }
 
 
 @router.post("/webhook")
-async def razorpay_webhook(request: Request):
-    """Razorpay webhook receiver.
+async def razorpay_webhook(request: Request, db: AsyncSession = Depends(get_db)):
+    """Razorpay webhook receiver with signature verification.
 
     Handles: payment.captured, payment.failed,
-    subscription.activated, subscription.cancelled, subscription.charged
+    subscription.activated, subscription.cancelled, subscription.charged.
+    Updates subscription status in the database.
     """
     body = await request.body()
     signature = request.headers.get("X-Razorpay-Signature", "")
@@ -118,22 +171,53 @@ async def razorpay_webhook(request: Request):
     event_type = payload.get("event", "")
     event_payload = payload.get("payload", {})
 
-    logger.info(f"Razorpay webhook: {event_type}")
+    logger.info("Razorpay webhook: %s", event_type)
     result = razorpay_service.process_webhook_event(event_type, event_payload)
+    doctor_id = result.get("doctor_id")
 
-    # TODO: Process each action type
-    if result["action"] == "activate_subscription":
-        logger.info(f"Activating subscription: {result}")
-        # Update DB, send confirmation WhatsApp
+    if result["action"] == "activate_subscription" and doctor_id:
+        try:
+            doctor_uuid = UUID(doctor_id)
+            await db.execute(
+                update(Subscription)
+                .where(Subscription.doctor_id == doctor_uuid)
+                .values(status=SubscriptionStatus.ACTIVE)
+            )
+            await db.commit()
+            logger.info("Subscription activated for doctor %s", doctor_id)
+        except Exception:
+            logger.exception("Failed to activate subscription for %s", doctor_id)
+
     elif result["action"] == "notify_payment_failure":
-        logger.warning(f"Payment failed: {result}")
-        # Notify doctor via WhatsApp/email
+        logger.warning("Payment failed for doctor %s: %s", doctor_id, result.get("reason"))
+        if doctor_id:
+            try:
+                doctor_uuid = UUID(doctor_id)
+                await db.execute(
+                    update(Subscription)
+                    .where(Subscription.doctor_id == doctor_uuid)
+                    .values(status=SubscriptionStatus.PAST_DUE)
+                )
+                await db.commit()
+            except Exception:
+                logger.exception("Failed to mark past_due for %s", doctor_id)
+
     elif result["action"] == "cancel_subscription":
-        logger.info(f"Subscription cancelled: {result}")
-        # Update DB, send confirmation
+        sub_id = result.get("subscription_id")
+        if sub_id:
+            try:
+                await db.execute(
+                    update(Subscription)
+                    .where(Subscription.razorpay_subscription_id == sub_id)
+                    .values(status=SubscriptionStatus.CANCELLED)
+                )
+                await db.commit()
+                logger.info("Subscription cancelled: %s", sub_id)
+            except Exception:
+                logger.exception("Failed to cancel subscription %s", sub_id)
+
     elif result["action"] == "record_renewal":
-        logger.info(f"Subscription renewed: {result}")
-        # Record in billing table
+        logger.info("Subscription renewed: %s", result.get("subscription_id"))
 
     return {"status": "ok", "processed": event_type}
 
