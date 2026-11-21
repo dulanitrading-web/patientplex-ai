@@ -75,8 +75,8 @@ class CallLog(Base):
     recording_duration: Mapped[int] = mapped_column(Integer, default=0)
 
     # Platform IDs
-    platform_call_sid: Mapped[str | None] = mapped_column(String(255), nullable=True)  # Twilio CallSid
-    platform_provider: Mapped[str] = mapped_column(String(20), default="twilio")  # twilio or exotel
+    platform_call_sid: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)  # Exotel/Twilio CallSid
+    platform_provider: Mapped[str] = mapped_column(String(20), default="exotel")  # exotel or twilio
 
     # What happened after the call
     whatsapp_followup_sent: Mapped[bool] = mapped_column(Boolean, default=False)

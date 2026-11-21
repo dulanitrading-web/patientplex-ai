@@ -1,9 +1,11 @@
 """WhatsApp webhook and conversation management endpoints."""
 
+import asyncio
 import hashlib
 import hmac
 import logging
 import os
+from collections import OrderedDict
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -17,13 +19,29 @@ from app.api.v1.auth import get_current_doctor
 from app.core.config import settings
 
 limiter = Limiter(key_func=get_remote_address, enabled=os.environ.get("TESTING", "").lower() != "true")
-from app.db.session import get_db
+from app.db.session import get_db, async_session_factory
 from app.models.conversation import Appointment, Conversation, ConversationStatus
 from app.models.doctor import Doctor
 from app.services.ai_receptionist import AIReceptionist
 from app.services.whatsapp import whatsapp_service
 
 logger = logging.getLogger(__name__)
+
+# --- Idempotency: dedupe Meta webhook message IDs (in-memory LRU) ---
+_seen_message_ids: OrderedDict[str, bool] = OrderedDict()
+_SEEN_MAX = 5000
+
+
+def _is_duplicate_message(message_id: str) -> bool:
+    """Check if we've already processed this Meta message ID. Thread-safe for asyncio."""
+    if not message_id:
+        return False
+    if message_id in _seen_message_ids:
+        return True
+    _seen_message_ids[message_id] = True
+    while len(_seen_message_ids) > _SEEN_MAX:
+        _seen_message_ids.popitem(last=False)
+    return False
 
 router = APIRouter(prefix="/whatsapp", tags=["whatsapp"])
 
@@ -74,18 +92,21 @@ async def verify_meta_signature(request: Request) -> None:
 
 
 @router.post("/webhook", dependencies=[Depends(verify_meta_signature)])
-@limiter.limit("30/minute")
-async def receive_message(request: Request, db: AsyncSession = Depends(get_db)):
+@limiter.limit("60/minute")
+async def receive_message(request: Request):
     """Receive incoming WhatsApp messages and process through AI receptionist.
 
-    Handles the Meta Cloud API webhook payload format.
+    Returns 200 immediately and processes messages in a background task.
+    Meta retries on timeout, so fast response is critical.
+    Deduplicates on message ID to prevent double-processing.
     """
     try:
         body = await request.json()
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid JSON body")
 
-    # Parse Meta webhook payload
+    # Parse Meta webhook payload — collect messages to process
+    tasks_to_run = []
     entries = body.get("entry", [])
     for entry in entries:
         changes = entry.get("changes", [])
@@ -94,34 +115,113 @@ async def receive_message(request: Request, db: AsyncSession = Depends(get_db)):
             messages = value.get("messages", [])
 
             for message in messages:
+                msg_id = message.get("id", "")
+
+                # Idempotency: skip already-processed messages
+                if _is_duplicate_message(msg_id):
+                    logger.info("Skipping duplicate message %s", msg_id)
+                    continue
+
                 if message.get("type") != "text":
+                    logger.info("Ignoring non-text message type=%s from %s",
+                                message.get("type"), message.get("from", ""))
                     continue
 
                 sender_phone = message.get("from", "")
                 text = message.get("text", {}).get("body", "")
+                phone_number_id = value.get("metadata", {}).get("phone_number_id", "")
+                display_phone = value.get("metadata", {}).get("display_phone_number", "")
 
                 if not sender_phone or not text:
                     continue
 
-                # Find which doctor this WhatsApp number belongs to
-                doctor = await _find_doctor_by_whatsapp(db, value)
-                if doctor is None:
-                    logger.warning("No doctor found for incoming message from %s", sender_phone)
-                    continue
+                tasks_to_run.append({
+                    "sender_phone": sender_phone,
+                    "text": text,
+                    "phone_number_id": phone_number_id,
+                    "display_phone": display_phone,
+                })
 
-                # Process through AI receptionist
-                receptionist = AIReceptionist(doctor, db)
-                response_text = await receptionist.process_message(sender_phone, text)
-
-                # Send response back via WhatsApp
-                phone_number_id = value.get("metadata", {}).get("phone_number_id", "")
-                await whatsapp_service.send_message(
-                    to=sender_phone,
-                    message=response_text,
-                    phone_number_id=phone_number_id,
-                )
+    # Fire background tasks for each message — don't block the 200 response
+    for task_data in tasks_to_run:
+        asyncio.create_task(_process_whatsapp_message(
+            sender_phone=task_data["sender_phone"],
+            text=task_data["text"],
+            phone_number_id=task_data["phone_number_id"],
+            display_phone=task_data["display_phone"],
+        ))
 
     return {"status": "ok"}
+
+
+async def _process_whatsapp_message(
+    sender_phone: str,
+    text: str,
+    phone_number_id: str,
+    display_phone: str,
+) -> None:
+    """Background task: process a WhatsApp message through AI receptionist.
+
+    Uses its own DB session since the request session is closed after 200.
+    Retries WhatsApp send with backoff on failure.
+    """
+    try:
+        async with async_session_factory() as db:
+            # Find which doctor this WhatsApp number belongs to
+            doctor = await _find_doctor_by_whatsapp(db, {
+                "metadata": {
+                    "phone_number_id": phone_number_id,
+                    "display_phone_number": display_phone,
+                }
+            })
+            if doctor is None:
+                logger.warning("No doctor found for incoming message from %s", sender_phone)
+                return
+
+            # Process through AI receptionist
+            receptionist = AIReceptionist(doctor, db)
+            response_text = await receptionist.process_message(sender_phone, text)
+
+            # Send response back via WhatsApp — retry with backoff
+            await _send_with_retry(
+                to=sender_phone,
+                message=response_text,
+                phone_number_id=phone_number_id,
+            )
+    except Exception:
+        logger.exception("Failed to process WhatsApp message from %s", sender_phone)
+
+
+async def _send_with_retry(
+    to: str,
+    message: str,
+    phone_number_id: str,
+    max_attempts: int = 3,
+    backoff_seconds: tuple[int, ...] = (30, 120, 600),
+) -> dict:
+    """Send a WhatsApp message with exponential backoff retry.
+
+    Retries on failure: 30s, 2min, 10min.
+    """
+    for attempt in range(max_attempts):
+        result = await whatsapp_service.send_message(
+            to=to, message=message, phone_number_id=phone_number_id,
+        )
+        if "error" not in result:
+            return result
+        if attempt < max_attempts - 1:
+            delay = backoff_seconds[attempt] if attempt < len(backoff_seconds) else backoff_seconds[-1]
+            logger.warning(
+                "WhatsApp send to %s failed (attempt %d/%d), retrying in %ds: %s",
+                to, attempt + 1, max_attempts, delay, result.get("error"),
+            )
+            await asyncio.sleep(delay)
+        else:
+            logger.error(
+                "WhatsApp send to %s failed after %d attempts: %s",
+                to, max_attempts, result.get("error"),
+            )
+    return result
 
 
 async def _find_doctor_by_whatsapp(db: AsyncSession, webhook_value: dict) -> Doctor | None:

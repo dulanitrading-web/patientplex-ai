@@ -6,7 +6,9 @@ These endpoints receive webhooks from the voice provider when:
 3. A recording is ready → we store the URL
 """
 
+import asyncio
 import logging
+from collections import OrderedDict
 from datetime import datetime, timezone
 from uuid import UUID
 
@@ -23,13 +25,29 @@ from app.api.v1.auth import get_current_doctor
 from app.core.config import settings
 
 limiter = Limiter(key_func=get_remote_address, enabled=os.environ.get("TESTING", "").lower() != "true")
-from app.db.session import get_db
+from app.db.session import get_db, async_session_factory
 from app.models.call_log import CallDirection, CallLog, CallStatus
 from app.models.doctor import Doctor
 from app.services.call_handler import CallHandler, TwilioVoiceHandler, ExotelVoiceHandler
 from app.services.call_tracking import call_tracking_service
 
 logger = logging.getLogger(__name__)
+
+# --- Idempotency: dedupe Exotel callbacks by CallSid (in-memory LRU) ---
+_seen_call_sids: OrderedDict[str, bool] = OrderedDict()
+_SEEN_CALL_MAX = 2000
+
+
+def _is_duplicate_call_status(call_sid: str) -> bool:
+    """Check if we've already processed this call status callback."""
+    if not call_sid:
+        return False
+    if call_sid in _seen_call_sids:
+        return True
+    _seen_call_sids[call_sid] = True
+    while len(_seen_call_sids) > _SEEN_CALL_MAX:
+        _seen_call_sids.popitem(last=False)
+    return False
 
 router = APIRouter(prefix="/calls", tags=["calls"])
 
@@ -291,33 +309,61 @@ async def handle_exotel_incoming_call(
 
 
 @router.post("/exotel/status")
-@limiter.limit("30/minute")
+@limiter.limit("60/minute")
 async def handle_exotel_call_status(
     request: Request,
-    db: AsyncSession = Depends(get_db),
 ):
     """Exotel status callback — called when a call completes or fails.
 
-    Detects missed calls and triggers WhatsApp follow-up.
+    Returns 200 immediately. Processes call status and missed-call
+    follow-up in a background task. Deduplicates on CallSid so a
+    missed-call WhatsApp follow-up fires exactly once.
     """
     form = await request.form()
     form_data = {k: v for k, v in form.items()}
     parsed = ExotelVoiceHandler.parse_status_webhook(form_data)
 
+    call_sid = parsed["call_sid"]
+
+    # Idempotency: skip duplicate status callbacks
+    if _is_duplicate_call_status(call_sid):
+        logger.info("Skipping duplicate Exotel status callback for SID=%s", call_sid)
+        return {"status": "ok", "deduplicated": True}
+
     logger.info(
         "Exotel call status: SID=%s status=%s duration=%ds",
-        parsed["call_sid"], parsed["status"], parsed["duration"],
+        call_sid, parsed["status"], parsed["duration"],
     )
 
-    handler = CallHandler(db)
-    call_log = await handler.handle_call_completed(
-        call_sid=parsed["call_sid"],
+    # Process in background — don't block the 200 response
+    asyncio.create_task(_process_call_status(
+        call_sid=call_sid,
         status=parsed["status"],
         duration=parsed["duration"],
         recording_url=parsed["recording_url"],
-    )
+    ))
 
     return {"status": "ok"}
+
+
+async def _process_call_status(
+    call_sid: str,
+    status: str,
+    duration: int,
+    recording_url: str | None,
+) -> None:
+    """Background task: update call log and trigger missed-call follow-up."""
+    try:
+        async with async_session_factory() as db:
+            handler = CallHandler(db)
+            await handler.handle_call_completed(
+                call_sid=call_sid,
+                status=status,
+                duration=duration,
+                recording_url=recording_url,
+            )
+    except Exception:
+        logger.exception("Failed to process call status for SID=%s", call_sid)
 
 
 # ---- Dashboard endpoints (protected) ----
