@@ -25,7 +25,7 @@ def upgrade() -> None:
 
     # PHYSIOTHERAPIST was added at runtime but never in a migration
     op.execute(
-        sa.text("ALTER TYPE specialty ADD VALUE IF NOT EXISTS 'PHYSIOTHERAPIST'")
+        sa.text("ALTER TYPE specialty_enum ADD VALUE IF NOT EXISTS 'PHYSIOTHERAPIST'")
     )
 
 

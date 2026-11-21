@@ -212,7 +212,7 @@ async def forgot_password(
             else:
                 logger.warning(
                     "Password reset requested for %s but email service not configured. "
-                    "Reset URL (dev only): %s", body.email, reset_url
+                    "Token generated but not delivered — configure EMAIL_PROVIDER.", body.email
                 )
         except Exception as e:
             logger.error("Failed to send password reset email: %s", e)
