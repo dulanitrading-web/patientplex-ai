@@ -11,6 +11,7 @@ Creates dr-name.patientplex.ai subdomain pages with:
 import logging
 import re
 
+from app.core.config import settings
 from app.models.doctor import Doctor
 from app.schemas.specialty import SPECIALTY_CONFIGS
 
@@ -212,9 +213,21 @@ def generate_treatment_page_html(doctor: Doctor, treatment: str) -> str:
         .doctor-info {{ display: flex; align-items: center; gap: 1rem; }}
         .doctor-details h3 {{ font-size: 1rem; }}
         .doctor-details p {{ font-size: 0.85rem; color: #666; }}
-        .cta-bar {{ position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 0.75rem 1.5rem; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); }}
-        .cta-btn {{ display: block; width: 100%; padding: 1rem; background: #25D366; color: white; border: none; border-radius: 10px; font-size: 1.05rem; font-weight: 600; text-align: center; text-decoration: none; }}
-        .spacer {{ height: 80px; }}
+        .cta-bar {{ position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 0.75rem 1.5rem; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 100; }}
+        .cta-btn {{ display: block; width: 100%; padding: 1rem; background: #25D366; color: white; border: none; border-radius: 10px; font-size: 1.05rem; font-weight: 600; text-align: center; text-decoration: none; cursor: pointer; }}
+        .spacer {{ height: 240px; }}
+        .form-card {{ background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 2px 12px rgba(0,0,0,0.12); border: 2px solid #10b981; }}
+        .form-card h2 {{ font-size: 1.15rem; color: #0B2545; margin-bottom: 0.5rem; text-align: center; }}
+        .form-card p {{ font-size: 0.85rem; color: #666; text-align: center; margin-bottom: 1rem; }}
+        .form-input {{ width: 100%; padding: 0.85rem 1rem; border: 1px solid #d1d5db; border-radius: 8px; font-size: 0.95rem; margin-bottom: 0.75rem; outline: none; }}
+        .form-input:focus {{ border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,0.15); }}
+        .form-submit {{ width: 100%; padding: 0.9rem; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; }}
+        .form-submit:hover {{ background: #059669; }}
+        .form-submit:disabled {{ background: #94a3b8; cursor: not-allowed; }}
+        .form-success {{ text-align: center; padding: 2rem 1rem; }}
+        .form-success h3 {{ color: #10b981; font-size: 1.3rem; margin-bottom: 0.5rem; }}
+        .form-success p {{ color: #64748b; }}
+        .hidden {{ display: none; }}
     </style>
 </head>
 <body>
@@ -224,6 +237,31 @@ def generate_treatment_page_html(doctor: Doctor, treatment: str) -> str:
     </div>
 
     <div class="section">
+        <!-- Lead Capture Form -->
+        <div class="form-card" id="leadForm">
+            <h2>📋 Book Your Consultation</h2>
+            <p>Fill in your details — we'll call you within 15 minutes</p>
+            <form id="inquiryForm" onsubmit="submitLead(event)">
+                <input type="text" name="patient_name" class="form-input" placeholder="Your Name *" required />
+                <input type="tel" name="patient_phone" class="form-input" placeholder="Phone Number *" required pattern="[0-9]{{10}}" title="Enter 10-digit phone number" />
+                <input type="email" name="patient_email" class="form-input" placeholder="Email (optional)" />
+                <button type="submit" class="form-submit" id="submitBtn">
+                    Get Free Consultation →
+                </button>
+            </form>
+        </div>
+        <div class="form-card hidden" id="successMsg">
+            <div class="form-success">
+                <h3>✅ Thank You!</h3>
+                <p>{clinic_name} will call you within 10-15 minutes.</p>
+                <p style="margin-top: 1rem;">
+                    <a href="https://wa.me/{wa_number}?text=Hi%2C%20I%20just%20submitted%20an%20inquiry%20for%20{treatment.replace(' ', '%20')}" style="color: #25D366; font-weight: 600;">
+                        💬 Or WhatsApp us now
+                    </a>
+                </p>
+            </div>
+        </div>
+
         <div class="card">
             <h2>About This Treatment</h2>
             <p>Get expert {treatment.lower()} care at {clinic_name}. {doctor.full_name} ({specialty}) provides personalized treatment plans tailored to your needs.</p>
@@ -255,5 +293,73 @@ def generate_treatment_page_html(doctor: Doctor, treatment: str) -> str:
             💬 Book {treatment} — WhatsApp
         </a>
     </div>
+
+    <script>
+        const API_URL = '{settings.BACKEND_BASE_URL}/api/v1';
+
+        async function submitLead(e) {{
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.textContent = 'Submitting...';
+
+            const form = document.getElementById('inquiryForm');
+            const params = new URLSearchParams(window.location.search);
+
+            const data = {{
+                patient_name: form.patient_name.value,
+                patient_phone: form.patient_phone.value,
+                patient_email: form.patient_email.value || null,
+                treatment: '{treatment}',
+                keyword: params.get('utm_term') || params.get('keyword') || null,
+                lead_source: params.get('utm_source') ? 'Google Ads' : 'Website',
+                landing_page: '{treatment_slug}',
+                doctor_slug: '{generate_slug(doctor)}',
+                utm_source: params.get('utm_source') || null,
+                utm_medium: params.get('utm_medium') || null,
+                utm_campaign: params.get('utm_campaign') || null,
+                utm_term: params.get('utm_term') || null,
+                utm_content: params.get('utm_content') || null,
+            }};
+
+            try {{
+                const resp = await fetch(API_URL + '/leads', {{
+                    method: 'POST',
+                    headers: {{ 'Content-Type': 'application/json' }},
+                    body: JSON.stringify(data),
+                }});
+                const result = await resp.json();
+
+                if (result.success) {{
+                    document.getElementById('leadForm').classList.add('hidden');
+                    document.getElementById('successMsg').classList.remove('hidden');
+                    // Track conversion
+                    if (typeof gtag !== 'undefined') {{
+                        gtag('event', 'lead_submitted', {{
+                            event_category: 'conversion',
+                            event_label: '{treatment}',
+                        }});
+                    }}
+                }} else {{
+                    btn.disabled = false;
+                    btn.textContent = 'Get Free Consultation →';
+                    alert('Something went wrong. Please try again or call us directly.');
+                }}
+            }} catch (err) {{
+                btn.disabled = false;
+                btn.textContent = 'Get Free Consultation →';
+                alert('Network error. Please try again or WhatsApp us.');
+            }}
+        }}
+
+        // Track CTA clicks
+        document.querySelectorAll('.cta-btn').forEach(btn => {{
+            btn.addEventListener('click', () => {{
+                if (typeof gtag !== 'undefined') {{
+                    gtag('event', 'whatsapp_click', {{ event_category: 'conversion' }});
+                }}
+            }});
+        }});
+    </script>
 </body>
 </html>"""
