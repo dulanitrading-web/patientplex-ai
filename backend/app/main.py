@@ -100,8 +100,43 @@ async def lifespan(app: FastAPI):
         _scheduler.add_job(_run_reminders, "interval", minutes=30, id="auto_reminders")
         count += 1
 
+        # Campaign data sync — pulls latest from Google Ads / Meta every 4 hours
+        async def _run_campaign_sync():
+            try:
+                from sqlalchemy import select as sa_sel
+                from app.db.session import async_session_factory
+                from app.models.campaign import Campaign, CampaignStatus
+
+                async with async_session_factory() as db:
+                    result = await db.execute(
+                        sa_sel(Campaign).where(Campaign.status == CampaignStatus.ACTIVE)
+                    )
+                    campaigns = result.scalars().all()
+                    synced = 0
+                    for campaign in campaigns:
+                        try:
+                            if campaign.platform.value == "GOOGLE":
+                                from app.services.google_ads_engine import GoogleAdsEngine
+                                engine = GoogleAdsEngine(db)
+                                await engine.sync_performance(campaign)
+                                synced += 1
+                            elif campaign.platform.value == "META":
+                                from app.services.meta_ads_engine import MetaAdsEngine
+                                engine = MetaAdsEngine(db)
+                                await engine.sync_performance(campaign)
+                                synced += 1
+                        except Exception as exc:
+                            logger.error("Campaign sync failed for %s: %s", campaign.name, exc)
+                    await db.commit()
+                    logger.info("Auto-sync complete: %d/%d campaigns synced", synced, len(campaigns))
+            except Exception as exc:
+                logger.error("Campaign sync job failed: %s", exc)
+
+        _scheduler.add_job(_run_campaign_sync, "interval", hours=4, id="auto_campaign_sync")
+        count += 1
+
         _scheduler.start()
-        logger.info(f"Scheduler started with {count} jobs (incl. keep-alive + reminders)")
+        logger.info(f"Scheduler started with {count} jobs (incl. keep-alive + reminders + campaign sync)")
     except ImportError:
         logger.warning("APScheduler not installed — scheduling disabled")
     except Exception as e:
@@ -483,6 +518,114 @@ async def trigger_doctor_digest(request: Request):
         result = await agent.run()
         await db.commit()
     return result
+
+
+@app.post("/api/v1/cron/campaign-sync", tags=["cron"])
+async def trigger_campaign_sync(request: Request):
+    """Sync campaign performance from Google Ads + Meta into local DB.
+
+    Call every 4 hours via cron-job.org:
+    POST https://patientplex-ai-g7ce.onrender.com/api/v1/cron/campaign-sync
+    Headers: X-Cron-Key: <your CRON_SECRET value>
+
+    This pulls latest spend, clicks, impressions, conversions from ad platforms
+    and updates the campaigns table so the dashboard shows fresh data automatically.
+    """
+    _verify_cron_secret(request)
+    from sqlalchemy import select as sa_select
+    from app.db.session import async_session_factory
+    from app.models.campaign import Campaign, CampaignStatus
+
+    synced = 0
+    errors = []
+    async with async_session_factory() as db:
+        result = await db.execute(
+            sa_select(Campaign).where(Campaign.status == CampaignStatus.ACTIVE)
+        )
+        campaigns = result.scalars().all()
+
+        for campaign in campaigns:
+            try:
+                if campaign.platform.value == "GOOGLE":
+                    from app.services.google_ads_engine import GoogleAdsEngine
+                    engine = GoogleAdsEngine(db)
+                    await engine.sync_performance(campaign)
+                    synced += 1
+                elif campaign.platform.value == "META":
+                    from app.services.meta_ads_engine import MetaAdsEngine
+                    engine = MetaAdsEngine(db)
+                    await engine.sync_performance(campaign)
+                    synced += 1
+            except Exception as exc:
+                errors.append({"campaign": campaign.name, "error": str(exc)[:100]})
+
+        await db.commit()
+
+    return {
+        "synced": synced,
+        "total_campaigns": len(campaigns),
+        "errors": errors,
+        "next_sync": "auto — runs every 4 hours",
+    }
+
+
+@app.post("/api/v1/cron/lead-sync", tags=["cron"])
+async def trigger_lead_sync(request: Request):
+    """Sync lead counts and update dashboard metrics.
+
+    Call every hour via cron-job.org to keep lead counts fresh:
+    POST https://patientplex-ai-g7ce.onrender.com/api/v1/cron/lead-sync
+    Headers: X-Cron-Key: <your CRON_SECRET value>
+    """
+    _verify_cron_secret(request)
+    from sqlalchemy import func as sa_func, select as sa_select
+    from app.db.session import async_session_factory
+    from app.models.patient import Patient
+    from datetime import datetime, timedelta, timezone
+
+    now = datetime.now(timezone.utc)
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    async with async_session_factory() as db:
+        # Count today's leads
+        today_result = await db.execute(
+            sa_select(sa_func.count(Patient.id)).where(
+                Patient.created_at >= today_start
+            )
+        )
+        today_leads = today_result.scalar() or 0
+
+        # Count this week's leads
+        week_start = today_start - timedelta(days=today_start.weekday())
+        week_result = await db.execute(
+            sa_select(sa_func.count(Patient.id)).where(
+                Patient.created_at >= week_start
+            )
+        )
+        week_leads = week_result.scalar() or 0
+
+        # Count this month's leads
+        month_start = today_start.replace(day=1)
+        month_result = await db.execute(
+            sa_select(sa_func.count(Patient.id)).where(
+                Patient.created_at >= month_start
+            )
+        )
+        month_leads = month_result.scalar() or 0
+
+        # Total leads all time
+        total_result = await db.execute(
+            sa_select(sa_func.count(Patient.id))
+        )
+        total_leads = total_result.scalar() or 0
+
+    return {
+        "today": today_leads,
+        "this_week": week_leads,
+        "this_month": month_leads,
+        "total": total_leads,
+        "synced_at": now.isoformat(),
+    }
 
 
 @app.get("/api/v1/cron/keep-alive", tags=["cron"])
