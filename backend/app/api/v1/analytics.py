@@ -163,8 +163,20 @@ async def metric_trend(
         ).where(
             and_(Campaign.doctor_id == doctor_id, Campaign.updated_at >= since)
         ).group_by(func.date(Campaign.updated_at)).order_by(func.date(Campaign.updated_at))
+    elif metric == "revenue":
+        from app.models.call_log import ConversionEvent, ConversionStage
+        q = select(
+            func.date(ConversionEvent.timestamp).label("day"),
+            func.coalesce(func.sum(ConversionEvent.revenue_inr), 0).label("value"),
+        ).where(
+            and_(
+                ConversionEvent.doctor_id == doctor_id,
+                ConversionEvent.stage == ConversionStage.TREATMENT_ACCEPTED,
+                ConversionEvent.timestamp >= since,
+            )
+        ).group_by(func.date(ConversionEvent.timestamp)).order_by(func.date(ConversionEvent.timestamp))
     else:
-        return {"error": f"Unknown metric: {metric}", "valid": ["leads", "spend", "clicks", "impressions", "bookings"]}
+        return {"error": f"Unknown metric: {metric}", "valid": ["leads", "spend", "clicks", "impressions", "bookings", "revenue"]}
 
     result = await db.execute(q)
     rows = result.all()
