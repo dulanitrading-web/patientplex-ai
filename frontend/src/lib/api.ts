@@ -620,4 +620,15 @@ export async function getTreatmentAnalytics(days = 30) {
   return res.json();
 }
 
+// Data initialization — seed clinic data for dashboard
+export async function initializeClinicData() {
+  const res = await fetchWithAuth("/seed/initialize", { method: "POST" });
+  return res.json();
+}
+
+export async function getSeedStatus() {
+  const res = await fetchWithAuth("/seed/status");
+  return res.json();
+}
+
 export { ApiError, fetchWithAuth };
