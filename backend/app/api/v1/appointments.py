@@ -163,7 +163,7 @@ async def today_appointments(
 
 @router.get("/stats")
 async def appointment_stats(
-    days: int = Query(30, ge=7, le=365),
+    days: int = Query(30, ge=1, le=365),
     doctor: Doctor = Depends(get_current_doctor),
     db: AsyncSession = Depends(get_db),
 ):

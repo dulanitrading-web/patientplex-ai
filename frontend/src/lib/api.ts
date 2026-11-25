@@ -594,4 +594,41 @@ export async function sendFeedbackRequest(appointmentId: string) {
   return res.json();
 }
 
+// Analytics — enhanced dashboard with date range support
+export async function getDashboardSummary(period = "30d") {
+  const res = await fetchWithAuth(`/analytics/dashboard?period=${period}`);
+  return res.json();
+}
+
+export async function getLeadStats(period = "30d") {
+  const res = await fetchWithAuth(`/analytics/lead-stats?period=${period}`);
+  return res.json();
+}
+
+export async function getMetricTrend(metric: string, period = "30d") {
+  const res = await fetchWithAuth(`/analytics/trend?metric=${metric}&period=${period}`);
+  return res.json();
+}
+
+export async function getChannelPerformance(days = 30) {
+  const res = await fetchWithAuth(`/analytics/channels?days=${days}`);
+  return res.json();
+}
+
+export async function getTreatmentAnalytics(days = 30) {
+  const res = await fetchWithAuth(`/analytics/treatments?days=${days}`);
+  return res.json();
+}
+
+// Data initialization — seed clinic data for dashboard
+export async function initializeClinicData() {
+  const res = await fetchWithAuth("/seed/initialize", { method: "POST" });
+  return res.json();
+}
+
+export async function getSeedStatus() {
+  const res = await fetchWithAuth("/seed/status");
+  return res.json();
+}
+
 export { ApiError, fetchWithAuth };
