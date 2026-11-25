@@ -277,10 +277,10 @@ class TwilioVoiceHandler:
           record="record-from-answer-dual" recordingStatusCallback="{xml_escape(callback_url)}/recording">
         <Number>{xml_escape(doctor_phone or '')}</Number>
     </Dial>
-    <Say voice="Polly.Aditi" language="en-IN">
-        Thank you for calling {clinic_name}.
-        The doctor is currently busy. We will send you a WhatsApp message
-        shortly to help you book an appointment. Thank you!
+    <Say voice="Polly.Aditi" language="hi-IN">
+        {clinic_name} mein call karne ke liye dhanyavaad.
+        Abhi doctor busy hain. Hum aapko WhatsApp pe message karenge
+        appointment book karne ke liye. Dhanyavaad!
     </Say>
 </Response>"""
 
@@ -290,10 +290,10 @@ class TwilioVoiceHandler:
         from xml.sax.saxutils import escape as xml_escape
         return f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-    <Say voice="Polly.Aditi" language="en-IN">
-        Thank you for calling {xml_escape(clinic_name)}.
-        We will reach you on WhatsApp shortly to help you book an appointment.
-        Thank you!
+    <Say voice="Polly.Aditi" language="hi-IN">
+        {xml_escape(clinic_name)} mein call karne ke liye dhanyavaad.
+        Hum aapko WhatsApp pe message karenge appointment book karne ke liye.
+        Dhanyavaad!
     </Say>
 </Response>"""
 
@@ -336,16 +336,16 @@ class ExotelVoiceHandler:
             clinic = get_clinic_knowledge(clinic_name)
             greeting = get_exotel_ivr_greeting(clinic)
             timeout_msg = get_exotel_after_hours_greeting(clinic) if not greeting else (
-                f"Thank you for calling {clinic.clinic_name}. "
-                f"We will send you a WhatsApp message shortly with Riya, "
-                f"our clinic assistant, who can help you book an appointment."
+                f"{clinic.clinic_name} mein call karne ke liye dhanyavaad. "
+                f"Hum aapko WhatsApp pe Riya se connect karenge, "
+                f"woh aapki appointment book kar degi."
             )
         except Exception:
-            greeting = f"Welcome to {clinic_name}. Please hold while we connect your call."
+            greeting = f"Namaste! {clinic_name} mein aapka swagat hai. Please hold karein, aapki call connect ho rahi hai."
             timeout_msg = (
-                f"Thank you for calling {clinic_name}. "
-                f"We will send you a WhatsApp message shortly to help you "
-                f"book an appointment."
+                f"{clinic_name} mein call karne ke liye dhanyavaad. "
+                f"Hum aapko WhatsApp pe message karenge "
+                f"appointment book karne ke liye."
             )
 
         return {
@@ -370,9 +370,9 @@ class ExotelVoiceHandler:
             message = get_exotel_after_hours_greeting(clinic)
         except Exception:
             message = (
-                f"Thank you for calling {clinic_name}. "
-                f"We will reach you on WhatsApp shortly to help you "
-                f"book an appointment. Thank you!"
+                f"{clinic_name} mein call karne ke liye dhanyavaad. "
+                f"Hum aapko WhatsApp pe message karenge "
+                f"appointment book karne ke liye. Dhanyavaad!"
             )
         return {
             "play": message,

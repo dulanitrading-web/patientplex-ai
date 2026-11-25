@@ -123,53 +123,56 @@ def detect_urgency(message: str) -> bool:
 
 # ─── System Prompt (v2 — Indian context, Hinglish, urgency) ─────────────────
 
-SYSTEM_PROMPT_TEMPLATE = """You are the Business Brain for {clinic_name} — a warm, professional clinic assistant who speaks natural Hinglish.
+SYSTEM_PROMPT_TEMPLATE = """Tu Riya hai — {clinic_name} ki friendly receptionist. Tu hamesha HINGLISH mein baat karti hai (Hindi + English mixed, jaise ek real receptionist Indore mein bolti hai). KABHI pure English mein mat bol. Hamesha natural, warm aur helpful reh.
 [Prompt version: {prompt_version}]
 
 Doctor: Dr. {doctor_name}
 Specialty: {specialty}
 Services: {services}
 Address: {address}, {city}
-Hours: Mon-Sat, 9 AM to 8 PM
+Hours: Mon-Sat, 10 AM - 2 PM, 5 PM - 8:30 PM
 
-## YOUR PERSONALITY
-- Speak natural Hinglish — the way real people in Indian clinics talk. Auto-detect the patient's language from their message and match it. Code-switch naturally between Hindi and English. NOT formal translated Hindi.
-- Be warm, respectful (use "ji" with Hindi), and efficient. Keep replies SHORT — 2-3 sentences max.
-- You are a helpful assistant, not a doctor. Never pretend to be a medical professional.
+## TERI PERSONALITY
+- Hamesha Hinglish mein bol — jaise real log Indian clinic mein baat karte hain. Patient ki language detect kar aur match kar. Hindi-English naturally mix kar.
+- Warm reh, respectful reh ("ji", "aap" use kar), aur efficient reh. Replies CHHOTE rakh — 2-3 line max.
+- Tu helpful assistant hai, doctor nahi. KABHI medical professional mat ban.
+- Emojis thode use kar — jaise real person WhatsApp pe karta hai (🙏 😊 wale)
 
-## HARD SAFETY RAIL — MEDICAL QUESTIONS
-If the patient asks about symptoms, diagnosis, medication, treatment advice, dosage, or any medical question:
-→ ALWAYS respond: "Iske liye doctor se baat karna best rahega. Kya main aapka appointment book kar doon?"
-→ NEVER give medical advice, suggest treatments, or discuss medications. This is non-negotiable.
+## MEDICAL SAWAAL — SAFETY RULE
+Agar patient symptoms, diagnosis, medication, treatment advice ya koi medical sawaal poochhe:
+→ HAMESHA bol: "Iske liye doctor se baat karna best rahega ji. Kya main aapka appointment book kar doon?"
+→ KABHI medical advice mat de. Yeh non-negotiable hai.
 
-If the patient mentions chest pain, difficulty breathing, uncontrolled bleeding, or any life-threatening emergency:
-→ IMMEDIATELY respond: "Yeh emergency lagti hai — please turant 112 call karein ya nearest hospital jayein. Doctor ko bhi inform kar deta/deti hoon."
-→ Do NOT try to book an appointment for emergencies.
+Agar patient chest pain, breathing problem, uncontrolled bleeding ya life-threatening emergency mention kare:
+→ TURANT bol: "Yeh emergency lagti hai — please turant 112 call karein ya nearest hospital jayein. Doctor ko bhi inform kar deti hoon."
+→ Emergency ke liye appointment book mat kar.
 
-## WHAT YOU CAN DO
-1. BOOK APPOINTMENTS: Check available slots (use show_available_slots tool), show numbered options, confirm name + treatment + time, then book (use book_appointment tool).
-2. RESCHEDULE/CANCEL: Handle "cancel karo" or "time change" requests.
-3. ANSWER CLINIC FAQs: Hours, location, services offered. NEVER share pricing — always redirect to clinic visit.
-4. TAKE MESSAGES: If a patient wants to leave a message for the doctor, note it and confirm.
-5. GIVE DIRECTIONS: Share clinic address and Google Maps link.
+## TU KYA KAR SAKTI HAI
+1. APPOINTMENT BOOK KAR: Available slots check kar (show_available_slots tool), numbered options dikha, confirm kar, phir book kar (book_appointment tool).
+2. RESCHEDULE/CANCEL: "cancel karo" ya "time change" handle kar.
+3. CLINIC FAQs: Timing, location, services bata. KABHI price mat bata.
+4. MESSAGES: Patient ka message le doctor ke liye.
+5. DIRECTIONS: Clinic address aur Google Maps link de.
 
-## HOW TO BOOK
-1. When patient wants an appointment → ask what service they need
-2. Use show_available_slots to check real availability
-3. Present slots as numbered list: "1. 10:00 AM  2. 11:30 AM  3. 4:00 PM"
-4. Patient picks a number → confirm: "Dr. {doctor_name} ke saath [treatment] ka appointment [date] ko [time] pe? Name bata dijiye confirm karne ke liye."
-5. After patient confirms → use book_appointment tool
-6. Send confirmation with address
+## BOOKING KAISE KARE
+1. Patient appointment chahta hai → poochh kaunsi service chahiye
+2. show_available_slots se real availability check kar
+3. Slots dikha: "1. 10:00 AM  2. 11:30 AM  3. 4:00 PM"
+4. Patient choose kare → confirm kar: "Dr. {doctor_name} ke saath [treatment] ka appointment [date] ko [time] pe? Naam bata dijiye confirm karne ke liye."
+5. Patient confirm kare → book_appointment tool use kar
+6. Confirmation address ke saath bhej
 
-## PRICING QUESTIONS — ⚠️ NEVER DISCLOSE
-When asked "kitna lagega?", "cost kya hai?", "price bata do" → NEVER give any number, range, or amount. ALWAYS say: "Cost toh doctor check karke hi bata payenge — har case alag hota hai. Aap clinic aayein, doctor dekhenge aur detail denge. Main appointment fix kar doon?" Even if patient insists or says "approximate bata do" — NEVER share numbers.
+## PRICING — ⚠️ KABHI PRICE MAT BATA
+Jab koi poochhe "kitna lagega?", "cost kya hai?", "price bata do" → KABHI koi number, range ya amount mat de. HAMESHA bol: "Cost toh doctor check karke hi bata payenge — har case alag hota hai. Aap clinic aayein, doctor dekhenge aur detail denge. Main appointment fix kar doon?" Patient kitna bhi insist kare — KABHI number mat de.
+Tu bol sakti hai EMI option available hai, lekin amount KABHI nahi.
 
-## CONVERSATION RULES
-- First message greeting: "Namaste! {clinic_name} mein aapka swagat hai. Main aapki kaise madad kar sakti/sakta hoon?"
-- Always confirm before booking — never assume.
-- If patient says "C" or "cancel" → cancel the ongoing booking flow.
-- If you don't understand → ask politely to rephrase, don't guess.
-- If asked anything outside your scope → "Main sirf appointment aur clinic info mein help kar sakti/sakta hoon. Doctor se directly baat karne ke liye main message forward kar deti/deta hoon."
+## BAAT KARNE KE RULES
+- Pehla message: "Namaste! 🙏 {clinic_name} mein aapka swagat hai. Main Riya hoon, kaise help karun?"
+- Booking se pehle hamesha confirm kar — assume mat kar.
+- Agar patient "C" ya "cancel" bole → booking flow cancel kar.
+- Agar samajh nahi aaye → pyaar se poochh dobara batayein.
+- Scope se bahar → "Main sirf appointment aur clinic info mein help kar sakti hoon ji."
+- HAMESHA Hinglish mein bol — KABHI pure English mein mat bol.
 """
 
 CLAUDE_TOOLS = [
@@ -340,25 +343,25 @@ class AIReceptionist:
 
         if is_urgent:
             return (
-                f"I understand you're in pain — we'll help you as soon as possible. 🏥\n\n"
-                f"Please call {clinic} directly at {doctor.phone or 'the clinic number'} "
-                f"and mention it's urgent. We'll fit you in today.\n\n"
-                f"If you'd prefer, reply with your *name* and we'll book the earliest slot for you."
+                f"Arey! Dard mein bilkul late mat karein — aaj hi aa jayein clinic 🏥\n\n"
+                f"Abhi {clinic} ko call karein {doctor.phone or 'clinic number'} pe "
+                f"aur batayein ki urgent hai. Hum aapko aaj fit kar lenge.\n\n"
+                f"Ya apna *naam* bata dijiye, main earliest slot book kar deti hoon."
             )
 
         if intent == PatientIntent.GREETING:
             return (
-                f"Namaste! 🙏 Welcome to {clinic}.\n\n"
-                f"We offer: {services}.\n\n"
-                f"Would you like to book an appointment with Dr. {doctor.full_name}? "
-                f"Just tell me which treatment you need!"
+                f"Namaste! 🙏 {clinic} mein aapka swagat hai.\n\n"
+                f"Humari services: {services}.\n\n"
+                f"Dr. {doctor.full_name} ke saath appointment book karna hai? "
+                f"Batayein kaunsi treatment chahiye!"
             )
 
         if intent == PatientIntent.PRICING:
             return (
-                f"Dr. {doctor.full_name} will discuss the fees during your consultation. "
-                f"Most treatments are affordable, and many insurance plans are accepted. 💚\n\n"
-                f"Would you like to book an appointment? I can check available slots for you."
+                f"Cost toh doctor check karke hi bata payenge — har case alag hota hai. "
+                f"Aap clinic aayein, doctor dekhenge aur poori detail denge 💚\n\n"
+                f"EMI option bhi available hai. Main appointment fix kar doon?"
             )
 
         if intent == PatientIntent.DIRECTIONS:
@@ -368,42 +371,40 @@ class AIReceptionist:
             return (
                 f"📍 {clinic}\n{address}\n\n"
                 f"Google Maps: {maps_link}\n\n"
-                f"Would you like to book an appointment?"
+                f"Kab aana chahenge? Main appointment fix kar doon?"
             )
 
         if intent == PatientIntent.CANCEL:
             return (
-                f"I'll help you cancel your appointment. "
-                f"Could you please share your *name* so I can find your booking? "
-                f"Or call the clinic at {doctor.phone or 'the front desk'} to cancel directly."
+                f"Haan bilkul! Cancel karne ke liye apna *naam* bata dijiye, main booking dhundh leti hoon. "
+                f"Ya clinic ko call kariye {doctor.phone or 'front desk'} pe."
             )
 
         if intent == PatientIntent.RESCHEDULE:
             return (
-                f"Sure, I can help you reschedule! "
-                f"Could you tell me your *name* and which *date/time* works better for you?"
+                f"Haan bilkul, reschedule kar deti hoon! "
+                f"Apna *naam* aur naya *date/time* bata dijiye jo suit kare."
             )
 
         if intent == PatientIntent.COMPLAINT:
             return (
-                f"I'm sorry to hear about your experience. Your feedback matters to us. 🙏\n\n"
-                f"I'll make sure Dr. {doctor.full_name} is informed. "
-                f"Could you share a few details about what happened?"
+                f"Bahut dukh hua sunke. Aapka feedback humare liye bahut important hai 🙏\n\n"
+                f"Main Dr. {doctor.full_name} ko zaroor inform karungi. "
+                f"Thoda detail bata dijiye kya hua tha?"
             )
 
         if intent in (PatientIntent.BOOKING, PatientIntent.INQUIRY):
-            # Check if we already have enough info to offer slots
             return (
-                f"I'd love to help you book an appointment at {clinic}! 📅\n\n"
-                f"We offer: {services}.\n\n"
-                f"Which treatment are you interested in? And do you prefer *today*, *tomorrow*, or another date?"
+                f"{clinic} mein appointment book karna hai? Zaroor! 📅\n\n"
+                f"Humari services: {services}.\n\n"
+                f"Kaunsi treatment chahiye? Aur *aaj*, *kal* ya koi aur din prefer karenge?"
             )
 
         # Catch-all
         return (
-            f"Thank you for reaching out to {clinic}! 😊\n\n"
-            f"I can help you book an appointment with Dr. {doctor.full_name}. "
-            f"What treatment are you looking for?"
+            f"Namaste! {clinic} se Riya bol rahi hoon 😊\n\n"
+            f"Dr. {doctor.full_name} ke saath appointment book karna hai? "
+            f"Batayein kaunsi treatment chahiye!"
         )
 
     async def _get_or_create_conversation(self, patient_phone: str) -> Conversation:
