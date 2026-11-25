@@ -4,6 +4,25 @@ from contextlib import asynccontextmanager
 import os
 import sqlalchemy as sa
 
+# --- Sentry Error Tracking (must be before anything else) ---
+try:
+    import sentry_sdk
+    from sentry_sdk.integrations.fastapi import FastApiIntegration
+    from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+
+    _sentry_dsn = os.getenv("SENTRY_DSN", "")
+    if _sentry_dsn:
+        sentry_sdk.init(
+            dsn=_sentry_dsn,
+            integrations=[FastApiIntegration(), SqlalchemyIntegration()],
+            traces_sample_rate=0.1,
+            profiles_sample_rate=0.1,
+            environment=os.getenv("ENVIRONMENT", "production"),
+            release=os.getenv("RENDER_GIT_COMMIT", "unknown"),
+        )
+except ImportError:
+    pass  # sentry-sdk not installed — skip
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler

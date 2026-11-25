@@ -108,19 +108,46 @@ async def capture_lead(
             message="Thank you! We'll contact you shortly.",
         )
 
-    # Save lead to patients table
+    # Save lead to patients table (with dedup on phone number)
     lead_id = None
     try:
         from app.models.patient import Patient
-        patient = Patient(
-            doctor_id=doctor.id,
-            name=body.patient_name,
-            phone=body.patient_phone,
-            email=body.patient_email,
-            source=body.lead_source,
-            notes=f"Treatment: {body.treatment} | Keyword: {body.keyword or 'N/A'} | LP: {body.landing_page or 'N/A'}",
+        from sqlalchemy import and_
+        from datetime import datetime, timezone
+
+        # Normalize phone for dedup
+        normalized_phone = body.patient_phone.strip()
+        if not normalized_phone.startswith("+") and len(normalized_phone) == 10:
+            normalized_phone = f"+91{normalized_phone}"
+
+        # Check for existing patient with same phone
+        existing = await db.execute(
+            select(Patient).where(
+                and_(Patient.doctor_id == doctor.id, Patient.phone == normalized_phone)
+            )
         )
-        db.add(patient)
+        patient = existing.scalar_one_or_none()
+
+        if patient:
+            # Update existing patient instead of creating duplicate
+            patient.total_visits = (patient.total_visits or 0) + 1
+            patient.updated_at = datetime.now(timezone.utc)
+            if body.patient_email and not patient.email:
+                patient.email = body.patient_email
+            if body.patient_name and not patient.name:
+                patient.name = body.patient_name
+            logger.info("Lead matched existing patient: %s", patient.id)
+        else:
+            patient = Patient(
+                doctor_id=doctor.id,
+                name=body.patient_name,
+                phone=normalized_phone,
+                email=body.patient_email,
+                source=body.lead_source,
+                notes=f"Treatment: {body.treatment} | Keyword: {body.keyword or 'N/A'} | LP: {body.landing_page or 'N/A'}",
+            )
+            db.add(patient)
+
         await db.commit()
         await db.refresh(patient)
         lead_id = str(patient.id)

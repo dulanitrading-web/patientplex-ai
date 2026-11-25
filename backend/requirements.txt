@@ -44,6 +44,9 @@ razorpay>=1.4.0,<2.0.0
 # ML / Data
 numpy>=1.26.0,<2.0.0
 
+# Error tracking
+sentry-sdk[fastapi]>=2.0.0,<3.0.0
+
 # Sync DB driver (for Alembic migrations)
 psycopg2-binary>=2.9.0,<3.0.0
 
