@@ -232,8 +232,9 @@ async def handle_incoming_sms(
     else:
         response_text = "Thank you for your message. We'll get back to you shortly."
 
-    # Return TwiML response
-    twiml = f'<Response><Message>{response_text}</Message></Response>'
+    # Return TwiML response — escape to prevent XML injection
+    from xml.sax.saxutils import escape as xml_escape
+    twiml = f'<Response><Message>{xml_escape(response_text)}</Message></Response>'
     return Response(content=twiml, media_type="application/xml")
 
 
@@ -243,14 +244,18 @@ async def handle_incoming_sms(
 async def verify_exotel_signature(request: Request) -> None:
     """Validate that the request came from Exotel.
 
-    Exotel sends a custom header or IP-based verification.
-    For now, we check that CALL_PROVIDER is set to exotel.
-    In production, verify the source IP against Exotel's IP range.
+    Checks:
+    1. CALL_PROVIDER must be 'exotel'
+    2. If EXOTEL_WEBHOOK_SECRET is configured, verifies it via query param or header
     """
     if settings.CALL_PROVIDER != "exotel":
         raise HTTPException(status_code=403, detail="Exotel provider not configured")
-    # TODO: Add IP whitelist verification for production
-    # Exotel IPs: check https://developer.exotel.com/api/#ip-whitelist
+    # Verify webhook secret if configured
+    webhook_secret = getattr(settings, 'EXOTEL_WEBHOOK_SECRET', '') or ''
+    if webhook_secret:
+        provided_secret = request.query_params.get('secret', '') or request.headers.get('x-exotel-secret', '')
+        if provided_secret != webhook_secret:
+            raise HTTPException(status_code=401, detail="Invalid webhook secret")
 
 
 @router.post("/exotel/incoming")

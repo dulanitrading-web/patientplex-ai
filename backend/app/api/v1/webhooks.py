@@ -37,6 +37,12 @@ async def google_ads_webhook(request: Request, db: AsyncSession = Depends(get_db
     - BUDGET_EXHAUSTED: daily or total budget reached
     - AD_DISAPPROVED: ad failed policy review
     """
+    # Verify webhook secret — reject unauthenticated calls
+    webhook_secret = request.headers.get("x-webhook-secret", "") or request.query_params.get("secret", "")
+    if not webhook_secret or webhook_secret != settings.SECRET_KEY:
+        logger.warning("Google Ads webhook rejected: invalid or missing secret")
+        raise HTTPException(status_code=401, detail="Unauthorized webhook call")
+
     body = await request.json()
     event_type = body.get("event_type")
     logger.info("Google Ads webhook: %s", event_type)
@@ -248,10 +254,14 @@ async def razorpay_webhook(
     """
     body_bytes = await request.body()
 
-    # Verify webhook signature
-    if settings.RAZORPAY_KEY_SECRET and x_razorpay_signature:
+    # Verify webhook signature — MANDATORY when secret is configured
+    webhook_secret = getattr(settings, 'RAZORPAY_WEBHOOK_SECRET', '') or settings.RAZORPAY_KEY_SECRET
+    if webhook_secret:
+        if not x_razorpay_signature:
+            logger.warning("Razorpay webhook rejected: missing signature header")
+            raise HTTPException(status_code=401, detail="Missing webhook signature")
         expected = hmac.new(
-            settings.RAZORPAY_KEY_SECRET.encode(),
+            webhook_secret.encode(),
             body_bytes,
             hashlib.sha256,
         ).hexdigest()

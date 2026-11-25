@@ -266,15 +266,16 @@ class TwilioVoiceHandler:
 
         Returns XML string for Twilio to execute.
         """
+        from xml.sax.saxutils import escape as xml_escape
         doctor_phone = doctor.whatsapp_number or doctor.phone
-        clinic_name = doctor.clinic_name or f"Dr. {doctor.full_name}'s clinic"
+        clinic_name = xml_escape(doctor.clinic_name or f"Dr. {doctor.full_name}'s clinic")
         callback_url = f"{settings.GOOGLE_REDIRECT_URI.rsplit('/', 3)[0]}/api/v1/calls/status"
 
         return f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-    <Dial timeout="20" action="{callback_url}" method="POST"
-          record="record-from-answer-dual" recordingStatusCallback="{callback_url}/recording">
-        <Number>{doctor_phone}</Number>
+    <Dial timeout="20" action="{xml_escape(callback_url)}" method="POST"
+          record="record-from-answer-dual" recordingStatusCallback="{xml_escape(callback_url)}/recording">
+        <Number>{xml_escape(doctor_phone or '')}</Number>
     </Dial>
     <Say voice="Polly.Aditi" language="en-IN">
         Thank you for calling {clinic_name}.
@@ -286,10 +287,11 @@ class TwilioVoiceHandler:
     @staticmethod
     def generate_missed_call_twiml(clinic_name: str) -> str:
         """TwiML response when call goes to voicemail/missed."""
+        from xml.sax.saxutils import escape as xml_escape
         return f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
     <Say voice="Polly.Aditi" language="en-IN">
-        Thank you for calling {clinic_name}.
+        Thank you for calling {xml_escape(clinic_name)}.
         We will reach you on WhatsApp shortly to help you book an appointment.
         Thank you!
     </Say>
