@@ -346,4 +346,12 @@ async def get_integration_status(
             "detail": "Call tracking active" if twilio_configured else "Add Twilio credentials for call tracking",
             "credentials_configured": twilio_configured,
         },
+        "exotel_calls": {
+            "status": "connected" if (settings.EXOTEL_API_KEY and settings.EXOTEL_API_TOKEN) else "not_connected",
+            "detail": (
+                f"Call tracking active — SID {settings.EXOTEL_SID}" if (settings.EXOTEL_API_KEY and settings.EXOTEL_API_TOKEN)
+                else "Configure Exotel credentials"
+            ),
+            "credentials_configured": bool(settings.EXOTEL_API_KEY and settings.EXOTEL_API_TOKEN),
+        },
     }

@@ -51,10 +51,32 @@ async function fetchWithAuth(
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${BASE_URL}${url}`, {
-    ...options,
-    headers,
-  });
+  // Retry logic for Render cold starts (502/503) and network errors
+  const maxAttempts = 3;
+  let response!: Response;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      response = await fetch(`${BASE_URL}${url}`, {
+        ...options,
+        headers,
+      });
+
+      // Retry on 502/503 (Render cold start / backend waking up)
+      if ((response.status === 502 || response.status === 503) && attempt < maxAttempts - 1) {
+        await new Promise((r) => setTimeout(r, 2000 * (attempt + 1)));
+        continue;
+      }
+      break;
+    } catch {
+      // Network error — retry with backoff
+      if (attempt < maxAttempts - 1) {
+        await new Promise((r) => setTimeout(r, 2000 * (attempt + 1)));
+        continue;
+      }
+      throw new ApiError(0, { detail: "Network error — backend may be starting up. Please try again." });
+    }
+  }
 
   if (!response.ok) {
     // 401 = token may be expired → try refreshing once before giving up
