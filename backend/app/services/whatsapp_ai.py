@@ -161,74 +161,54 @@ class WhatsAppAI:
 
         if any(w in msg_lower for w in ["book", "appointment", "slot", "available", "time", "milna", "aana"]):
             return (
-                f"Namaste! 🙏 {clinic_name} mein appointment ke liye:\n\n"
-                f"Batayein:\n"
-                f"1. Kab aana chahenge? (date)\n"
-                f"2. Morning (10-2) ya evening (5-9)?\n"
-                f"3. Kaunsi treatment chahiye?\n\n"
-                f"Main abhi slot check karke confirm kar dungi! ✅"
+                f"Hii! Appointment ke liye batayein — kab aana chahenge aur kaunsi treatment ke liye?\n\n"
+                f"Morning 10-2 ya evening 5-8:30, jo suit kare 😊"
             )
-        elif any(w in msg_lower for w in ["price", "cost", "fee", "charge", "kitna", "rate", "paisa", "kharcha"]):
+        elif any(w in msg_lower for w in ["price", "cost", "fee", "charge", "kitna", "rate", "paisa", "kharcha", "kitne", "rupee", "rs"]):
             return (
-                f"🙏 {clinic_name} mein treatment ki prices:\n\n"
-                f"🦷 Teeth Cleaning: ₹800-2,500\n"
-                f"🦷 Root Canal: ₹5,000-12,000\n"
-                f"🦷 Braces: ₹25,000-60,000\n"
-                f"🦷 Implants: ₹25,000-80,000\n"
-                f"🦷 Crowns: ₹3,000-20,000\n\n"
-                f"💡 Pehli consultation FREE hai!\n"
-                f"💳 0% EMI available\n\n"
-                f"Exact cost examination ke baad pata chalega. Appointment book karein?"
+                f"Cost toh doctor check karke hi bata payenge — har case alag hota hai. "
+                f"Aap clinic aayein, doctor dekhenge aur poori detail denge.\n\n"
+                f"EMI option bhi available hai 😊 Main appointment fix kar doon?"
             )
         elif any(w in msg_lower for w in ["cancel", "reschedule", "change", "badalna"]):
             return (
-                f"Bilkul! Aapka appointment change kar dete hain.\n\n"
-                f"Apna appointment date aur naya preferred time batayein — "
-                f"main update kar dungi. 😊"
+                f"Haan bilkul! Appointment date aur naya time bata dijiye, main change kar deti hoon 😊"
             )
-        elif any(w in msg_lower for w in ["emergency", "urgent", "pain", "bleeding", "accident", "dard", "khoon", "sujan", "swelling"]):
+        elif any(w in msg_lower for w in ["emergency", "urgent", "pain", "bleeding", "accident", "dard", "khoon", "sujan", "swelling", "tut"]):
             return (
-                f"😟 Dard ho raha hai? Please jaldi aayein!\n\n"
-                f"⚠️ Serious emergency ke liye: 108 call karein\n\n"
-                f"🏥 {clinic_name} mein aaj hi aa sakte hain — "
-                f"hum emergency mein same day dekhte hain.\n\n"
-                f"📞 Call karein: {phone}\n"
-                f"📍 {address}"
+                f"Arey! Dard mein bilkul late mat karein — aaj hi aa jayein clinic. "
+                f"Dr. Anuj dekhenge, unki specialty yahi hai.\n\n"
+                f"Abhi aa sakte hain? Call karein {phone}"
             )
-        elif any(w in msg_lower for w in ["hi", "hello", "hey", "namaste", "hii", "helo"]):
+        elif any(w in msg_lower for w in ["hi", "hello", "hey", "namaste", "hii", "helo", "good morning", "good evening"]):
             return (
-                f"Namaste! 🙏 {clinic_name} mein aapka swagat hai!\n\n"
-                f"Main Riya hoon, clinic ki assistant. Aapko kaise help kar sakti hoon?\n\n"
-                f"🦷 Treatment ki jaankari\n"
-                f"📅 Appointment booking\n"
-                f"💰 Prices & EMI options\n\n"
-                f"Batayein kya chahiye? 😊"
+                f"Hii! 🙏 {clinic_name} se Riya bol rahi hoon. Kaise help karun?"
             )
-        elif any(w in msg_lower for w in ["address", "location", "kahan", "jagah", "map", "direction"]):
+        elif any(w in msg_lower for w in ["address", "location", "kahan", "jagah", "map", "direction", "kidhar"]):
             return (
-                f"📍 {clinic_name}\n"
-                f"{address}\n\n"
-                f"🕐 {timings}\n"
-                f"🚫 Sunday closed\n\n"
-                f"Nath Mandir / South Tukoganj Square ke paas hai.\n"
-                f"Appointment book karein? 😊"
+                f"Hum South Tukoganj mein hain — Nath Mandir Road pe, Hotel Kalinga ke paas. "
+                f"The Horizon building, lower ground floor.\n\n"
+                f"Easily mil jayega! Kab aana hai?"
             )
-        elif any(w in msg_lower for w in ["timing", "time", "open", "close", "band", "khulta", "samay"]):
+        elif any(w in msg_lower for w in ["timing", "time", "open", "close", "band", "khulta", "samay", "baje"]):
             return (
-                f"🕐 {clinic_name} Timings:\n\n"
-                f"Monday-Saturday:\n"
-                f"☀️ Morning: 10:00 AM - 2:00 PM\n"
-                f"🌙 Evening: 5:00 PM - 9:00 PM\n\n"
-                f"🚫 Sunday: Closed\n\n"
-                f"Appointment book karein? Main slot check kar deti hoon! 😊"
+                f"Monday se Saturday — morning 10 se 2, evening 5 se 8:30. "
+                f"Sunday chutti 😊\n\nKaunsa din suit karega?"
+            )
+        elif any(w in msg_lower for w in ["doctor", "kaun", "specialist", "kon"]):
+            return (
+                f"Humare paas 5 specialist doctors hain — Orthodontist, Endodontist, Prosthodontist sab ek jagah. "
+                f"Aapki problem batayein, main sahi doctor se milwa dungi 😊"
+            )
+        elif any(w in msg_lower for w in ["thank", "thanks", "dhanyawad", "shukriya", "ok", "okay", "theek"]):
+            return (
+                f"Welcome ji! 🙏 Kuch aur help chahiye toh batayein. Have a great day!"
             )
         else:
             return (
-                f"🙏 {clinic_name} mein aapka swagat hai!\n\n"
-                f"Main Riya hoon. Aapka message mil gaya hai — "
-                f"main doctor se confirm karke batati hoon.\n\n"
-                f"Kya aap appointment book karna chahenge? "
-                f"Pehli consultation FREE hai! 😊"
+                f"Hii! Main Riya hoon, {clinic_name} se. "
+                f"Aapka message mil gaya — batayein kaise help karun? "
+                f"Appointment fix karna hai ya koi aur jaankari chahiye?"
             )
 
     async def detect_intent(self, message: str) -> str:
