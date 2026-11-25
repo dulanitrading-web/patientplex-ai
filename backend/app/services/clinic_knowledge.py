@@ -1,0 +1,424 @@
+"""Clinic Knowledge Base — the brain behind every AI interaction.
+
+Contains everything the AI receptionist needs to know about each clinic:
+treatments, pricing, doctors, timings, FAQs, scripts, and objection handling.
+
+This powers:
+- WhatsApp AI auto-replies
+- Exotel IVR greetings and call routing
+- Missed call recovery messages
+- Lead capture form responses
+- Doctor notification summaries
+"""
+
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional
+
+
+@dataclass
+class Treatment:
+    name: str
+    name_hindi: str
+    min_price: int
+    max_price: int
+    duration_minutes: int
+    description: str
+    benefits: List[str]
+    faq: Dict[str, str]
+    keywords: List[str]  # What patients might say
+
+
+@dataclass
+class ClinicProfile:
+    clinic_name: str
+    doctor_names: List[str]
+    specialty: str
+    tagline: str
+    address: str
+    city: str
+    phone: str
+    whatsapp: str
+    timings: str
+    closed_on: str
+    google_maps_link: str
+    treatments: List[Treatment]
+    usp: List[str]  # Unique selling points
+    faq: Dict[str, str]
+    greeting_script: str
+    missed_call_script: str
+    follow_up_script: str
+    objection_handling: Dict[str, str]
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# BHARDWAJ DENTAL CLINIC — Complete Knowledge Base
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+BDC_TREATMENTS = [
+    Treatment(
+        name="Root Canal Treatment (RCT)",
+        name_hindi="रूट कैनाल",
+        min_price=5000,
+        max_price=12000,
+        duration_minutes=60,
+        description="Painless single-sitting root canal treatment using rotary endodontics. Saves your natural tooth from extraction.",
+        benefits=["Painless procedure", "Single sitting possible", "Save natural tooth", "German rotary instruments"],
+        faq={
+            "Does it hurt?": "No, we use advanced anesthesia. Most patients say they felt nothing during the procedure. We also offer sedation for anxious patients.",
+            "How many sittings?": "Most cases done in a single sitting (1-2 hours). Complex cases may need 2 sittings.",
+            "How long does it last?": "A properly done RCT with a good crown can last 15-20 years or even a lifetime with proper care.",
+            "Do I need a cap after RCT?": "Yes, a dental crown (cap) is recommended after RCT to protect the tooth. We offer zirconia, PFM, and metal-free options.",
+        },
+        keywords=["root canal", "rct", "toothache", "tooth pain", "dard", "dant dard", "nerve treatment", "daant mein dard"],
+    ),
+    Treatment(
+        name="Braces / Orthodontic Treatment",
+        name_hindi="ब्रेसेज / तार",
+        min_price=25000,
+        max_price=60000,
+        duration_minutes=45,
+        description="Complete teeth alignment with metal braces, ceramic braces, or clear aligners. Transform your smile in 12-18 months.",
+        benefits=["Free consultation", "0% EMI available", "Metal & ceramic options", "Clear aligners available"],
+        faq={
+            "How long does treatment take?": "Typically 12-18 months depending on the case. Some minor cases can be done in 6-8 months.",
+            "Which type is best?": "Metal braces are most effective and affordable. Ceramic braces are less visible. Clear aligners are invisible but cost more.",
+            "Is it painful?": "Mild discomfort for 3-5 days after adjustment. We provide wax and tips to manage it easily.",
+            "What age is best?": "Braces work at any age! We treat patients from 12 to 60+ years.",
+            "EMI available?": "Yes! 0% EMI available for 6-12 months. We also accept all major credit cards.",
+        },
+        keywords=["braces", "tedhe daant", "teeth alignment", "taar", "orthodontic", "clear aligner", "invisible braces"],
+    ),
+    Treatment(
+        name="Teeth Cleaning & Polishing",
+        name_hindi="दांत साफ करना / स्केलिंग",
+        min_price=800,
+        max_price=2500,
+        duration_minutes=30,
+        description="Professional scaling and polishing to remove tartar, stains, and plaque. Prevents gum disease and keeps your smile bright.",
+        benefits=["30-minute procedure", "Removes tobacco/tea stains", "Prevents gum disease", "Recommended every 6 months"],
+        faq={
+            "Does it weaken teeth?": "No! This is a myth. Professional cleaning actually protects your teeth by removing harmful deposits.",
+            "How often should I get it done?": "Every 6 months is ideal. If you smoke or chew tobacco, every 3-4 months.",
+            "Will stains come back?": "They can if you consume a lot of tea/coffee/tobacco. Regular cleaning keeps them away.",
+        },
+        keywords=["cleaning", "scaling", "polish", "safai", "daag", "stain", "yellowing", "peele daant"],
+    ),
+    Treatment(
+        name="Teeth Whitening",
+        name_hindi="दांत सफेद करना",
+        min_price=5000,
+        max_price=15000,
+        duration_minutes=60,
+        description="Professional in-office teeth whitening that brightens your smile by 5-8 shades in just one hour. Safe and long-lasting.",
+        benefits=["Results in 1 hour", "5-8 shades brighter", "Safe LED technology", "Lasts 1-2 years"],
+        faq={
+            "Is it safe?": "Yes, we use dentist-grade whitening gel with LED activation. Much safer than home remedies.",
+            "How long does it last?": "Results last 1-2 years with proper care. Avoid excessive tea/coffee/smoking for best results.",
+        },
+        keywords=["whitening", "white teeth", "safed daant", "bleaching", "bright smile"],
+    ),
+    Treatment(
+        name="Dental Implants",
+        name_hindi="दांत का इम्प्लांट",
+        min_price=25000,
+        max_price=80000,
+        duration_minutes=90,
+        description="Permanent tooth replacement with titanium implants. Looks, feels, and functions like a natural tooth. Lifetime solution.",
+        benefits=["Lifetime solution", "Looks like natural tooth", "Korean/German implants", "Free 3D CT scan"],
+        faq={
+            "Is it painful?": "Done under local anesthesia — you won't feel pain during the procedure. Mild soreness for 2-3 days after.",
+            "How long does it take?": "The implant is placed in 30-45 minutes. The final crown goes on after 3-4 months of healing.",
+            "Is it permanent?": "Yes! Dental implants are designed to last a lifetime with proper oral hygiene.",
+            "What if I don't have enough bone?": "We offer bone grafting procedures. Many patients who were told 'no' elsewhere get successful implants here.",
+        },
+        keywords=["implant", "missing tooth", "toota daant", "replacement", "naqli daant", "permanent tooth"],
+    ),
+    Treatment(
+        name="Crowns & Bridges",
+        name_hindi="कैप और ब्रिज",
+        min_price=3000,
+        max_price=20000,
+        duration_minutes=45,
+        description="Dental caps (crowns) to protect damaged teeth and bridges to replace missing teeth. Zirconia, PFM, and metal-free options.",
+        benefits=["Same-day temporary cap", "Natural appearance", "Zirconia/Metal-free options", "5-year warranty"],
+        faq={
+            "Which material is best?": "Zirconia is the gold standard — metal-free, natural-looking, and extremely strong. PFM is a budget-friendly option.",
+            "How long do crowns last?": "Zirconia crowns last 15-20 years. PFM crowns last 10-15 years with proper care.",
+        },
+        keywords=["crown", "cap", "bridge", "topi", "broken tooth", "toota daant"],
+    ),
+    Treatment(
+        name="Clear Aligners (Invisible Braces)",
+        name_hindi="क्लियर अलाइनर",
+        min_price=50000,
+        max_price=150000,
+        duration_minutes=30,
+        description="Invisible teeth straightening with custom-made clear trays. No metal, no wires — just a beautiful smile transformation.",
+        benefits=["Completely invisible", "Removable for eating", "No food restrictions", "Faster than traditional braces"],
+        faq={
+            "Are they really invisible?": "Yes! Clear aligners are virtually invisible. Most people won't even notice you're wearing them.",
+            "How long does treatment take?": "Typically 6-14 months, faster than traditional braces for most cases.",
+        },
+        keywords=["aligner", "invisible", "clear braces", "no wire", "bina taar"],
+    ),
+    Treatment(
+        name="Wisdom Tooth Extraction",
+        name_hindi="अक्ल दाढ़ निकालना",
+        min_price=2000,
+        max_price=8000,
+        duration_minutes=45,
+        description="Safe and painless wisdom tooth removal by experienced oral surgeons. Impacted, partially erupted, or problematic wisdom teeth.",
+        benefits=["Painless extraction", "Experienced surgeon", "Quick recovery", "Stitch removal in 7 days"],
+        faq={
+            "Is it painful?": "No, done under local anesthesia. You might feel pressure but no pain. We prescribe painkillers for 2-3 days after.",
+            "Will my face swell?": "Some swelling is normal for 2-3 days. Ice packs and medication control it well.",
+        },
+        keywords=["wisdom tooth", "akkal daadh", "extraction", "daant nikalna", "swelling"],
+    ),
+    Treatment(
+        name="Gum Treatment (Periodontics)",
+        name_hindi="मसूड़ों का इलाज",
+        min_price=3000,
+        max_price=15000,
+        duration_minutes=45,
+        description="Treatment for bleeding gums, gum recession, and periodontal disease. Flap surgery, laser treatment, and gum grafting available.",
+        benefits=["Laser treatment available", "Stop bleeding gums", "Prevent tooth loss", "Painless procedures"],
+        faq={
+            "Why do my gums bleed?": "Bleeding gums indicate gum disease (gingivitis/periodontitis). It's treatable but shouldn't be ignored.",
+            "Can I lose teeth from gum disease?": "Yes, untreated gum disease is the #1 cause of tooth loss in adults. Early treatment can save all your teeth.",
+        },
+        keywords=["gum", "bleeding", "masude", "khoon", "loose tooth", "hilta daant"],
+    ),
+    Treatment(
+        name="Smile Makeover",
+        name_hindi="स्माइल मेकओवर",
+        min_price=30000,
+        max_price=200000,
+        duration_minutes=90,
+        description="Complete smile transformation combining veneers, whitening, crowns, and alignment. Custom-designed for your face shape.",
+        benefits=["Complete transformation", "Custom digital design", "Before/after preview", "Celebrity-grade results"],
+        faq={
+            "What's included?": "Depends on your case — could include veneers, whitening, crowns, or aligners. We create a custom plan after examination.",
+            "How long does it take?": "Simple makeovers take 2-3 visits. Complex cases may take a few weeks.",
+        },
+        keywords=["smile", "makeover", "cosmetic", "veneers", "sundar daant", "muskaan"],
+    ),
+    Treatment(
+        name="Kids Dentistry (Pedodontics)",
+        name_hindi="बच्चों के दांतों का इलाज",
+        min_price=500,
+        max_price=5000,
+        duration_minutes=30,
+        description="Gentle and child-friendly dental care. Cavity fillings, fluoride application, sealants, and space maintainers.",
+        benefits=["Child-friendly clinic", "Painless fillings", "Fluoride treatment", "Fun dental visits"],
+        faq={
+            "At what age should I bring my child?": "First visit by age 1, or when the first tooth appears. Regular checkups from age 3.",
+            "My child is scared of dentists": "We specialize in making dental visits fun! Our team is trained in pediatric behavior management.",
+        },
+        keywords=["kids", "child", "baby teeth", "bacche", "doodh ke daant", "cavity"],
+    ),
+]
+
+
+BDC_PROFILE = ClinicProfile(
+    clinic_name="Bhardwaj Dental Clinic",
+    doctor_names=["Dr. Amit Bhardwaj", "Dr. Anuj Bhardwaj"],
+    specialty="Dentistry (General, Cosmetic & Implantology)",
+    tagline="Advanced Dental Care with a Gentle Touch",
+    address="9-11, Horizon Building, Lower Ground Floor, Nath Mandir Rd, South Tukoganj, Indore 452001",
+    city="Indore",
+    phone="9424488558",
+    whatsapp="9194244885",
+    timings="Mon-Sat: 10:00 AM - 2:00 PM, 5:00 PM - 9:00 PM",
+    closed_on="Sunday",
+    google_maps_link="https://maps.google.com/?q=Bhardwaj+Dental+Clinic+Indore",
+    treatments=BDC_TREATMENTS,
+    usp=[
+        "20+ years of experience",
+        "Latest German & Korean equipment",
+        "Painless treatments with advanced anesthesia",
+        "0% EMI available on all treatments",
+        "Free consultation for new patients",
+        "Both male and female dentists available",
+        "Centrally located in South Tukoganj",
+        "Sterilized & hygienic clinic",
+    ],
+    faq={
+        "Where is the clinic?": "We're at 9-11, Horizon Building, Lower Ground Floor, Nath Mandir Road, South Tukoganj, Indore. Near Nath Mandir / South Tukoganj Square.",
+        "What are the timings?": "Monday to Saturday: 10 AM - 2 PM and 5 PM - 9 PM. Closed on Sundays.",
+        "Is consultation free?": "Yes! First consultation is completely free for new patients.",
+        "Do you accept insurance?": "We provide bills and receipts that you can claim from your insurance provider.",
+        "Is EMI available?": "Yes, 0% EMI available for 6-12 months on treatments above ₹10,000. We accept all credit cards, UPI, and cash.",
+        "Is parking available?": "Street parking is available. The building is on the main Nath Mandir Road, easily accessible.",
+        "Do you treat emergencies?": "Yes! For dental emergencies (severe pain, broken tooth, swelling), call us and we'll try to see you the same day.",
+    },
+    greeting_script=(
+        "Thank you for calling Bhardwaj Dental Clinic, Indore! "
+        "For appointments, press 1. For treatment information, press 2. "
+        "To speak directly with our team, please hold."
+    ),
+    missed_call_script=(
+        "Namaste! 🙏 Aapne abhi Bhardwaj Dental Clinic pe call kiya tha — "
+        "sorry hum pick nahi kar paaye.\n\n"
+        "Main Riya hoon, Bhardwaj Dental Clinic ki assistant. "
+        "Aapka appointment abhi book kar sakti hoon!\n\n"
+        "Aapko kaunsi treatment chahiye? Batayein — main available slots check kar leti hoon. 😊\n\n"
+        "📍 Nath Mandir Rd, South Tukoganj, Indore\n"
+        "🕐 Mon-Sat 10AM-2PM, 5PM-9PM\n"
+        "📞 9424488558"
+    ),
+    follow_up_script=(
+        "Hi {patient_name}! 👋\n\n"
+        "Aapne {days_ago} din pehle Bhardwaj Dental Clinic mein {treatment} ke baare mein enquiry ki thi.\n\n"
+        "Kya aap appointment book karna chahenge? "
+        "Abhi {available_slot} ka slot available hai.\n\n"
+        "Reply karein ya call karein: 9424488558 📞"
+    ),
+    objection_handling={
+        "too expensive": "Main samajh sakti hoon. Hum 0% EMI option dete hain — ₹2,000/month se treatment start ho sakta hai. Consultation toh free hai — aap aake estimate le sakte hain.",
+        "need to think": "Bilkul! Aap apna time lein. Bas yaad rakhein — dental problems delay karne se worse hoti hain aur costlier bhi. Free consultation ke liye koi commitment nahi hai.",
+        "afraid of pain": "Aapki chinta bilkul valid hai! Hum advanced painless techniques use karte hain — laser aur digital anesthesia. Humare 95% patients kehte hain ki unhe kuch nahi laga.",
+        "will come later": "Sure! Kab aana chahenge? Main abhi slot book kar deti hoon taaki aapko wait na karna pade. Hum reminder bhi bhej denge.",
+        "other clinic is cheaper": "Quality dentistry mein price important hai but safety zyada. Hum German equipment use karte hain, proper sterilization follow karte hain, aur 20+ years ka experience hai. Free consultation mein aap quality khud dekhein.",
+        "no time": "Hum 10AM se 9PM tak open hain! Evening slots 5-9PM bhi available hain working professionals ke liye. Teeth cleaning sirf 30 minute mein ho jaati hai.",
+    },
+)
+
+
+def get_clinic_knowledge(clinic_name: str = "Bhardwaj Dental Clinic") -> ClinicProfile:
+    """Get the knowledge base for a clinic.
+
+    Currently returns BDC profile. In future, this will look up
+    the clinic from the database based on the doctor's profile.
+    """
+    return BDC_PROFILE
+
+
+def build_ai_system_prompt(clinic: ClinicProfile) -> str:
+    """Build the complete AI receptionist system prompt from clinic knowledge."""
+
+    treatment_list = ""
+    for t in clinic.treatments:
+        treatment_list += f"\n### {t.name} ({t.name_hindi})\n"
+        treatment_list += f"- **Price**: ₹{t.min_price:,} - ₹{t.max_price:,}\n"
+        treatment_list += f"- **Duration**: {t.duration_minutes} minutes\n"
+        treatment_list += f"- **Description**: {t.description}\n"
+        treatment_list += f"- **Benefits**: {', '.join(t.benefits)}\n"
+        if t.faq:
+            treatment_list += "- **Common questions**:\n"
+            for q, a in t.faq.items():
+                treatment_list += f"  - Q: {q}\n    A: {a}\n"
+
+    faq_section = ""
+    for q, a in clinic.faq.items():
+        faq_section += f"- Q: {q}\n  A: {a}\n"
+
+    objection_section = ""
+    for obj, response in clinic.objection_handling.items():
+        objection_section += f"- If patient says \"{obj}\": {response}\n"
+
+    usp_section = "\n".join(f"- {u}" for u in clinic.usp)
+
+    return f"""You are RIYA, the AI receptionist for {clinic.clinic_name}. You are friendly, professional, warm, and speak naturally in Hinglish (Hindi + English mix) — just like a real Indian clinic receptionist would.
+
+## YOUR PERSONALITY
+- You are warm, empathetic, and genuinely care about the patient's health
+- You speak naturally in Hinglish — mix Hindi and English as patients do in Indore
+- You use the patient's name when you know it
+- You are proactive — always suggest the next step
+- You handle objections with empathy, not pushiness
+- You NEVER give medical diagnosis — always recommend consultation
+- For emergencies, immediately say: "Please call 108 or visit the nearest hospital"
+- You can use emojis sparingly (🙏 😊 📞 ✅) but don't overdo it
+
+## CLINIC INFORMATION
+- **Name**: {clinic.clinic_name}
+- **Doctors**: {', '.join(clinic.doctor_names)}
+- **Specialty**: {clinic.specialty}
+- **Address**: {clinic.address}
+- **Phone**: {clinic.phone}
+- **Timings**: {clinic.timings}
+- **Closed**: {clinic.closed_on}
+- **Google Maps**: {clinic.google_maps_link}
+
+## WHY CHOOSE US
+{usp_section}
+
+## TREATMENTS & PRICING
+{treatment_list}
+
+## FREQUENTLY ASKED QUESTIONS
+{faq_section}
+
+## OBJECTION HANDLING (respond empathetically)
+{objection_section}
+
+## CONVERSATION FLOW
+
+### When patient first contacts:
+1. Greet warmly: "Namaste! 🙏 {clinic.clinic_name} mein aapka swagat hai. Main Riya hoon, clinic ki assistant."
+2. Ask what they need: "Aapko kaise help kar sakti hoon? Treatment ke baare mein jaanna hai ya appointment book karna hai?"
+3. Listen and respond with relevant treatment info + pricing
+4. Always end with: "Kya main aapka appointment book kar doon?"
+
+### When patient asks about price:
+1. Give the range: "Treatment ₹X se ₹Y tak hota hai, depending on the case."
+2. Mention free consultation: "Exact cost toh examination ke baad pata chalega — consultation free hai!"
+3. Mention EMI: "0% EMI bhi available hai agar chahein toh."
+
+### When patient wants to book:
+1. Ask preferred date: "Aap kab aana chahenge?"
+2. Offer options: "Kal {available_slot} ka slot available hai, ya Friday evening 6PM ka?"
+3. Get name: "Appointment ke liye aapka poora naam bata dijiye"
+4. Get phone: "Aur ek phone number for confirmation"
+5. Confirm: "Done! ✅ Aapka appointment book ho gaya hai — [date] [time]. Hum confirmation WhatsApp pe bhej denge."
+
+### When patient has pain/emergency:
+1. Show urgency and care: "Oh no! Dard ho raha hai toh please jaldi aayein."
+2. Offer immediate slot: "Aaj hi aa sakte hain? Hum emergency mein same day dekhte hain."
+3. If after hours: "Abhi clinic band hai, but kal morning 10 baje sabse pehla slot le lijiye. Tab tak ek painkiller (Ibuprofen 400mg) le sakte hain."
+
+## RULES
+- Keep responses under 150 words — WhatsApp messages should be concise
+- Always end with a clear next step or question
+- Never say "I'm an AI" unless directly asked — say "Main Riya hoon, Bhardwaj Dental Clinic ki assistant"
+- If patient speaks in pure Hindi, respond in Hindi. If English, use Hinglish.
+- If you don't know something, say: "Yeh main doctor se confirm karke batati hoon. Kya aap thodi der mein call le sakte hain?"
+- For complex medical questions: "Yeh toh examination ke baad hi pata chalega. Free consultation ke liye aa jayein!"
+"""
+
+
+def get_exotel_ivr_greeting(clinic: ClinicProfile) -> str:
+    """Generate the Exotel IVR greeting script."""
+    return (
+        f"Namaste! Welcome to {clinic.clinic_name}. "
+        f"You have reached the clinic of {' and '.join(clinic.doctor_names)}. "
+        f"Please hold while we connect your call. "
+        f"If we're unable to take your call, we'll reach you on WhatsApp shortly."
+    )
+
+
+def get_exotel_after_hours_greeting(clinic: ClinicProfile) -> str:
+    """Greeting when calling outside clinic hours."""
+    return (
+        f"Thank you for calling {clinic.clinic_name}. "
+        f"Our clinic hours are {clinic.timings}. We are currently closed. "
+        f"We will send you a WhatsApp message to help you book an appointment. "
+        f"For emergencies, please visit the nearest hospital. Thank you!"
+    )
+
+
+def get_call_summary_prompt(clinic: ClinicProfile) -> str:
+    """Prompt for summarizing a recorded call — extracts key info."""
+    return f"""Summarize this phone call to {clinic.clinic_name} in a structured format:
+
+1. **Patient Name**: (if mentioned)
+2. **Phone Number**: (caller number)
+3. **Treatment Interest**: (what they asked about)
+4. **Key Concerns**: (pain, cost, timing, etc.)
+5. **Action Required**: (needs callback, wants to book, needs pricing, etc.)
+6. **Keywords**: (comma-separated relevant keywords for tagging)
+7. **Priority**: (HIGH if in pain/emergency, MEDIUM if interested, LOW if just enquiring)
+8. **Suggested Follow-up**: (what to do next)
+
+Keep it concise — this goes to the doctor's dashboard."""

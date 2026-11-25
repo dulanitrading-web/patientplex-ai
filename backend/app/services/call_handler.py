@@ -172,15 +172,23 @@ class CallHandler:
 
         clinic_name = doctor.clinic_name or f"Dr. {doctor.full_name}'s clinic"
 
-        # Send Hinglish WhatsApp message to the patient (Business Brain persona)
-        message = (
-            f"Namaste! 🙏 Aapne abhi {clinic_name} pe call kiya tha — "
-            f"sorry hum pick nahi kar paaye.\n\n"
-            f"Main Dr. {doctor.full_name} ki assistant hoon. "
-            f"Aapka appointment abhi book kar sakti hoon!\n\n"
-            f"Aapko kaunsi treatment chahiye? Ya batayein kab aana hai — "
-            f"main available slots check kar leti hoon. 😊"
-        )
+        # Use clinic knowledge base for personalized missed call message
+        try:
+            from app.services.clinic_knowledge import get_clinic_knowledge
+            clinic = get_clinic_knowledge(clinic_name)
+            message = clinic.missed_call_script
+        except Exception:
+            # Fallback message
+            message = (
+                f"Namaste! 🙏 Aapne abhi {clinic_name} pe call kiya tha — "
+                f"sorry hum pick nahi kar paaye.\n\n"
+                f"Main Dr. {doctor.full_name} ki assistant hoon. "
+                f"Aapka appointment abhi book kar sakti hoon!\n\n"
+                f"Aapko kaunsi treatment chahiye? Ya batayein kab aana hai — "
+                f"main available slots check kar leti hoon. 😊\n\n"
+                f"📍 {doctor.clinic_address or ''}\n"
+                f"📞 {doctor.phone}"
+            )
 
         result = await whatsapp_service.send_message(
             to=call_log.caller_phone,
@@ -311,12 +319,32 @@ class ExotelVoiceHandler:
 
         Returns a dict that Exotel's passthru applet understands.
         The call is forwarded to the doctor's real phone with recording enabled.
+        Uses clinic knowledge base for professional IVR greeting.
         """
         doctor_phone = doctor.whatsapp_number or doctor.phone
         # Exotel expects 10-digit Indian number or full international format
         clean_phone = doctor_phone.replace("+", "").replace(" ", "").replace("-", "")
         if len(clean_phone) == 10:
             clean_phone = "0" + clean_phone  # Add STD prefix for Exotel
+
+        # Use knowledge base for professional greeting
+        clinic_name = doctor.clinic_name or "the clinic"
+        try:
+            from app.services.clinic_knowledge import get_clinic_knowledge, get_exotel_ivr_greeting
+            clinic = get_clinic_knowledge(clinic_name)
+            greeting = get_exotel_ivr_greeting(clinic)
+            timeout_msg = get_exotel_after_hours_greeting(clinic) if not greeting else (
+                f"Thank you for calling {clinic.clinic_name}. "
+                f"We will send you a WhatsApp message shortly with Riya, "
+                f"our clinic assistant, who can help you book an appointment."
+            )
+        except Exception:
+            greeting = f"Welcome to {clinic_name}. Please hold while we connect your call."
+            timeout_msg = (
+                f"Thank you for calling {clinic_name}. "
+                f"We will send you a WhatsApp message shortly to help you "
+                f"book an appointment."
+            )
 
         return {
             "connect": {
@@ -327,19 +355,25 @@ class ExotelVoiceHandler:
             },
             "on_timeout": {
                 "action": "hangup",
-                "play": f"Thank you for calling {doctor.clinic_name or 'the clinic'}. "
-                        f"We will send you a WhatsApp message shortly to help you "
-                        f"book an appointment.",
+                "play": timeout_msg,
             },
         }
 
     @staticmethod
     def generate_greeting_response(clinic_name: str) -> dict:
         """Response when no doctor is found — play greeting and hang up."""
+        try:
+            from app.services.clinic_knowledge import get_clinic_knowledge, get_exotel_after_hours_greeting
+            clinic = get_clinic_knowledge(clinic_name)
+            message = get_exotel_after_hours_greeting(clinic)
+        except Exception:
+            message = (
+                f"Thank you for calling {clinic_name}. "
+                f"We will reach you on WhatsApp shortly to help you "
+                f"book an appointment. Thank you!"
+            )
         return {
-            "play": f"Thank you for calling {clinic_name}. "
-                    f"We will reach you on WhatsApp shortly to help you "
-                    f"book an appointment. Thank you!",
+            "play": message,
             "action": "hangup",
         }
 

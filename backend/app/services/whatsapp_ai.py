@@ -91,18 +91,29 @@ class WhatsAppAI:
         clinic_info: Dict,
         conversation_history: Optional[list] = None,
     ) -> str:
-        """Generate an AI reply to a patient's WhatsApp message."""
+        """Generate an AI reply to a patient's WhatsApp message.
+
+        Uses the comprehensive clinic knowledge base for deep,
+        accurate responses about treatments, pricing, and scheduling.
+        """
         if not self.is_active:
             return self._fallback_reply(patient_message)
 
-        system = SYSTEM_PROMPT.format(
-            clinic_name=clinic_info.get("clinic_name", "the clinic"),
-            doctor_name=clinic_info.get("doctor_name", "the doctor"),
-            specialty=clinic_info.get("specialty", "general practice"),
-            location=clinic_info.get("location", ""),
-            timings=clinic_info.get("timings", "Mon-Sat, 9am-7pm"),
-            treatments=clinic_info.get("treatments", "General consultations"),
-        )
+        # Try to use the comprehensive knowledge base
+        try:
+            from app.services.clinic_knowledge import get_clinic_knowledge, build_ai_system_prompt
+            clinic = get_clinic_knowledge(clinic_info.get("clinic_name", ""))
+            system = build_ai_system_prompt(clinic)
+        except Exception:
+            # Fallback to basic prompt if knowledge base fails
+            system = SYSTEM_PROMPT.format(
+                clinic_name=clinic_info.get("clinic_name", "the clinic"),
+                doctor_name=clinic_info.get("doctor_name", "the doctor"),
+                specialty=clinic_info.get("specialty", "general practice"),
+                location=clinic_info.get("location", ""),
+                timings=clinic_info.get("timings", "Mon-Sat, 9am-7pm"),
+                treatments=clinic_info.get("treatments", "General consultations"),
+            )
 
         messages = [{"role": "system", "content": system}]
 
@@ -131,52 +142,93 @@ class WhatsAppAI:
             return self._fallback_reply(patient_message)
 
     def _fallback_reply(self, message: str) -> str:
-        """Rule-based fallback when AI is unavailable."""
+        """Rule-based fallback when AI is unavailable — uses BDC knowledge."""
         msg_lower = message.lower()
 
-        if any(w in msg_lower for w in ["book", "appointment", "slot", "available", "time"]):
+        # Try to get clinic name from knowledge base
+        try:
+            from app.services.clinic_knowledge import get_clinic_knowledge
+            clinic = get_clinic_knowledge()
+            clinic_name = clinic.clinic_name
+            timings = clinic.timings
+            address = clinic.address
+            phone = clinic.phone
+        except Exception:
+            clinic_name = "Bhardwaj Dental Clinic"
+            timings = "Mon-Sat 10AM-2PM, 5PM-9PM"
+            address = "Nath Mandir Rd, South Tukoganj, Indore"
+            phone = "9424488558"
+
+        if any(w in msg_lower for w in ["book", "appointment", "slot", "available", "time", "milna", "aana"]):
             return (
-                "Thank you for your interest! 🙏\n\n"
-                "To book an appointment, please share:\n"
-                "1. Your preferred date\n"
-                "2. Morning or evening slot\n"
-                "3. Treatment you're looking for\n\n"
-                "Our team will confirm your appointment shortly."
+                f"Namaste! 🙏 {clinic_name} mein appointment ke liye:\n\n"
+                f"Batayein:\n"
+                f"1. Kab aana chahenge? (date)\n"
+                f"2. Morning (10-2) ya evening (5-9)?\n"
+                f"3. Kaunsi treatment chahiye?\n\n"
+                f"Main abhi slot check karke confirm kar dungi! ✅"
             )
-        elif any(w in msg_lower for w in ["price", "cost", "fee", "charge", "kitna", "rate"]):
+        elif any(w in msg_lower for w in ["price", "cost", "fee", "charge", "kitna", "rate", "paisa", "kharcha"]):
             return (
-                "Thank you for asking! Treatment costs vary based on the procedure.\n\n"
-                "I'd recommend scheduling a consultation so the doctor can "
-                "assess your needs and give you an accurate estimate.\n\n"
-                "Shall I book a consultation for you?"
+                f"🙏 {clinic_name} mein treatment ki prices:\n\n"
+                f"🦷 Teeth Cleaning: ₹800-2,500\n"
+                f"🦷 Root Canal: ₹5,000-12,000\n"
+                f"🦷 Braces: ₹25,000-60,000\n"
+                f"🦷 Implants: ₹25,000-80,000\n"
+                f"🦷 Crowns: ₹3,000-20,000\n\n"
+                f"💡 Pehli consultation FREE hai!\n"
+                f"💳 0% EMI available\n\n"
+                f"Exact cost examination ke baad pata chalega. Appointment book karein?"
             )
-        elif any(w in msg_lower for w in ["cancel", "reschedule", "change"]):
+        elif any(w in msg_lower for w in ["cancel", "reschedule", "change", "badalna"]):
             return (
-                "I understand you'd like to make a change to your appointment.\n\n"
-                "Please share your appointment date and the new preferred time, "
-                "and I'll update it for you right away."
+                f"Bilkul! Aapka appointment change kar dete hain.\n\n"
+                f"Apna appointment date aur naya preferred time batayein — "
+                f"main update kar dungi. 😊"
             )
-        elif any(w in msg_lower for w in ["emergency", "urgent", "pain", "bleeding", "accident"]):
+        elif any(w in msg_lower for w in ["emergency", "urgent", "pain", "bleeding", "accident", "dard", "khoon", "sujan", "swelling"]):
             return (
-                "⚠️ If this is a medical emergency, please call 108 immediately "
-                "or go to the nearest hospital.\n\n"
-                "For urgent but non-emergency concerns, we'll try to fit you in today. "
-                "Can you describe what's happening?"
+                f"😟 Dard ho raha hai? Please jaldi aayein!\n\n"
+                f"⚠️ Serious emergency ke liye: 108 call karein\n\n"
+                f"🏥 {clinic_name} mein aaj hi aa sakte hain — "
+                f"hum emergency mein same day dekhte hain.\n\n"
+                f"📞 Call karein: {phone}\n"
+                f"📍 {address}"
             )
-        elif any(w in msg_lower for w in ["hi", "hello", "hey", "namaste"]):
+        elif any(w in msg_lower for w in ["hi", "hello", "hey", "namaste", "hii", "helo"]):
             return (
-                "Namaste! 🙏 Welcome to our clinic.\n\n"
-                "How can I help you today? I can:\n"
-                "• Book an appointment\n"
-                "• Share treatment information\n"
-                "• Answer your questions\n\n"
-                "What would you like to know?"
+                f"Namaste! 🙏 {clinic_name} mein aapka swagat hai!\n\n"
+                f"Main Riya hoon, clinic ki assistant. Aapko kaise help kar sakti hoon?\n\n"
+                f"🦷 Treatment ki jaankari\n"
+                f"📅 Appointment booking\n"
+                f"💰 Prices & EMI options\n\n"
+                f"Batayein kya chahiye? 😊"
+            )
+        elif any(w in msg_lower for w in ["address", "location", "kahan", "jagah", "map", "direction"]):
+            return (
+                f"📍 {clinic_name}\n"
+                f"{address}\n\n"
+                f"🕐 {timings}\n"
+                f"🚫 Sunday closed\n\n"
+                f"Nath Mandir / South Tukoganj Square ke paas hai.\n"
+                f"Appointment book karein? 😊"
+            )
+        elif any(w in msg_lower for w in ["timing", "time", "open", "close", "band", "khulta", "samay"]):
+            return (
+                f"🕐 {clinic_name} Timings:\n\n"
+                f"Monday-Saturday:\n"
+                f"☀️ Morning: 10:00 AM - 2:00 PM\n"
+                f"🌙 Evening: 5:00 PM - 9:00 PM\n\n"
+                f"🚫 Sunday: Closed\n\n"
+                f"Appointment book karein? Main slot check kar deti hoon! 😊"
             )
         else:
             return (
-                "Thank you for your message! 🙏\n\n"
-                "I'll check with the doctor and get back to you shortly. "
-                "In the meantime, would you like to book an appointment?"
+                f"🙏 {clinic_name} mein aapka swagat hai!\n\n"
+                f"Main Riya hoon. Aapka message mil gaya hai — "
+                f"main doctor se confirm karke batati hoon.\n\n"
+                f"Kya aap appointment book karna chahenge? "
+                f"Pehli consultation FREE hai! 😊"
             )
 
     async def detect_intent(self, message: str) -> str:
