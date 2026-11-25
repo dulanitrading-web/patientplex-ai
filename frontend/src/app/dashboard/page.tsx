@@ -224,8 +224,8 @@ export default function DashboardPage() {
       }
     }
     init();
-    // Auto-refresh every 5 minutes — data syncs automatically
-    const interval = setInterval(() => loadDashboard(), 300000);
+    // Auto-refresh every 90 seconds — data syncs under 2 minutes
+    const interval = setInterval(() => loadDashboard(), 90000);
     return () => clearInterval(interval);
   }, [loadDashboard]);
 
@@ -344,7 +344,7 @@ export default function DashboardPage() {
             onClick={handleRefresh}
             disabled={refreshing}
             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white border border-slate-200 text-sm text-slate-600 hover:border-slate-300 transition-colors shadow-sm disabled:opacity-50"
-            title="Data auto-syncs every 5 minutes"
+            title="Data auto-syncs every 90 seconds"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} />
           </button>
@@ -368,7 +368,7 @@ export default function DashboardPage() {
           <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
         </span>
         <span className="text-xs text-emerald-700 font-medium">
-          Data auto-syncs · Google Ads every 4hrs · Leads in real-time
+          Auto-sync every 90s · Google Ads every 4hrs · Leads real-time
         </span>
       </motion.div>
 

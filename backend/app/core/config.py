@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     API_V1_PREFIX: str = "/api/v1"
     ENVIRONMENT: str = "development"
 
+    # Sentry error tracking
+    SENTRY_DSN: str = ""
+
     # Deployment URLs (used for OAuth callbacks and redirects)
     BACKEND_BASE_URL: str = "https://patientplex-ai-g7ce.onrender.com"
     FRONTEND_BASE_URL: str = "https://patientplex-ai.vercel.app"
@@ -50,6 +53,7 @@ class Settings(BaseSettings):
     EXOTEL_API_TOKEN: str = ""
     EXOTEL_SID: str = ""
     EXOTEL_CALLER_ID: str = ""  # ExoPhone virtual number
+    EXOTEL_WEBHOOK_SECRET: str = ""  # For verifying Exotel webhook callbacks
 
     # Twilio (Backup — international only, not used for India)
     TWILIO_ACCOUNT_SID: str = ""

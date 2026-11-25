@@ -297,7 +297,7 @@ export default function SettingsPage() {
 
         {statusMessage && (
           <div className={`mt-3 p-3 rounded-lg text-sm ${statusMessage.type === "success" ? "bg-green-50 text-green-800 border border-green-200" : statusMessage.type === "info" ? "bg-blue-50 text-blue-800 border border-blue-200" : "bg-red-50 text-red-800 border border-red-200"}`}>
-            {statusMessage.text}
+            {typeof statusMessage.text === "string" ? statusMessage.text : JSON.stringify(statusMessage.text)}
             <button onClick={() => setStatusMessage(null)} className="ml-2 text-xs underline">Dismiss</button>
           </div>
         )}
@@ -335,8 +335,11 @@ export default function SettingsPage() {
             onConnect={async () => {
               try {
                 const result = await verifyWhatsApp();
-                setStatusMessage({ text: result.message || result.detail || "Verification sent!", type: "success" });
-                setTimeout(() => window.location.reload(), 2000);
+                // Ensure text is always a string (backend may return object for error details)
+                const rawText = result.message || result.detail || "Verification sent!";
+                const text = typeof rawText === "string" ? rawText : JSON.stringify(rawText);
+                setStatusMessage({ text, type: result.status === "verified" ? "success" : "error" });
+                if (result.status === "verified") setTimeout(() => window.location.reload(), 2000);
               } catch (err: unknown) {
                 const msg = err instanceof Error ? err.message : "WhatsApp verification failed";
                 setStatusMessage({ text: msg, type: "error" });

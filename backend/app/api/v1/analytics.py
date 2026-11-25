@@ -2,13 +2,14 @@
 
 import logging
 from datetime import datetime, timedelta, timezone
-from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func, select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.v1.auth import get_current_doctor
 from app.db.session import get_db
+from app.models.doctor import Doctor
 from app.services.analytics_service import AnalyticsService
 
 logger = logging.getLogger(__name__)
@@ -16,19 +17,12 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
 
-# TODO: Replace with actual auth dependency that extracts doctor_id from JWT
-async def get_current_doctor_id() -> UUID:
-    """Placeholder — in production, extracts doctor_id from the authenticated JWT token."""
-    from uuid import uuid4
-    return uuid4()
-
-
 @router.get("/dashboard")
 async def dashboard_summary(
     days: int = Query(30, ge=1, le=365, description="Number of days to analyze"),
     period: str = Query("30d", description="Preset period: 7d, 14d, 30d, 90d, 365d, today, this_week, this_month"),
     db: AsyncSession = Depends(get_db),
-    doctor_id: UUID = Depends(get_current_doctor_id),
+    doctor: Doctor = Depends(get_current_doctor),
 ):
     """Top-level dashboard metrics with period-over-period comparison.
 
@@ -45,14 +39,14 @@ async def dashboard_summary(
     effective_days = period_map.get(period, days)
 
     service = AnalyticsService(db)
-    return await service.get_dashboard_summary(doctor_id, effective_days)
+    return await service.get_dashboard_summary(doctor.id, effective_days)
 
 
 @router.get("/lead-stats")
 async def lead_stats(
     period: str = Query("30d", description="Period: today, 7d, 14d, 30d, 90d"),
     db: AsyncSession = Depends(get_db),
-    doctor_id: UUID = Depends(get_current_doctor_id),
+    doctor: Doctor = Depends(get_current_doctor),
 ):
     """Lead statistics with daily trend for sparkline charts.
 
@@ -69,7 +63,7 @@ async def lead_stats(
 
     # Current period leads
     current_q = select(func.count(Patient.id)).where(
-        and_(Patient.doctor_id == doctor_id, Patient.created_at >= since)
+        and_(Patient.doctor_id == doctor.id, Patient.created_at >= since)
     )
     current_result = await db.execute(current_q)
     current_total = current_result.scalar() or 0
@@ -77,7 +71,7 @@ async def lead_stats(
     # Previous period leads
     prev_q = select(func.count(Patient.id)).where(
         and_(
-            Patient.doctor_id == doctor_id,
+            Patient.doctor_id == doctor.id,
             Patient.created_at >= prev_since,
             Patient.created_at < since,
         )
@@ -90,7 +84,7 @@ async def lead_stats(
         func.date(Patient.created_at).label("day"),
         func.count(Patient.id).label("count"),
     ).where(
-        and_(Patient.doctor_id == doctor_id, Patient.created_at >= since)
+        and_(Patient.doctor_id == doctor.id, Patient.created_at >= since)
     ).group_by(func.date(Patient.created_at)).order_by(func.date(Patient.created_at))
     daily_result = await db.execute(daily_q)
     daily_rows = daily_result.all()
@@ -100,7 +94,7 @@ async def lead_stats(
         Patient.source,
         func.count(Patient.id).label("count"),
     ).where(
-        and_(Patient.doctor_id == doctor_id, Patient.created_at >= since)
+        and_(Patient.doctor_id == doctor.id, Patient.created_at >= since)
     ).group_by(Patient.source)
     source_result = await db.execute(source_q)
     by_source = {row.source or "unknown": row.count for row in source_result.all()}
@@ -126,7 +120,7 @@ async def metric_trend(
     metric: str = Query("leads", description="Metric: leads, spend, clicks, impressions, bookings, revenue"),
     period: str = Query("30d", description="Period: 7d, 14d, 30d, 90d"),
     db: AsyncSession = Depends(get_db),
-    doctor_id: UUID = Depends(get_current_doctor_id),
+    doctor: Doctor = Depends(get_current_doctor),
 ):
     """Daily trend data for any metric — powers sparkline charts.
 
@@ -146,14 +140,14 @@ async def metric_trend(
             func.date(Patient.created_at).label("day"),
             func.count(Patient.id).label("value"),
         ).where(
-            and_(Patient.doctor_id == doctor_id, Patient.created_at >= since)
+            and_(Patient.doctor_id == doctor.id, Patient.created_at >= since)
         ).group_by(func.date(Patient.created_at)).order_by(func.date(Patient.created_at))
     elif metric == "bookings":
         q = select(
             func.date(Appointment.created_at).label("day"),
             func.count(Appointment.id).label("value"),
         ).where(
-            and_(Appointment.doctor_id == doctor_id, Appointment.created_at >= since)
+            and_(Appointment.doctor_id == doctor.id, Appointment.created_at >= since)
         ).group_by(func.date(Appointment.created_at)).order_by(func.date(Appointment.created_at))
     elif metric in ("spend", "clicks", "impressions"):
         col = getattr(Campaign, metric)
@@ -161,7 +155,7 @@ async def metric_trend(
             func.date(Campaign.updated_at).label("day"),
             func.coalesce(func.sum(col), 0).label("value"),
         ).where(
-            and_(Campaign.doctor_id == doctor_id, Campaign.updated_at >= since)
+            and_(Campaign.doctor_id == doctor.id, Campaign.updated_at >= since)
         ).group_by(func.date(Campaign.updated_at)).order_by(func.date(Campaign.updated_at))
     elif metric == "revenue":
         from app.models.call_log import ConversionEvent, ConversionStage
@@ -170,7 +164,7 @@ async def metric_trend(
             func.coalesce(func.sum(ConversionEvent.revenue_inr), 0).label("value"),
         ).where(
             and_(
-                ConversionEvent.doctor_id == doctor_id,
+                ConversionEvent.doctor_id == doctor.id,
                 ConversionEvent.stage == ConversionStage.TREATMENT_ACCEPTED,
                 ConversionEvent.timestamp >= since,
             )
@@ -193,63 +187,63 @@ async def metric_trend(
 async def channel_performance(
     days: int = Query(30, ge=1, le=365),
     db: AsyncSession = Depends(get_db),
-    doctor_id: UUID = Depends(get_current_doctor_id),
+    doctor: Doctor = Depends(get_current_doctor),
 ):
     """Performance breakdown by acquisition channel (Google, Meta, WhatsApp, organic)."""
     service = AnalyticsService(db)
-    return await service.get_channel_performance(doctor_id, days)
+    return await service.get_channel_performance(doctor.id, days)
 
 
 @router.get("/campaigns")
 async def campaign_performance(
     days: int = Query(30, ge=1, le=365),
     db: AsyncSession = Depends(get_db),
-    doctor_id: UUID = Depends(get_current_doctor_id),
+    doctor: Doctor = Depends(get_current_doctor),
 ):
     """Per-campaign metrics with quality scores and recommendations."""
     service = AnalyticsService(db)
-    return await service.get_campaign_performance(doctor_id, days)
+    return await service.get_campaign_performance(doctor.id, days)
 
 
 @router.get("/hourly")
 async def hourly_performance(
     days: int = Query(7, ge=1, le=30),
     db: AsyncSession = Depends(get_db),
-    doctor_id: UUID = Depends(get_current_doctor_id),
+    doctor: Doctor = Depends(get_current_doctor),
 ):
     """Hour-by-hour engagement patterns to identify peak times."""
     service = AnalyticsService(db)
-    return await service.get_hourly_performance(doctor_id, days)
+    return await service.get_hourly_performance(doctor.id, days)
 
 
 @router.get("/treatments")
 async def treatment_analytics(
     days: int = Query(30, ge=1, le=365),
     db: AsyncSession = Depends(get_db),
-    doctor_id: UUID = Depends(get_current_doctor_id),
+    doctor: Doctor = Depends(get_current_doctor),
 ):
     """Treatment-level revenue and acquisition metrics."""
     service = AnalyticsService(db)
-    return await service.get_treatment_analytics(doctor_id, days)
+    return await service.get_treatment_analytics(doctor.id, days)
 
 
 @router.get("/cac")
 async def patient_acquisition_cost(
     days: int = Query(30, ge=1, le=365),
     db: AsyncSession = Depends(get_db),
-    doctor_id: UUID = Depends(get_current_doctor_id),
+    doctor: Doctor = Depends(get_current_doctor),
 ):
     """Patient Acquisition Cost — overall, by channel, and weekly trend."""
     service = AnalyticsService(db)
-    return await service.get_patient_acquisition_cost(doctor_id, days)
+    return await service.get_patient_acquisition_cost(doctor.id, days)
 
 
 @router.get("/funnel")
 async def funnel_drop_off(
     days: int = Query(30, ge=1, le=365),
     db: AsyncSession = Depends(get_db),
-    doctor_id: UUID = Depends(get_current_doctor_id),
+    doctor: Doctor = Depends(get_current_doctor),
 ):
     """Funnel drop-off analysis — where patients are being lost."""
     service = AnalyticsService(db)
-    return await service.get_funnel_drop_off(doctor_id, days)
+    return await service.get_funnel_drop_off(doctor.id, days)

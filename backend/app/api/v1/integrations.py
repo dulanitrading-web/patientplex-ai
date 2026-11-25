@@ -4,8 +4,12 @@ Each clinic connects their OWN ad accounts through OAuth.
 PatientPlex manages campaigns on their behalf.
 """
 
+import base64
+import hashlib
+import hmac
+import json
 import logging
-import secrets
+import time
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -26,48 +30,53 @@ router = APIRouter(prefix="/integrations", tags=["integrations"])
 BACKEND_BASE = settings.BACKEND_BASE_URL.rstrip("/")
 FRONTEND_BASE = settings.FRONTEND_BASE_URL.rstrip("/")
 
-# In-memory OAuth state store (maps random token → {provider, doctor_id, expires})
-# In production, replace with Redis for multi-instance support.
-import time
-_oauth_states: dict[str, dict] = {}
 _OAUTH_STATE_TTL = 600  # 10 minutes
 
 
 def _create_oauth_state(provider: str, doctor_id: str) -> str:
-    """Create a cryptographically random OAuth state token."""
-    token = secrets.token_urlsafe(32)
-    _oauth_states[token] = {
-        "provider": provider,
-        "doctor_id": doctor_id,
-        "expires": time.time() + _OAUTH_STATE_TTL,
-    }
-    # Cleanup expired states
-    now = time.time()
-    expired = [k for k, v in _oauth_states.items() if v["expires"] < now]
-    for k in expired:
-        del _oauth_states[k]
-    return f"{provider}:{token}"
+    """Create a signed OAuth state token (stateless — works across workers)."""
+    data = json.dumps({
+        "p": provider,
+        "d": doctor_id,
+        "e": time.time() + _OAUTH_STATE_TTL,
+    })
+    encoded = base64.urlsafe_b64encode(data.encode()).decode().rstrip("=")
+    signature = hmac.new(
+        settings.SECRET_KEY.encode(), encoded.encode(), hashlib.sha256
+    ).hexdigest()[:16]
+    return f"{encoded}.{signature}"
 
 
 def _verify_oauth_state(state: str, expected_provider: str) -> str:
-    """Verify and consume an OAuth state token. Returns doctor_id or raises."""
-    parts = state.split(":", 1)
-    if len(parts) != 2 or parts[0] != expected_provider:
+    """Verify a signed OAuth state token. Returns doctor_id or raises."""
+    parts = state.rsplit(".", 1)
+    if len(parts) != 2:
         raise HTTPException(status_code=400, detail="Invalid OAuth state")
 
-    token = parts[1]
-    entry = _oauth_states.pop(token, None)
+    encoded, signature = parts
+    expected_sig = hmac.new(
+        settings.SECRET_KEY.encode(), encoded.encode(), hashlib.sha256
+    ).hexdigest()[:16]
+    if not hmac.compare_digest(signature, expected_sig):
+        raise HTTPException(status_code=400, detail="Invalid OAuth state signature")
 
-    if not entry:
-        raise HTTPException(status_code=400, detail="OAuth state expired or invalid. Please try connecting again.")
+    # Restore padding for base64
+    padded = encoded + "=" * (4 - len(encoded) % 4)
+    try:
+        data = json.loads(base64.urlsafe_b64decode(padded))
+    except Exception:
+        raise HTTPException(status_code=400, detail="Corrupted OAuth state")
 
-    if entry["expires"] < time.time():
-        raise HTTPException(status_code=400, detail="OAuth state expired. Please try connecting again.")
+    if data.get("e", 0) < time.time():
+        raise HTTPException(
+            status_code=400,
+            detail="OAuth state expired. Please try connecting again.",
+        )
 
-    if entry["provider"] != expected_provider:
+    if data.get("p") != expected_provider:
         raise HTTPException(status_code=400, detail="OAuth state mismatch")
 
-    return entry["doctor_id"]
+    return data["d"]
 
 
 async def _get_access_token_from_refresh(refresh_token: str) -> str | None:
@@ -383,10 +392,21 @@ async def verify_whatsapp(
             if resp.status_code == 200:
                 doctor.whatsapp_verified = True
                 await db.commit()
-                return {"status": "verified", "message": "WhatsApp verification message sent"}
+                return {"status": "verified", "message": "WhatsApp verification message sent successfully! ✅"}
             else:
                 error_data = resp.json()
-                return {"status": "error", "detail": error_data}
+                # Extract human-readable error message from Meta API response
+                error_msg = "WhatsApp API error"
+                if isinstance(error_data, dict):
+                    err_obj = error_data.get("error", error_data)
+                    if isinstance(err_obj, dict):
+                        error_msg = err_obj.get("message", str(err_obj))
+                    else:
+                        error_msg = str(err_obj)
+                else:
+                    error_msg = str(error_data)
+                logger.error("WhatsApp verify failed: %s (status %d)", error_msg, resp.status_code)
+                return {"status": "error", "message": error_msg}
 
     except Exception as exc:
         logger.error("WhatsApp verification failed: %s", exc)

@@ -16,6 +16,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.v1.auth import get_current_doctor
 from app.db.session import get_db
 from app.models.campaign import AdPlatform, Campaign, CampaignStatus
 from app.models.conversation import Appointment, AppointmentStatus, Conversation, ConversationStatus
@@ -74,20 +75,10 @@ DENTAL_KEYWORDS = {
 }
 
 
-async def _get_doctor_from_auth(db: AsyncSession) -> Doctor:
-    """Get the first active doctor (placeholder until auth wired)."""
-    result = await db.execute(
-        select(Doctor).where(Doctor.is_active == True).limit(1)
-    )
-    doctor = result.scalar_one_or_none()
-    if not doctor:
-        raise HTTPException(status_code=404, detail="No active doctor found. Complete onboarding first.")
-    return doctor
-
-
 @router.post("/initialize")
 async def initialize_clinic_data(
     db: AsyncSession = Depends(get_db),
+    doctor: Doctor = Depends(get_current_doctor),
 ):
     """Initialize realistic operational data for the clinic dashboard.
 
@@ -99,7 +90,6 @@ async def initialize_clinic_data(
 
     Safe to call multiple times — skips if data already exists.
     """
-    doctor = await _get_doctor_from_auth(db)
 
     # Check if data already seeded
     existing_patients = await db.execute(
@@ -382,9 +372,11 @@ async def initialize_clinic_data(
 
 
 @router.get("/status")
-async def seed_status(db: AsyncSession = Depends(get_db)):
+async def seed_status(
+    db: AsyncSession = Depends(get_db),
+    doctor: Doctor = Depends(get_current_doctor),
+):
     """Check if clinic data has been initialized."""
-    doctor = await _get_doctor_from_auth(db)
 
     patient_count = (await db.execute(
         select(func.count(Patient.id)).where(Patient.doctor_id == doctor.id)
