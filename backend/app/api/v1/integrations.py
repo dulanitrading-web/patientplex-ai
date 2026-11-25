@@ -383,10 +383,21 @@ async def verify_whatsapp(
             if resp.status_code == 200:
                 doctor.whatsapp_verified = True
                 await db.commit()
-                return {"status": "verified", "message": "WhatsApp verification message sent"}
+                return {"status": "verified", "message": "WhatsApp verification message sent successfully! ✅"}
             else:
                 error_data = resp.json()
-                return {"status": "error", "detail": error_data}
+                # Extract human-readable error message from Meta API response
+                error_msg = "WhatsApp API error"
+                if isinstance(error_data, dict):
+                    err_obj = error_data.get("error", error_data)
+                    if isinstance(err_obj, dict):
+                        error_msg = err_obj.get("message", str(err_obj))
+                    else:
+                        error_msg = str(err_obj)
+                else:
+                    error_msg = str(error_data)
+                logger.error("WhatsApp verify failed: %s (status %d)", error_msg, resp.status_code)
+                return {"status": "error", "message": error_msg}
 
     except Exception as exc:
         logger.error("WhatsApp verification failed: %s", exc)
