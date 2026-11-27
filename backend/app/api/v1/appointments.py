@@ -4,7 +4,7 @@ from datetime import date, datetime, timedelta, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,7 +19,7 @@ router = APIRouter(prefix="/appointments", tags=["appointments"])
 class StatusUpdate(BaseModel):
     status: AppointmentStatus
     notes: str | None = None
-    revenue_amount: float | None = None
+    revenue_amount: float | None = Field(default=None, ge=0, allow_inf_nan=False)
     treatment_done: str | None = None
 
 
@@ -193,7 +193,7 @@ async def appointment_stats(
         status_key = a.status.value
         by_status[status_key] = by_status.get(status_key, 0) + 1
         by_treatment[a.treatment] = by_treatment.get(a.treatment, 0) + 1
-        if getattr(a, "revenue_amount", None):
+        if a.status == AppointmentStatus.ATTENDED and getattr(a, "revenue_amount", None):
             total_revenue += a.revenue_amount
 
     attended = by_status.get("ATTENDED", 0)
@@ -255,6 +255,8 @@ async def update_appointment_status(
     if not appointment:
         raise HTTPException(status_code=404, detail="Appointment not found")
 
+    if (body.revenue_amount is not None or body.treatment_done) and body.status != AppointmentStatus.ATTENDED:
+        raise HTTPException(status_code=422, detail="Treatment and revenue require an attended appointment")
     appointment.status = body.status
     if body.notes:
         appointment.notes = body.notes
@@ -292,15 +294,19 @@ async def send_feedback_request(
     from app.services.whatsapp import whatsapp_service
 
     try:
-        await whatsapp_service.send_feedback_request(
+        result = await whatsapp_service.send_feedback_request(
             to=appointment.patient_phone,
             doctor_name=doctor.full_name,
             treatment=appointment.treatment_done or appointment.treatment,
             clinic_name=doctor.clinic_name or "our clinic",
         )
-        return {"message": "Feedback request sent", "patient": appointment.patient_name}
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Failed to send: {str(exc)}")
+        if not result or result.get("error") or not result.get("messages"):
+            raise HTTPException(status_code=502, detail="WhatsApp did not accept the feedback request")
+        return {"message": "Feedback request accepted by WhatsApp"}
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=502, detail="Feedback provider unavailable")
 
 
 def _serialize_appointment(a: Appointment) -> dict:
