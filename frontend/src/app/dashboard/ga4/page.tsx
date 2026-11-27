@@ -6,6 +6,7 @@ import { fetchWithAuth } from "@/lib/api";
 
 interface GA4Report {
   demo_mode?: boolean;
+  status?: "not_configured" | "unavailable";
   period: string;
   metrics: {
     active_users: number;
@@ -28,6 +29,7 @@ interface GA4Report {
 
 interface RealtimeData {
   demo_mode?: boolean;
+  status?: "not_configured" | "unavailable";
   active_users: number;
   top_pages?: string[];
   top_sources?: string[];
@@ -50,8 +52,12 @@ export default function GA4AnalyticsPage() {
         fetchWithAuth(`/ga4/report?date_range=${dateRange}`),
         fetchWithAuth("/ga4/realtime"),
       ]);
-      if (reportRes.status === "fulfilled") setReport(await reportRes.value.json());
-      if (realtimeRes.status === "fulfilled") setRealtime(await realtimeRes.value.json());
+      setReport(reportRes.status === "fulfilled" && reportRes.value.ok
+        ? await reportRes.value.json()
+        : null);
+      setRealtime(realtimeRes.status === "fulfilled" && realtimeRes.value.ok
+        ? await realtimeRes.value.json()
+        : null);
     } catch (err) {
       console.error("GA4 fetch error:", err);
     } finally {
@@ -95,11 +101,11 @@ export default function GA4AnalyticsPage() {
         </div>
       </div>
 
-      {report?.demo_mode && (
+      {(!report || report.demo_mode || !report.metrics) && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-semibold text-amber-900">GA4 not connected — showing sample data</p>
+            <p className="text-sm font-semibold text-amber-900">{report?.status === "not_configured" ? "GA4 reporting is not configured" : "GA4 reporting data is unavailable"}</p>
             <p className="text-sm text-amber-700 mt-1">
               Connect Google Analytics 4 to see real website traffic, conversions, and patient funnel data.
               Go to <a href="/dashboard/settings" className="underline font-medium">Settings → Integrations</a> to set up GA4.
@@ -109,7 +115,7 @@ export default function GA4AnalyticsPage() {
       )}
 
       {/* Realtime Badge */}
-      {realtime && (
+      {realtime && !realtime.demo_mode && typeof realtime.active_users === "number" && (
         <div className="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-3">
           <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
           <span className="text-sm text-slate-600">
@@ -119,7 +125,7 @@ export default function GA4AnalyticsPage() {
       )}
 
       {/* Key Metrics */}
-      {report?.metrics && (
+      {!report?.demo_mode && report?.metrics && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           {[
             { label: "Active Users", value: report.metrics.active_users.toLocaleString(), icon: Users, color: "blue" },
@@ -139,7 +145,7 @@ export default function GA4AnalyticsPage() {
 
       <div className="grid md:grid-cols-2 gap-4">
         {/* Conversion Funnel */}
-        {report?.conversion_funnel && (
+        {!report?.demo_mode && report?.conversion_funnel && (
           <div className="bg-white rounded-xl border border-slate-200 p-6">
             <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-emerald-600" />
@@ -175,7 +181,7 @@ export default function GA4AnalyticsPage() {
         )}
 
         {/* Top Sources */}
-        {report?.top_sources && (
+        {!report?.demo_mode && report?.top_sources && (
           <div className="bg-white rounded-xl border border-slate-200 p-6">
             <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
               <BarChart3 className="w-4 h-4 text-blue-600" />
@@ -202,7 +208,7 @@ export default function GA4AnalyticsPage() {
       </div>
 
       {/* Top Pages */}
-      {report?.top_pages && (
+      {!report?.demo_mode && report?.top_pages && (
         <div className="bg-white rounded-xl border border-slate-200 p-6">
           <h3 className="font-semibold text-slate-900 mb-4">Top Pages</h3>
           <div className="space-y-2">
