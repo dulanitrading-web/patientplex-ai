@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.auth import get_current_doctor
 from app.db.session import get_db
+from app.models.clinic_staff import ClinicStaff
 from app.models.conversation import Appointment, AppointmentStatus
 from app.models.doctor import Doctor
 
@@ -33,7 +34,7 @@ class BookAppointmentRequest(BaseModel):
     source: str = "Walk-in"  # Google Ads, WhatsApp, Walk-in, Phone Call, Referral
     notes: str | None = None
     patient_email: str | None = None
-    staff_id: str | None = None  # UUID of the specific staff member
+    staff_id: UUID | None = None
 
 
 @router.post("/book")
@@ -55,6 +56,19 @@ async def book_appointment(
     except (ValueError, IndexError):
         raise HTTPException(status_code=400, detail="Time must be in HH:MM format")
 
+    practitioner = None
+    if body.staff_id:
+        practitioner = await db.scalar(select(ClinicStaff).where(
+            ClinicStaff.id == body.staff_id,
+            ClinicStaff.doctor_id == doctor.id,
+            ClinicStaff.is_active.is_(True),
+        ))
+        if practitioner is None:
+            raise HTTPException(status_code=404, detail="Practitioner is unavailable at this clinic")
+        offered_services = {service.strip().casefold() for service in (practitioner.services or [])}
+        if body.treatment.strip().casefold() not in offered_services:
+            raise HTTPException(status_code=422, detail="This practitioner does not offer the selected treatment")
+
     appointment = Appointment(
         doctor_id=doctor.id,
         patient_name=body.patient_name,
@@ -67,7 +81,7 @@ async def book_appointment(
         notes=body.notes,
         source=body.source,
         patient_email=body.patient_email,
-        staff_id=UUID(body.staff_id) if body.staff_id else None,
+        staff_id=body.staff_id,
     )
     db.add(appointment)
     await db.flush()
@@ -89,7 +103,7 @@ async def book_appointment(
             await send_appointment_confirmation(
                 patient_email=body.patient_email,
                 patient_name=body.patient_name,
-                doctor_name=doctor.full_name,
+                doctor_name=practitioner.full_name if practitioner else doctor.full_name,
                 clinic_name=doctor.clinic_name or "",
                 treatment=body.treatment,
                 date_str=body.date.strftime("%A, %d %B %Y"),
