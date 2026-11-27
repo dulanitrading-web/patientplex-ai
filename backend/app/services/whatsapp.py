@@ -40,19 +40,39 @@ class WhatsAppService:
             "type": "text",
             "text": {"body": message},
         }
-        pid = phone_number_id or self.phone_number_id
-        if not pid:
-            return {"error": "WHATSAPP_PHONE_NUMBER_ID not configured"}
+        return await self._send(payload, phone_number_id)
+
+    async def _send(self, payload: dict, phone_number_id: str | None) -> dict:
+        sender_id = phone_number_id or self.phone_number_id
+        if not self.token or not sender_id:
+            return {"error": "WhatsApp credentials are not configured", "retryable": False}
         try:
             async with httpx.AsyncClient() as client:
-                url = f"{self.api_url}/{pid}/messages"
-                resp = await client.post(url, json=payload, headers=self.headers, timeout=30)
-                resp.raise_for_status()
-                logger.info("WhatsApp message accepted")
-                return resp.json()
+                response = await client.post(
+                    f"{self.api_url}/{sender_id}/messages",
+                    json=payload, headers=self.headers, timeout=30,
+                )
         except httpx.HTTPError as exc:
-            logger.error("WhatsApp send failed: %s", type(exc).__name__)
-            return {"error": str(exc)}
+            logger.warning("WhatsApp transport failed: %s", type(exc).__name__)
+            # A timeout can occur after Meta accepted the request.
+            return {"error": "WhatsApp delivery outcome is unknown", "retryable": False}
+
+        try:
+            data = response.json()
+        except ValueError:
+            data = {}
+        if not isinstance(data, dict):
+            data = {}
+        if response.is_success and data.get("messages"):
+            return data
+
+        provider_error = data.get("error")
+        code = provider_error.get("code") if isinstance(provider_error, dict) else None
+        code = code if type(code) is int else None
+        status = response.status_code
+        logger.warning("WhatsApp send failed: HTTP %s, Meta code=%s", status, code)
+        reason = "WhatsApp credentials were rejected" if status in (401, 403) else "WhatsApp did not accept the message"
+        return {"error": reason, "status_code": status, "provider_code": code, "retryable": status == 429}
 
     async def send_template_message(
         self, to: str, template_name: str, params: list[str], phone_number_id: str = ""
@@ -74,15 +94,7 @@ class WhatsAppService:
                 "components": components,
             },
         }
-        try:
-            async with httpx.AsyncClient() as client:
-                url = f"{self.api_url}/{phone_number_id}/messages"
-                resp = await client.post(url, json=payload, headers=self.headers, timeout=30)
-                resp.raise_for_status()
-                return resp.json()
-        except httpx.HTTPError as exc:
-            logger.error("WhatsApp template send failed: %s", type(exc).__name__)
-            return {"error": str(exc)}
+        return await self._send(payload, phone_number_id)
 
     async def send_booking_confirmation(
         self,
