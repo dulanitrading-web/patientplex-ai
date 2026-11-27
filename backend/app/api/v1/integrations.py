@@ -145,7 +145,7 @@ async def google_ads_callback(
     except Exception as exc:
         logger.error("Google Ads token exchange failed: %s", exc)
         return RedirectResponse(
-            url=f"{FRONTEND_BASE}/dashboard/settings?google_ads=error&message={str(exc)}"
+            url=f"{FRONTEND_BASE}/dashboard/settings?google_ads=error"
         )
 
     # Store the refresh token (encrypted at rest)
@@ -157,28 +157,26 @@ async def google_ads_callback(
         raise HTTPException(status_code=404, detail="Doctor not found")
 
     refresh_token = tokens.get("refresh_token")
-    if refresh_token:
-        doctor.google_ads_refresh_token = encrypt_value(refresh_token)
-    doctor.google_ads_connected = False
-    doctor.google_ads_customer_id = None
-
-    # Try to get their customer ID
-    try:
-        from app.services.google_ads_oauth import get_google_ads_customer_ids
-        customers = await get_google_ads_customer_ids(tokens["access_token"])
-        logger.info("OAuth callback: accessible customers = %s", customers)
-        if customers:
-            doctor.google_ads_customer_id = customers[0]["customer_id"]
-            logger.info("OAuth callback: stored customer_id = %s", doctor.google_ads_customer_id)
-        else:
-            logger.warning("OAuth callback: no accessible customers found")
-    except Exception as e:
-        logger.warning("Could not auto-detect Google Ads customer ID: %s", e, exc_info=True)
-
-    doctor.google_ads_connected = bool(doctor.google_ads_refresh_token and doctor.google_ads_customer_id)
-    await db.commit()
-    if not doctor.google_ads_connected:
+    access_token = tokens.get("access_token")
+    if not refresh_token or not access_token:
         return RedirectResponse(url=f"{FRONTEND_BASE}/dashboard/settings?google_ads=error")
+
+    from app.services.google_ads_oauth import get_google_ads_customer_ids
+    try:
+        customers = await get_google_ads_customer_ids(access_token)
+    except Exception:
+        logger.warning("Could not verify accessible Google Ads customer accounts", exc_info=True)
+        return RedirectResponse(url=f"{FRONTEND_BASE}/dashboard/settings?google_ads=error")
+
+    customer_ids = [customer["customer_id"] for customer in customers]
+    existing_customer = (doctor.google_ads_customer_id or "").replace("-", "").strip()
+    if not customer_ids or (existing_customer and existing_customer not in customer_ids):
+        return RedirectResponse(url=f"{FRONTEND_BASE}/dashboard/settings?google_ads=error")
+
+    doctor.google_ads_customer_id = existing_customer or customer_ids[0]
+    doctor.google_ads_refresh_token = encrypt_value(refresh_token)
+    doctor.google_ads_connected = True
+    await db.commit()
 
     logger.info("Google Ads connected for doctor %s (customer: %s)",
                 doctor.full_name, doctor.google_ads_customer_id)

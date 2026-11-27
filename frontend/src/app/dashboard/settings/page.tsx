@@ -99,6 +99,16 @@ export default function SettingsPage() {
   });
 
   useEffect(() => {
+    const googleAdsResult = new URLSearchParams(window.location.search).get("google_ads");
+    if (googleAdsResult === "connected") {
+      setStatusMessage({ text: "Google Ads authorization completed.", type: "success" });
+    } else if (googleAdsResult === "error") {
+      setStatusMessage({
+        text: "Google Ads authorization did not complete. Use a Google account with access to the clinic’s existing Ads account.",
+        type: "error",
+      });
+    }
+
     async function load() {
       try {
         const [profile, subRes, intRes] = await Promise.allSettled([
@@ -117,6 +127,19 @@ export default function SettingsPage() {
     }
     load();
   }, []);
+
+  async function startGoogleAdsAuthorization() {
+    try {
+      const { auth_url } = await connectGoogleAds();
+      if (!auth_url) throw new Error("Google Ads authorization link is unavailable");
+      window.location.assign(auth_url);
+    } catch (error) {
+      setStatusMessage({
+        text: error instanceof Error ? error.message : "Could not start Google Ads authorization",
+        type: "error",
+      });
+    }
+  }
 
   async function refreshIntegrationStatus() {
     try {
@@ -363,15 +386,7 @@ export default function SettingsPage() {
             name="Google Ads"
             status={mapIntegrationStatus(integrations?.google_ads?.status)}
             detail={integrations?.google_ads?.detail || "Connect your Google Ads account"}
-            onConnect={async () => {
-              try {
-                const data = await connectGoogleAds();
-                if (data.auth_url) window.location.href = data.auth_url;
-              } catch (err: unknown) {
-                const msg = err instanceof Error ? err.message : "Could not start Google Ads connection";
-                alert(msg);
-              }
-            }}
+            onConnect={startGoogleAdsAuthorization}
             onDisconnect={async () => {
               if (!confirm("Disconnect Google Ads?")) return;
               try {
@@ -387,6 +402,13 @@ export default function SettingsPage() {
             }}
             extraAction={["connected", "ready"].includes(mapIntegrationStatus(integrations?.google_ads?.status)) ? (
               <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={startGoogleAdsAuthorization}
+                  className="rounded-lg border border-slate-300 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                >
+                  Reconnect Google Ads
+                </button>
                 <button
                   onClick={async () => {
                     setImportingCampaigns(true);
