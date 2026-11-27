@@ -118,6 +118,17 @@ export default function SettingsPage() {
     load();
   }, []);
 
+  async function refreshIntegrationStatus() {
+    try {
+      setIntegrations(await getIntegrationStatus());
+    } catch {
+      setStatusMessage((message) => ({
+        text: `${message?.text ?? "Action completed."} Refresh Settings to check the current connection status.`,
+        type: "info",
+      }));
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -296,7 +307,7 @@ export default function SettingsPage() {
         <SectionHeader icon={<Link2 className="w-5 h-5 text-violet-600" />} title="Integration Status" />
 
         {statusMessage && (
-          <div className={`mt-3 p-3 rounded-lg text-sm ${statusMessage.type === "success" ? "bg-green-50 text-green-800 border border-green-200" : statusMessage.type === "info" ? "bg-blue-50 text-blue-800 border border-blue-200" : "bg-red-50 text-red-800 border border-red-200"}`}>
+          <div role={statusMessage.type === "error" ? "alert" : "status"} className={`mt-3 p-3 rounded-lg text-sm ${statusMessage.type === "success" ? "bg-green-50 text-green-800 border border-green-200" : statusMessage.type === "info" ? "bg-blue-50 text-blue-800 border border-blue-200" : "bg-red-50 text-red-800 border border-red-200"}`}>
             {typeof statusMessage.text === "string" ? statusMessage.text : JSON.stringify(statusMessage.text)}
             <button onClick={() => setStatusMessage(null)} className="ml-2 text-xs underline">Dismiss</button>
           </div>
@@ -339,7 +350,7 @@ export default function SettingsPage() {
                 const rawText = result.message || result.detail || "Verification sent!";
                 const text = typeof rawText === "string" ? rawText : JSON.stringify(rawText);
                 setStatusMessage({ text, type: result.status === "verified" ? "success" : "error" });
-                if (result.status === "verified") setTimeout(() => window.location.reload(), 2000);
+                if (result.status === "verified") await refreshIntegrationStatus();
               } catch (err: unknown) {
                 const msg = err instanceof Error ? err.message : "WhatsApp verification failed";
                 setStatusMessage({ text: msg, type: "error" });
@@ -362,13 +373,20 @@ export default function SettingsPage() {
               }
             }}
             onDisconnect={async () => {
-              if (confirm("Disconnect Google Ads?")) {
+              if (!confirm("Disconnect Google Ads?")) return;
+              try {
                 await disconnectGoogleAds();
-                window.location.reload();
+                setStatusMessage({ text: "Google Ads disconnected.", type: "success" });
+                await refreshIntegrationStatus();
+              } catch (error) {
+                setStatusMessage({
+                  text: error instanceof Error ? error.message : "Could not disconnect Google Ads",
+                  type: "error",
+                });
               }
             }}
             extraAction={["connected", "ready"].includes(mapIntegrationStatus(integrations?.google_ads?.status)) ? (
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <button
                   onClick={async () => {
                     setImportingCampaigns(true);
@@ -376,7 +394,7 @@ export default function SettingsPage() {
                       const result = await importGoogleAdsCampaigns();
                       if (result.status === "success") {
                         setStatusMessage({ text: result.message || `Imported ${result.imported} campaigns`, type: "success" });
-                        setTimeout(() => window.location.reload(), 2000);
+                        await refreshIntegrationStatus();
                       } else {
                         setStatusMessage({ text: result.message || "Import failed — check integration setup", type: "error" });
                       }
@@ -396,8 +414,12 @@ export default function SettingsPage() {
                     setImportingCampaigns(true);
                     try {
                       const result = await resyncGoogleAdsCampaigns();
+                      if (result.status !== "success") {
+                        setStatusMessage({ text: result.message || "Google Ads re-sync failed", type: "error" });
+                        return;
+                      }
                       setStatusMessage({ text: result.message || `Re-synced ${result.updated} campaigns`, type: "success" });
-                      setTimeout(() => window.location.reload(), 2000);
+                      await refreshIntegrationStatus();
                     } catch (err: unknown) {
                       const msg = err instanceof Error ? err.message : "Re-sync failed";
                       setStatusMessage({ text: msg, type: "error" });
@@ -426,9 +448,16 @@ export default function SettingsPage() {
               }
             }}
             onDisconnect={async () => {
-              if (confirm("Disconnect Meta Ads?")) {
+              if (!confirm("Disconnect Meta Ads?")) return;
+              try {
                 await disconnectMetaAds();
-                window.location.reload();
+                setStatusMessage({ text: "Meta Ads disconnected.", type: "success" });
+                await refreshIntegrationStatus();
+              } catch (error) {
+                setStatusMessage({
+                  text: error instanceof Error ? error.message : "Could not disconnect Meta Ads",
+                  type: "error",
+                });
               }
             }}
           />
@@ -437,7 +466,7 @@ export default function SettingsPage() {
             name="ChatGPT Ads"
             status={mapIntegrationStatus(integrations?.chatgpt_ads?.status)}
             detail={integrations?.chatgpt_ads?.detail || "Sponsor your clinic in ChatGPT search results"}
-            connectLabel="Set Up"
+            connectLabel="Setup instructions"
             onConnect={() => {
               setStatusMessage({ text: "ChatGPT Ads integration requires an OpenAI Ads API key. Contact support@patientplex.ai for early access.", type: "info" });
             }}
@@ -447,7 +476,7 @@ export default function SettingsPage() {
             name="LinkedIn Ads"
             status={mapIntegrationStatus(integrations?.linkedin_ads?.status)}
             detail={integrations?.linkedin_ads?.detail || "Reach specialists and corporate employees for premium treatments"}
-            connectLabel="Set Up"
+            connectLabel="Setup instructions"
             onConnect={() => {
               setStatusMessage({ text: "LinkedIn Ads requires a Campaign Manager access token. Contact support@patientplex.ai for setup assistance.", type: "info" });
             }}
@@ -471,7 +500,7 @@ export default function SettingsPage() {
                     const result = await provisionExotelNumber();
                     if (result.status === "success") {
                       setStatusMessage({ text: result.message || `Number: ${result.phone_number}`, type: "success" });
-                      setTimeout(() => window.location.reload(), 2000);
+                      await refreshIntegrationStatus();
                     } else {
                       setStatusMessage({ text: result.message || "Provisioning failed", type: "error" });
                     }
@@ -590,7 +619,7 @@ function IntegrationRow({ icon, name, status, detail, onConnect, onDisconnect, c
   const cfg = statusConfig[status];
 
   return (
-    <div className="flex items-center justify-between py-3 border-b border-slate-200 last:border-0">
+    <div className="flex flex-col gap-3 py-3 border-b border-slate-200 last:border-0 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-3">
         <div className="text-slate-600">{icon}</div>
         <div>
@@ -598,7 +627,7 @@ function IntegrationRow({ icon, name, status, detail, onConnect, onDisconnect, c
           <div className="text-xs text-slate-600">{detail}</div>
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${cfg.cls}`}>
           {cfg.icon} {cfg.label}
         </span>

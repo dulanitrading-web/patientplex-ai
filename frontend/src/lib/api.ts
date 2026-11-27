@@ -266,6 +266,7 @@ export async function bookAppointment(data: {
   time: string;
   source: string;
   notes?: string;
+  staff_id?: string;
 }) {
   const res = await fetchWithAuth("/appointments/book", {
     method: "POST",

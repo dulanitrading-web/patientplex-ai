@@ -62,12 +62,15 @@ class BookingEngine:
             Dict with available slots, filtered by preference if given
         """
         try:
-            all_slots = await self.calendar.get_available_slots(
-                str(doctor.id), requested_date, self.db
-            )
+            if doctor.google_calendar_connected:
+                all_slots = await self.calendar.get_available_slots(
+                    str(doctor.id), requested_date, self.db
+                )
+            else:
+                all_slots = self._generate_default_slots(requested_date)
         except Exception as exc:
-            logger.warning("Calendar check failed, using default slots: %s", exc)
-            all_slots = self._generate_default_slots(requested_date)
+            logger.warning("Calendar availability check failed (%s)", type(exc).__name__)
+            all_slots = []
 
         # Filter by preference if given
         if preferred_time and all_slots:
@@ -107,7 +110,7 @@ class BookingEngine:
             appt_date = date.fromisoformat(appointment_date)
             hour, minute = map(int, appointment_time.split(":"))
             appt_time = time(hour, minute)
-            appt_datetime = datetime.combine(appt_date, appt_time, tzinfo=timezone.utc)
+            appt_datetime = datetime.combine(appt_date, appt_time, tzinfo=timezone(timedelta(hours=5, minutes=30)))
         except (ValueError, AttributeError) as exc:
             return {"success": False, "error": f"Invalid date/time: {exc}"}
 
@@ -147,28 +150,49 @@ class BookingEngine:
                 "clinic": doctor.clinic_name,
                 "google_event_id": existing.google_event_id,
                 "confirmation_sent": existing.confirmation_sent,
-                "doctor_notified": True,
+                "doctor_notified": None,
             }
 
-        # Validate the slot is still available
+        # Reject cross-clinic or unrelated conversation references before side effects.
+        if conversation_id:
+            result = await self.db.execute(select(Conversation).where(
+                Conversation.id == conversation_id,
+                Conversation.doctor_id == doctor.id,
+            ))
+            if result.scalar_one_or_none() is None:
+                return {"success": False, "error": "Conversation not found"}
+
         availability = await self.check_availability(doctor, appointment_date, appointment_time)
-        slot_available = any(
-            s.get("start", "").startswith(appointment_time) or s.get("start", "") == appointment_time
-            for s in availability.get("slots", [])
-        )
-        # Don't block booking if calendar check fails — just proceed
-        if not slot_available and availability.get("slots"):
-            logger.warning("Requested slot %s may not be available, booking anyway", appointment_time)
+        if not any(self._slot_minutes(slot) == hour * 60 + minute
+                   for slot in availability.get("slots", [])):
+            return {"success": False, "error": "Requested slot is unavailable"}
+
+        # Check existing local appointments, including when no calendar is connected.
+        result = await self.db.execute(select(Appointment).where(
+            Appointment.doctor_id == doctor.id,
+            Appointment.appointment_date == appt_date,
+            Appointment.status.in_([AppointmentStatus.CONFIRMED, AppointmentStatus.REMINDED]),
+        ))
+        requested_start = hour * 60 + minute
+        requested_end = requested_start + settings.SLOT_DURATION_MINUTES
+        for booked in result.scalars().all():
+            booked_start = booked.appointment_time.hour * 60 + booked.appointment_time.minute
+            if requested_start < booked_start + booked.duration_minutes and booked_start < requested_end:
+                return {"success": False, "error": "Requested slot is unavailable"}
 
         # Step 1: Book on Google Calendar
         google_event_id = None
         try:
-            cal_result = await self.calendar.book_slot(
-                str(doctor.id), appt_datetime, patient_name, patient_phone, treatment, self.db
-            )
-            google_event_id = cal_result.get("event_id")
+            if doctor.google_calendar_connected:
+                cal_result = await self.calendar.book_slot(
+                    str(doctor.id), appt_datetime, patient_name, patient_phone, treatment, self.db
+                )
+                google_event_id = cal_result.get("event_id")
+                if not google_event_id:
+                    return {"success": False, "error": "Calendar booking failed"}
         except Exception as exc:
-            logger.warning("Calendar booking failed (continuing): %s", exc)
+            logger.warning("Calendar booking failed (%s)", type(exc).__name__)
+            return {"success": False, "error": "Calendar booking failed"}
 
         # Step 2: Create appointment record
         appointment = Appointment(
@@ -182,7 +206,7 @@ class BookingEngine:
             duration_minutes=settings.SLOT_DURATION_MINUTES,
             google_event_id=google_event_id,
             status=AppointmentStatus.CONFIRMED,
-            confirmation_sent=True,
+            confirmation_sent=False,
         )
         self.db.add(appointment)
         await self.db.flush()
@@ -190,7 +214,7 @@ class BookingEngine:
         # Step 3: Update conversation if linked
         if conversation_id:
             result = await self.db.execute(
-                select(Conversation).where(Conversation.id == conversation_id)
+                select(Conversation).where(Conversation.id == conversation_id, Conversation.doctor_id == doctor.id)
             )
             conversation = result.scalar_one_or_none()
             if conversation:
@@ -217,13 +241,22 @@ class BookingEngine:
             f"Please arrive 10 minutes early.\n"
             f"Reply *CANCEL* to cancel or *RESCHEDULE* to change time."
         )
-        await whatsapp_service.send_message(
-            to=patient_phone.replace("+", ""),
-            message=confirmation_msg,
-        )
-
-        # Step 5: Notify doctor
-        await self.notifier.notify_new_booking(doctor, appointment)
+        await self.db.commit()
+        confirmation_sent = False
+        doctor_notified = False
+        try:
+            response = await whatsapp_service.send_message(
+                to=patient_phone.replace("+", ""), message=confirmation_msg,
+            )
+            confirmation_sent = bool(response.get("messages")) and not response.get("error")
+        except Exception:
+            logger.warning("Booking confirmation failed")
+        appointment.confirmation_sent = confirmation_sent
+        try:
+            notification = await self.notifier.notify_new_booking(doctor, appointment)
+            doctor_notified = notification.get("status") == "sent"
+        except Exception:
+            logger.warning("Doctor notification failed")
 
         # Step 6: Track conversion events
         await self.tracker.track(
@@ -235,13 +268,14 @@ class BookingEngine:
             conversation_id=conversation_id,
             treatment=treatment,
         )
-        await self.tracker.track(
-            doctor_id=doctor.id,
-            patient_phone=patient_phone,
-            stage=ConversionStage.CONFIRMATION_SENT,
-            source_channel=source,
-            appointment_id=appointment.id,
-        )
+        if confirmation_sent:
+            await self.tracker.track(
+                doctor_id=doctor.id,
+                patient_phone=patient_phone,
+                stage=ConversionStage.CONFIRMATION_SENT,
+                source_channel=source,
+                appointment_id=appointment.id,
+            )
 
         await self.db.commit()
 
@@ -260,8 +294,8 @@ class BookingEngine:
             "doctor": doctor.full_name,
             "clinic": doctor.clinic_name,
             "google_event_id": google_event_id,
-            "confirmation_sent": True,
-            "doctor_notified": True,
+            "confirmation_sent": confirmation_sent,
+            "doctor_notified": doctor_notified,
         }
 
     async def cancel_appointment(
@@ -407,11 +441,15 @@ class BookingEngine:
 
     @staticmethod
     def _slot_hour(slot: dict) -> int:
-        start = slot.get("start", "00:00")
-        return int(start.split(":")[0])
+        return BookingEngine._slot_minutes(slot) // 60
 
     @staticmethod
     def _slot_minutes(slot: dict) -> int:
-        start = slot.get("start", "00:00")
-        h, m = map(int, start.split(":"))
-        return h * 60 + m
+        start = slot["start"]
+        if "T" in start:
+            value = datetime.fromisoformat(start)
+            if value.tzinfo is not None:
+                value = value.astimezone(timezone(timedelta(hours=5, minutes=30)))
+            return value.hour * 60 + value.minute
+        value = time.fromisoformat(start)
+        return value.hour * 60 + value.minute

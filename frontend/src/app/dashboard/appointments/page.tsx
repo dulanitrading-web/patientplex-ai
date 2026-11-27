@@ -6,7 +6,7 @@ import {
   ArrowLeft, Calendar, CheckCircle2, Clock, XCircle, User, Plus,
   Loader2, Filter, Phone, X, Stethoscope, LayoutGrid, List, IndianRupee, Download,
 } from "lucide-react";
-import { getAppointments, updateAppointmentStatus, getAppointmentStats, bookAppointment, getMe, sendFeedbackRequest } from "@/lib/api";
+import { getAppointments, updateAppointmentStatus, getAppointmentStats, bookAppointment, getClinicStaff, getMe, sendFeedbackRequest } from "@/lib/api";
 import { MessageCircle as MessageCircleIcon } from "lucide-react";
 import CalendarView from "@/components/ui/CalendarView";
 import WalkInQueue from "@/components/ui/WalkInQueue";
@@ -57,6 +57,14 @@ export default function AppointmentsPage() {
   const [showBooking, setShowBooking] = useState(false);
   const [booking, setBooking] = useState(false);
   const [services, setServices] = useState<string[]>([]);
+  const [practitioners, setPractitioners] = useState<Array<{
+    id: string;
+    full_name: string;
+    services: string[];
+    is_active: boolean;
+  }>>([]);
+  const [practitionerId, setPractitionerId] = useState("");
+  const [staffLoadFailed, setStaffLoadFailed] = useState(false);
   const [form, setForm] = useState({
     patient_name: "",
     patient_phone: "",
@@ -67,7 +75,13 @@ export default function AppointmentsPage() {
     notes: "",
   });
 
-  useEffect(() => { load(); loadServices(); }, []);
+  useEffect(() => {
+    load();
+    loadServices();
+    getClinicStaff()
+      .then(({ staff }) => setPractitioners(staff))
+      .catch(() => setStaffLoadFailed(true));
+  }, []);
   useEffect(() => { load(); }, [filter]);
 
   async function loadServices() {
@@ -100,7 +114,8 @@ export default function AppointmentsPage() {
     if (!form.patient_name.trim() || !form.patient_phone.trim() || !form.treatment) return;
     setBooking(true);
     try {
-      await bookAppointment(form);
+      await bookAppointment({ ...form, staff_id: practitionerId || undefined });
+      setPractitionerId("");
       setShowBooking(false);
       setForm({ patient_name: "", patient_phone: "", treatment: services[0] || "", date: new Date().toISOString().split("T")[0], time: "10:00", source: "Walk-in", notes: "" });
       await load();
@@ -228,7 +243,10 @@ export default function AppointmentsPage() {
               <label className="block text-xs font-medium text-slate-600 mb-1">Treatment *</label>
               <select
                 value={form.treatment}
-                onChange={(e) => setForm({ ...form, treatment: e.target.value })}
+                onChange={(e) => {
+                  setForm({ ...form, treatment: e.target.value });
+                  setPractitionerId("");
+                }}
                 className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 bg-white"
               >
                 {services.length > 0 ? (
@@ -240,6 +258,23 @@ export default function AppointmentsPage() {
                   </>
                 )}
               </select>
+            </div>
+            <div>
+              <label htmlFor="booking-practitioner" className="block text-xs font-medium text-slate-600 mb-1">Practitioner</label>
+              <select
+                id="booking-practitioner"
+                value={practitionerId}
+                onChange={(event) => setPractitionerId(event.target.value)}
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white"
+              >
+                <option value="">Assign later</option>
+                {practitioners.filter((practitioner) => practitioner.is_active && practitioner.services.some(
+                  (service) => service.trim().toLowerCase() === form.treatment.trim().toLowerCase()
+                )).map((practitioner) => (
+                  <option key={practitioner.id} value={practitioner.id}>{practitioner.full_name}</option>
+                ))}
+              </select>
+              {staffLoadFailed && <p role="alert" className="mt-1 text-xs text-amber-700">Practitioners could not be loaded.</p>}
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Date</label>

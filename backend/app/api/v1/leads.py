@@ -72,41 +72,32 @@ async def capture_lead(
     This is a public endpoint — no auth required.
     Rate limited to 10 requests per minute per IP.
     """
-    logger.info(
-        "Lead captured: %s | %s | %s | source=%s | keyword=%s",
-        body.patient_name,
-        body.patient_phone,
-        body.treatment,
-        body.lead_source,
-        body.keyword,
-    )
+    # Explicit clinic routing: never assign an inquiry to an arbitrary clinic.
+    from uuid import UUID
 
-    # Find the doctor to notify
     doctor = None
     if body.doctor_id:
-        from uuid import UUID
         try:
-            doctor = await db.get(Doctor, UUID(body.doctor_id))
-        except (ValueError, Exception):
-            pass
+            doctor_uuid = UUID(body.doctor_id)
+        except ValueError:
+            raise HTTPException(status_code=422, detail="Invalid clinic identifier")
+        doctor = await db.get(Doctor, doctor_uuid)
+        if doctor is None:
+            raise HTTPException(status_code=404, detail="Clinic not found")
 
-    if not doctor and body.doctor_slug:
+    if body.doctor_slug:
         result = await db.execute(
             select(Doctor).where(Doctor.subdomain_slug == body.doctor_slug)
         )
-        doctor = result.scalar_one_or_none()
+        slug_doctor = result.scalar_one_or_none()
+        if slug_doctor is None:
+            raise HTTPException(status_code=404, detail="Clinic not found")
+        if doctor is not None and doctor.id != slug_doctor.id:
+            raise HTTPException(status_code=422, detail="Conflicting clinic identifiers")
+        doctor = slug_doctor
 
-    if not doctor:
-        # Default: get the first doctor (single-clinic mode)
-        result = await db.execute(select(Doctor).limit(1))
-        doctor = result.scalar_one_or_none()
-
-    if not doctor:
-        logger.warning("Lead captured but no doctor found to notify")
-        return LeadCaptureResponse(
-            success=True,
-            message="Thank you! We'll contact you shortly.",
-        )
+    if doctor is None:
+        raise HTTPException(status_code=422, detail="Clinic identifier required")
 
     # Save lead to patients table (with dedup on phone number)
     lead_id = None
@@ -130,7 +121,6 @@ async def capture_lead(
 
         if patient:
             # Update existing patient instead of creating duplicate
-            patient.total_visits = (patient.total_visits or 0) + 1
             patient.updated_at = datetime.now(timezone.utc)
             if body.patient_email and not patient.email:
                 patient.email = body.patient_email
@@ -148,14 +138,14 @@ async def capture_lead(
             )
             db.add(patient)
 
-        await db.commit()
-        await db.refresh(patient)
+        await db.flush()
         lead_id = str(patient.id)
+        await db.commit()
         logger.info("Lead saved to DB: patient_id=%s", lead_id)
     except Exception as exc:
-        logger.error("Failed to save lead to DB: %s", exc)
+        logger.error("Lead persistence failed (%s)", type(exc).__name__)
         await db.rollback()
-        # Continue — still send the email alert even if DB save fails
+        raise HTTPException(status_code=503, detail="Unable to save inquiry; please retry") from exc
 
     # Send email alert to doctor
     try:
@@ -170,26 +160,9 @@ async def capture_lead(
             landing_page=body.landing_page,
         )
     except Exception as exc:
-        logger.error("Failed to send lead alert email: %s", exc)
+        logger.error("Lead notification failed (%s)", type(exc).__name__)
 
-    # Track conversion
-    try:
-        from app.services.conversion_tracker import ConversionTracker
-        tracker = ConversionTracker(db)
-        await tracker.track_event(
-            doctor_id=doctor.id,
-            event_type="lead_captured",
-            source=body.lead_source,
-            utm_source=body.utm_source,
-            utm_campaign=body.utm_campaign,
-            metadata={
-                "patient_name": body.patient_name,
-                "treatment": body.treatment,
-                "keyword": body.keyword,
-            },
-        )
-    except Exception as exc:
-        logger.debug("Conversion tracking skipped: %s", exc)
+    # Lead attribution remains on the patient record; a dedicated funnel stage is pending.
 
     return LeadCaptureResponse(
         success=True,
@@ -210,9 +183,12 @@ async def _send_lead_alert_email(
 ) -> None:
     """Send a lead alert email to the doctor — matches the format they expect."""
     from app.services.email_service import send_email, _is_configured
+    from html import escape
+    from urllib.parse import quote
+    import re
 
     if not _is_configured():
-        logger.warning("Email not configured — lead alert not sent for %s", patient_name)
+        logger.warning("Email not configured — lead alert not sent")
         return
 
     now = datetime.now(timezone.utc)
@@ -224,7 +200,13 @@ async def _send_lead_alert_email(
     clinic_name = doctor.clinic_name or "Clinic"
     doctor_email = doctor.email
 
-    subject = f"[Lead Alert] {patient_name} — {treatment}"
+    subject = f"[Lead Alert] {patient_name} — {treatment}".replace('\r', ' ').replace('\n', ' ')
+    digits = re.sub(r'[^0-9]', '', patient_phone)
+    if len(digits) == 10:
+        digits = '91' + digits
+    whatsapp_text = quote(f'Hi {patient_name.split()[0] if patient_name.split() else "there"}, this is {clinic_name}. We received your inquiry about {treatment}. When would you like to visit?', safe='')
+    patient_name, patient_phone, treatment, clinic_name, lead_source = map(escape, (patient_name, patient_phone, treatment, clinic_name, lead_source))
+    patient_email, keyword, landing_page = (escape(v) if v else None for v in (patient_email, keyword, landing_page))
 
     html = f"""
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px;">
@@ -266,7 +248,7 @@ async def _send_lead_alert_email(
             </div>
 
             <div style="margin-top: 20px; text-align: center;">
-                <a href="https://wa.me/91{patient_phone.replace('+', '').replace(' ', '').replace('-', '').lstrip('91')}?text=Hi%20{patient_name.split()[0]}%2C%20this%20is%20{clinic_name}.%20We%20received%20your%20inquiry%20about%20{treatment.replace(' ', '%20')}.%20When%20would%20you%20like%20to%20visit%3F"
+                <a href="https://wa.me/{digits}?text={whatsapp_text}"
                    style="display: inline-block; background: #25D366; color: white; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">
                     💬 WhatsApp the Patient
                 </a>
@@ -281,6 +263,6 @@ async def _send_lead_alert_email(
     # Send to doctor's email
     result = await send_email(doctor_email, subject, html)
     if result.get("sent"):
-        logger.info("Lead alert sent to %s for patient %s", doctor_email, patient_name)
+        logger.info("Lead alert sent")
     else:
-        logger.warning("Lead alert failed for %s: %s", doctor_email, result.get("reason"))
+        logger.warning("Lead alert failed")

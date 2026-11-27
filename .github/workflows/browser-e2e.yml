@@ -1,0 +1,70 @@
+name: Browser E2E
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  chromium:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: patientplex_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U test -d patientplex_test"
+          --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/patientplex_test
+      SECRET_KEY: synthetic-browser-test-secret-not-for-production
+      ENVIRONMENT: development
+      TESTING: 'true'
+      FRONTEND_BASE_URL: http://localhost:3000
+      BACKEND_BASE_URL: http://localhost:8000
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install and initialize isolated backend
+        working-directory: backend
+        run: |
+          pip install -r requirements.txt
+          python create_tables.py
+          uvicorn app.main:app --host 127.0.0.1 --port 8000 --lifespan off > ../backend-e2e.log 2>&1 &
+      - name: Build and start frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+          npm run start -- --hostname 127.0.0.1 > ../frontend-e2e.log 2>&1 &
+      - name: Install browser runner
+        working-directory: e2e
+        run: |
+          npm install --no-save --package-lock=false @playwright/test@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Run customer journey
+        working-directory: e2e
+        run: |
+          curl --fail --retry 30 --retry-connrefused http://localhost:8000/health
+          curl --fail --retry 30 --retry-connrefused http://localhost:3000/login
+          npx playwright test --config=playwright.config.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-e2e-evidence
+          path: |
+            e2e/playwright-report
+            e2e/test-results
+            backend-e2e.log
+            frontend-e2e.log
+          retention-days: 7

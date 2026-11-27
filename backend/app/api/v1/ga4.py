@@ -99,7 +99,7 @@ async def get_analytics_report(
 
     Returns: active users, sessions, conversions, revenue,
     top sources, top pages, and conversion funnel metrics.
-    Falls back to demo data if GA4 is not connected.
+    Returns an availability status when GA4 data cannot be retrieved.
     """
     return await ga4_service.get_report(date_range=date_range)
 

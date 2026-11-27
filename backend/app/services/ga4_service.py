@@ -140,7 +140,7 @@ class GA4Service:
         Requires OAuth credentials or service account with GA4 access.
         """
         if not self.property_id:
-            return self._demo_report()
+            return {"status": "not_configured"}
 
         default_metrics = metrics or ["activeUsers", "sessions", "conversions", "totalRevenue"]
         default_dims = dimensions or ["date", "source", "medium"]
@@ -163,17 +163,12 @@ class GA4Service:
                 return resp.json()
         except Exception as exc:
             logger.warning("GA4 report failed: %s", exc)
-            return self._demo_report()
+            return {"status": "unavailable"}
 
     async def get_realtime_report(self) -> dict:
         """Pull realtime data from GA4."""
         if not self.property_id:
-            return {
-                "demo_mode": True,
-                "active_users": 3,
-                "top_pages": ["/", "/signup", "/about"],
-                "top_sources": ["google_ads", "whatsapp", "direct"],
-            }
+            return {"status": "not_configured"}
 
         try:
             async with httpx.AsyncClient() as client:
@@ -187,41 +182,7 @@ class GA4Service:
                 return resp.json()
         except Exception as exc:
             logger.warning("GA4 realtime failed: %s", exc)
-            return {"demo_mode": True, "active_users": 0}
-
-    def _demo_report(self) -> dict:
-        return {
-            "demo_mode": True,
-            "period": "Last 30 days",
-            "metrics": {
-                "active_users": 342,
-                "sessions": 1247,
-                "conversions": 89,
-                "total_revenue": 267000,
-                "avg_session_duration": "2m 34s",
-                "bounce_rate": "42.3%",
-            },
-            "top_sources": [
-                {"source": "google_ads", "users": 187, "conversions": 52},
-                {"source": "meta_ads", "users": 89, "conversions": 24},
-                {"source": "direct", "users": 34, "conversions": 8},
-                {"source": "organic", "users": 22, "conversions": 3},
-                {"source": "whatsapp", "users": 10, "conversions": 2},
-            ],
-            "top_pages": [
-                {"page": "/", "views": 892},
-                {"page": "/signup", "views": 234},
-                {"page": "/about", "views": 121},
-            ],
-            "conversion_funnel": {
-                "ad_clicks": 1247,
-                "whatsapp_starts": 342,
-                "bookings": 89,
-                "attended": 74,
-                "conversion_rate": "7.1%",
-            },
-            "message": "Connect GA4 for real analytics data",
-        }
+            return {"status": "unavailable"}
 
 
 ga4_service = GA4Service()

@@ -4,12 +4,13 @@ from datetime import date, datetime, timedelta, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.auth import get_current_doctor
 from app.db.session import get_db
+from app.models.clinic_staff import ClinicStaff
 from app.models.conversation import Appointment, AppointmentStatus
 from app.models.doctor import Doctor
 
@@ -19,7 +20,7 @@ router = APIRouter(prefix="/appointments", tags=["appointments"])
 class StatusUpdate(BaseModel):
     status: AppointmentStatus
     notes: str | None = None
-    revenue_amount: float | None = None
+    revenue_amount: float | None = Field(default=None, ge=0, allow_inf_nan=False)
     treatment_done: str | None = None
 
 
@@ -33,7 +34,7 @@ class BookAppointmentRequest(BaseModel):
     source: str = "Walk-in"  # Google Ads, WhatsApp, Walk-in, Phone Call, Referral
     notes: str | None = None
     patient_email: str | None = None
-    staff_id: str | None = None  # UUID of the specific staff member
+    staff_id: UUID | None = None
 
 
 @router.post("/book")
@@ -55,6 +56,35 @@ async def book_appointment(
     except (ValueError, IndexError):
         raise HTTPException(status_code=400, detail="Time must be in HH:MM format")
 
+    practitioner = None
+    duration_minutes = 30
+    if body.staff_id:
+        practitioner = await db.scalar(select(ClinicStaff).where(
+            ClinicStaff.id == body.staff_id,
+            ClinicStaff.doctor_id == doctor.id,
+            ClinicStaff.is_active.is_(True),
+        ).with_for_update())
+        if practitioner is None:
+            raise HTTPException(status_code=404, detail="Practitioner is unavailable at this clinic")
+        offered_services = {service.strip().casefold() for service in (practitioner.services or [])}
+        if body.treatment.strip().casefold() not in offered_services:
+            raise HTTPException(status_code=422, detail="This practitioner does not offer the selected treatment")
+
+        duration_minutes = practitioner.slot_duration_minutes
+        start = datetime.combine(body.date, appt_time)
+        end = start + timedelta(minutes=duration_minutes)
+        existing = await db.scalars(select(Appointment).where(
+            Appointment.doctor_id == doctor.id,
+            Appointment.staff_id == practitioner.id,
+            Appointment.appointment_date.between(body.date - timedelta(days=1), end.date()),
+            Appointment.status != AppointmentStatus.CANCELLED,
+        ))
+        for booking in existing:
+            booked_start = datetime.combine(booking.appointment_date, booking.appointment_time)
+            booked_end = booked_start + timedelta(minutes=booking.duration_minutes)
+            if start < booked_end and booked_start < end:
+                raise HTTPException(status_code=409, detail="This practitioner already has an overlapping appointment")
+
     appointment = Appointment(
         doctor_id=doctor.id,
         patient_name=body.patient_name,
@@ -62,12 +92,12 @@ async def book_appointment(
         treatment=body.treatment,
         appointment_date=body.date,
         appointment_time=appt_time,
-        duration_minutes=30,
+        duration_minutes=duration_minutes,
         status=AppointmentStatus.CONFIRMED,
         notes=body.notes,
         source=body.source,
         patient_email=body.patient_email,
-        staff_id=UUID(body.staff_id) if body.staff_id else None,
+        staff_id=body.staff_id,
     )
     db.add(appointment)
     await db.flush()
@@ -89,13 +119,13 @@ async def book_appointment(
             await send_appointment_confirmation(
                 patient_email=body.patient_email,
                 patient_name=body.patient_name,
-                doctor_name=doctor.full_name,
+                doctor_name=practitioner.full_name if practitioner else doctor.full_name,
                 clinic_name=doctor.clinic_name or "",
                 treatment=body.treatment,
                 date_str=body.date.strftime("%A, %d %B %Y"),
                 time_str=body.time,
-                clinic_address=doctor.address or "",
-                clinic_phone=doctor.phone_number or "",
+                clinic_address=doctor.clinic_address or "",
+                clinic_phone=doctor.phone or "",
             )
         except Exception:
             pass  # Don't fail the booking if email fails
@@ -193,7 +223,7 @@ async def appointment_stats(
         status_key = a.status.value
         by_status[status_key] = by_status.get(status_key, 0) + 1
         by_treatment[a.treatment] = by_treatment.get(a.treatment, 0) + 1
-        if getattr(a, "revenue_amount", None):
+        if a.status == AppointmentStatus.ATTENDED and getattr(a, "revenue_amount", None):
             total_revenue += a.revenue_amount
 
     attended = by_status.get("ATTENDED", 0)
@@ -255,6 +285,8 @@ async def update_appointment_status(
     if not appointment:
         raise HTTPException(status_code=404, detail="Appointment not found")
 
+    if (body.revenue_amount is not None or body.treatment_done) and body.status != AppointmentStatus.ATTENDED:
+        raise HTTPException(status_code=422, detail="Treatment and revenue require an attended appointment")
     appointment.status = body.status
     if body.notes:
         appointment.notes = body.notes
@@ -292,15 +324,19 @@ async def send_feedback_request(
     from app.services.whatsapp import whatsapp_service
 
     try:
-        await whatsapp_service.send_feedback_request(
+        result = await whatsapp_service.send_feedback_request(
             to=appointment.patient_phone,
             doctor_name=doctor.full_name,
             treatment=appointment.treatment_done or appointment.treatment,
             clinic_name=doctor.clinic_name or "our clinic",
         )
-        return {"message": "Feedback request sent", "patient": appointment.patient_name}
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Failed to send: {str(exc)}")
+        if not result or result.get("error") or not result.get("messages"):
+            raise HTTPException(status_code=502, detail="WhatsApp did not accept the feedback request")
+        return {"message": "Feedback request accepted by WhatsApp"}
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=502, detail="Feedback provider unavailable")
 
 
 def _serialize_appointment(a: Appointment) -> dict:

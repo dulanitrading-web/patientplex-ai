@@ -3,7 +3,7 @@
 from datetime import datetime, timedelta, timezone
 
 import bcrypt
-from jose import JWTError, jwt
+import jwt
 
 from app.core.config import settings
 
@@ -13,7 +13,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + (
         expires_delta
-        if expires_delta
+        if expires_delta is not None
         else timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     )
     to_encode.update({"exp": expire})
@@ -22,7 +22,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
 
 def verify_token(token: str) -> dict:
     """Decode and verify a JWT token."""
-    return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+    return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM], options={"require": ["exp"]})
 
 
 def hash_password(password: str) -> str:

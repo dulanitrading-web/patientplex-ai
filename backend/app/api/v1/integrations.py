@@ -157,8 +157,10 @@ async def google_ads_callback(
         raise HTTPException(status_code=404, detail="Doctor not found")
 
     refresh_token = tokens.get("refresh_token")
-    doctor.google_ads_refresh_token = encrypt_value(refresh_token) if refresh_token else None
-    doctor.google_ads_connected = True
+    if refresh_token:
+        doctor.google_ads_refresh_token = encrypt_value(refresh_token)
+    doctor.google_ads_connected = False
+    doctor.google_ads_customer_id = None
 
     # Try to get their customer ID
     try:
@@ -173,7 +175,10 @@ async def google_ads_callback(
     except Exception as e:
         logger.warning("Could not auto-detect Google Ads customer ID: %s", e, exc_info=True)
 
+    doctor.google_ads_connected = bool(doctor.google_ads_refresh_token and doctor.google_ads_customer_id)
     await db.commit()
+    if not doctor.google_ads_connected:
+        return RedirectResponse(url=f"{FRONTEND_BASE}/dashboard/settings?google_ads=error")
 
     logger.info("Google Ads connected for doctor %s (customer: %s)",
                 doctor.full_name, doctor.google_ads_customer_id)
@@ -279,6 +284,7 @@ async def meta_ads_callback(
                 params={"access_token": long_token, "fields": "id,name,account_status"},
                 timeout=30,
             )
+            resp3.raise_for_status()
             ad_accounts = resp3.json().get("data", [])
 
             # Get pages
@@ -304,13 +310,17 @@ async def meta_ads_callback(
         raise HTTPException(status_code=404, detail="Doctor not found")
 
     doctor.meta_ads_access_token = encrypt_value(long_token) if long_token else None
-    doctor.meta_ads_connected = True
+    doctor.meta_ads_connected = bool(long_token and ad_accounts)
+    doctor.meta_ads_account_id = None
+    doctor.meta_ads_page_id = None
     if ad_accounts:
         doctor.meta_ads_account_id = ad_accounts[0]["id"]
     if pages:
         doctor.meta_ads_page_id = pages[0]["id"]
 
     await db.commit()
+    if not doctor.meta_ads_connected:
+        return RedirectResponse(url=f"{FRONTEND_BASE}/dashboard/settings?meta_ads=error")
 
     logger.info("Meta Ads connected for doctor %s (ad_account: %s, page: %s)",
                 doctor.full_name, doctor.meta_ads_account_id, doctor.meta_ads_page_id)
@@ -572,64 +582,14 @@ async def import_google_ads_campaigns(
     """
     from app.models.campaign import AdPlatform, Campaign, CampaignStatus
     from app.services.google_ads_engine import GoogleAdsEngine
-    import os
-
-    if not getattr(doctor, 'google_ads_connected', False) and not settings.GOOGLE_ADS_DEVELOPER_TOKEN:
-        raise HTTPException(
-            status_code=400,
-            detail="Google Ads is not connected yet. Please click 'Connect' on Google Ads first, complete the OAuth sign-in with your Google Ads account, and then try Import Campaigns again.",
-        )
-
+    from app.core.encryption import decrypt_value
+    if not doctor.google_ads_connected or not doctor.google_ads_refresh_token or not doctor.google_ads_customer_id:
+        raise HTTPException(status_code=409, detail="Reconnect Google Ads and select an accessible customer account")
     engine = GoogleAdsEngine(db)
-
-    # If the global client isn't connected, try using the doctor's per-clinic refresh token
+    await engine.connect_with_refresh_token(decrypt_value(doctor.google_ads_refresh_token))
     if not engine.is_connected:
-        from app.core.encryption import decrypt_value
-        doctor_refresh = getattr(doctor, 'google_ads_refresh_token', None)
-        if doctor_refresh:
-            await engine.connect_with_refresh_token(decrypt_value(doctor_refresh))
-
-    # Get the customer ID — auto-detect if missing
-    customer_id = getattr(doctor, 'google_ads_customer_id', None)
-    logger.info("Import campaigns: doctor customer_id from DB = %s", customer_id)
-
-    if not customer_id:
-        # Try to detect from the refresh token (per-doctor OAuth)
-        raw_refresh = getattr(doctor, 'google_ads_refresh_token', None)
-        refresh_token = decrypt_value(raw_refresh) if raw_refresh else None
-        logger.info("Import campaigns: has refresh token = %s", bool(refresh_token))
-
-        if refresh_token and settings.GOOGLE_ADS_DEVELOPER_TOKEN:
-            try:
-                # Get a fresh access token from the refresh token
-                token_resp = await _get_access_token_from_refresh(refresh_token)
-                logger.info("Import campaigns: got access token = %s", bool(token_resp))
-                if token_resp:
-                    from app.services.google_ads_oauth import get_google_ads_customer_ids
-                    customers = await get_google_ads_customer_ids(token_resp)
-                    logger.info("Import campaigns: accessible customers = %s", customers)
-                    if customers:
-                        customer_id = customers[0]["customer_id"]
-                        doctor.google_ads_customer_id = customer_id
-                        await db.commit()
-                        logger.info("Auto-detected Google Ads customer ID: %s", customer_id)
-            except Exception as e:
-                logger.warning("Auto-detect customer ID failed: %s", e, exc_info=True)
-
-    # Fallback to env var only if it's the MCC login customer ID and we have no per-doctor ID
-    if not customer_id:
-        login_cid = os.getenv("GOOGLE_ADS_LOGIN_CUSTOMER_ID", "")
-        if login_cid:
-            logger.info("Import campaigns: falling back to GOOGLE_ADS_LOGIN_CUSTOMER_ID = %s", login_cid)
-            customer_id = login_cid
-
-    if not customer_id:
-        return {
-            "status": "no_customer_id",
-            "message": "No Google Ads customer ID found. Please reconnect Google Ads — click Disconnect then Connect again.",
-            "imported": 0,
-        }
-
+        raise HTTPException(status_code=502, detail="Google Ads authorization failed")
+    customer_id = doctor.google_ads_customer_id
     # Fetch campaigns from Google Ads API
     # Strip dashes from customer ID (Google Ads API requires plain numbers)
     customer_id = customer_id.replace("-", "").strip()
@@ -637,31 +597,8 @@ async def import_google_ads_campaigns(
     # Fetch campaigns from Google Ads API (use LAST_30_DAYS — valid GAQL range)
     metrics_data = await engine.get_campaign_metrics(customer_id, days=30)
 
-    if metrics_data.get("status") == "demo_mode":
-        # Determine what's missing for a helpful error
-        from app.services.google_ads_engine import GOOGLE_ADS_SDK_AVAILABLE
-        if not GOOGLE_ADS_SDK_AVAILABLE:
-            detail = "Google Ads SDK not installed on server. Contact support."
-        elif not engine.is_connected:
-            detail = "Google Ads API client could not connect. Please click 'Connect' on Google Ads first to authorize your account."
-        else:
-            detail = "Google Ads API returned demo mode."
-        # Create draft campaigns from onboarding data as fallback
-        campaign = await engine.create_campaign_from_onboarding(doctor)
-        await db.commit()
-        return {
-            "status": "draft_mode",
-            "message": f"{detail} Created draft campaign from clinic data.",
-            "imported": 1,
-            "campaigns": [{"name": campaign.name, "status": campaign.status.value}],
-        }
-
     if metrics_data.get("status") != "success":
-        return {
-            "status": "error",
-            "message": metrics_data.get("message", "Failed to fetch campaigns from Google Ads"),
-            "imported": 0,
-        }
+        raise HTTPException(status_code=502, detail="Google Ads data fetch failed; reconnect or check developer token permissions")
 
     # Import each campaign
     imported = []
@@ -748,28 +685,19 @@ async def resync_google_ads_campaigns(
     from app.models.campaign import AdPlatform, Campaign, CampaignStatus
     from app.services.google_ads_engine import GoogleAdsEngine
     from sqlalchemy import select
-    import os
-
+    from app.core.encryption import decrypt_value
+    if not doctor.google_ads_connected or not doctor.google_ads_refresh_token or not doctor.google_ads_customer_id:
+        raise HTTPException(status_code=409, detail="Reconnect Google Ads before synchronizing")
     engine = GoogleAdsEngine(db)
-
-    # Try doctor's own refresh token
+    await engine.connect_with_refresh_token(decrypt_value(doctor.google_ads_refresh_token))
     if not engine.is_connected:
-        from app.core.encryption import decrypt_value
-        doctor_refresh = getattr(doctor, 'google_ads_refresh_token', None)
-        if doctor_refresh:
-            await engine.connect_with_refresh_token(decrypt_value(doctor_refresh))
-
-    customer_id = getattr(doctor, 'google_ads_customer_id', None)
-    if not customer_id:
-        customer_id = os.getenv("GOOGLE_ADS_LOGIN_CUSTOMER_ID", "")
-    if not customer_id:
-        return {"status": "error", "message": "No customer ID"}
-
+        raise HTTPException(status_code=502, detail="Google Ads authorization failed")
+    customer_id = doctor.google_ads_customer_id
     customer_id = customer_id.replace("-", "").strip()
     metrics_data = await engine.get_campaign_metrics(customer_id, days=30)
 
     if metrics_data.get("status") != "success":
-        return {"status": "error", "message": metrics_data.get("message", "API call failed")}
+        raise HTTPException(status_code=502, detail="Google Ads synchronization failed")
 
     # Build lookup from Google data
     google_data = {str(c["campaign_id"]): c for c in metrics_data.get("campaigns", [])}

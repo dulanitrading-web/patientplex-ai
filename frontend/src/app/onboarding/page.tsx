@@ -299,13 +299,7 @@ export default function OnboardingPage() {
       if (err instanceof ApiError) {
         showToast(err.message);
       } else {
-        // If API is unavailable, allow navigation for demo
-        showToast("API unavailable — continuing in demo mode", "success");
-        if (currentStep === 4) {
-          setTimeout(() => router.push("/dashboard"), 1500);
-          return;
-        }
-        setCurrentStep((s) => s + 1);
+        showToast("Setup could not be saved. Please retry before continuing.");
       }
     } finally {
       setLoading(false);

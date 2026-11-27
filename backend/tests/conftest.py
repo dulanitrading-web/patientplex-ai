@@ -11,6 +11,8 @@ import pytest_asyncio
 
 # Disable rate limiting for tests — must be set before app import
 os.environ["TESTING"] = "true"
+# Exercise optional ML endpoints in the isolated test suite only.
+os.environ["ADS_ENABLED"] = "true"
 
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy import event, text
