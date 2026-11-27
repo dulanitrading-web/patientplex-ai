@@ -348,74 +348,33 @@ async def verify_whatsapp(
     doctor: Doctor = Depends(get_current_doctor),
     db: AsyncSession = Depends(get_db),
 ):
-    """Send a test message to verify WhatsApp number is working.
+    """Check provider credentials without sending unsolicited messages."""
+    import httpx
+    import re
 
-    Uses the Meta WhatsApp Cloud API to send a template message.
-    If the message sends successfully, marks the number as verified.
-    """
     if not doctor.whatsapp_number:
         raise HTTPException(status_code=400, detail="No WhatsApp number configured")
-
-    if not settings.WHATSAPP_API_TOKEN:
-        # Try Twilio WhatsApp as fallback
-        if settings.TWILIO_ACCOUNT_SID:
-            return {
-                "status": "pending",
-                "message": "WhatsApp verification will happen via Twilio when a message is received",
-                "provider": "twilio",
-            }
-        raise HTTPException(status_code=400, detail="WhatsApp API not configured")
-
-    import httpx
-
+    if not settings.WHATSAPP_API_TOKEN or not settings.WHATSAPP_PHONE_NUMBER_ID:
+        raise HTTPException(status_code=409, detail="Configure WhatsApp API token and sender phone number ID in Render")
     try:
-        # Send test message via Meta Cloud API
-        phone_number_id = settings.WHATSAPP_PHONE_NUMBER_ID
-        if not phone_number_id:
-            raise HTTPException(
-                status_code=400,
-                detail="WHATSAPP_PHONE_NUMBER_ID not configured. Set it in Render environment variables (find it in Meta Business Suite → WhatsApp → API Setup).",
+        async with httpx.AsyncClient(timeout=20) as client:
+            resp = await client.get(
+                f"{settings.WHATSAPP_API_URL}/{settings.WHATSAPP_PHONE_NUMBER_ID}",
+                headers={"Authorization": f"Bearer {settings.WHATSAPP_API_TOKEN}"},
+                params={"fields": "id,display_phone_number,verified_name"},
             )
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(
-                f"{settings.WHATSAPP_API_URL}/{phone_number_id}/messages",
-                headers={
-                    "Authorization": f"Bearer {settings.WHATSAPP_API_TOKEN}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "messaging_product": "whatsapp",
-                    "to": doctor.whatsapp_number.replace("+", ""),
-                    "type": "text",
-                    "text": {
-                        "body": f"✅ PatientPlex AI connected! Your WhatsApp number {doctor.whatsapp_number} is now linked to your clinic dashboard. Patients will receive automated booking confirmations here."
-                    },
-                },
-                timeout=30,
-            )
-
-            if resp.status_code == 200:
-                doctor.whatsapp_verified = True
-                await db.commit()
-                return {"status": "verified", "message": "WhatsApp verification message sent successfully! ✅"}
-            else:
-                error_data = resp.json()
-                # Extract human-readable error message from Meta API response
-                error_msg = "WhatsApp API error"
-                if isinstance(error_data, dict):
-                    err_obj = error_data.get("error", error_data)
-                    if isinstance(err_obj, dict):
-                        error_msg = err_obj.get("message", str(err_obj))
-                    else:
-                        error_msg = str(err_obj)
-                else:
-                    error_msg = str(error_data)
-                logger.error("WhatsApp verify failed: %s (status %d)", error_msg, resp.status_code)
-                return {"status": "error", "message": error_msg}
-
-    except Exception as exc:
-        logger.error("WhatsApp verification failed: %s", exc)
-        return {"status": "error", "message": str(exc)}
+        if resp.status_code != 200:
+            logger.warning("WhatsApp sender check failed with HTTP %s", resp.status_code)
+            raise HTTPException(status_code=502, detail="Meta rejected the sender check; verify token, phone number ID and permissions")
+        sender = resp.json()
+        normalize = lambda value: re.sub(r"[^0-9]", "", value or "")
+        if not sender.get("display_phone_number") or normalize(sender["display_phone_number"]) != normalize(doctor.whatsapp_number):
+            raise HTTPException(status_code=409, detail="Configured Meta sender does not match this clinic's WhatsApp number")
+        return {"status": "pending", "message": "Meta sender credentials validated. Incoming and outgoing message delivery still require verification."}
+    except HTTPException:
+        raise
+    except (httpx.HTTPError, ValueError):
+        raise HTTPException(status_code=502, detail="WhatsApp provider check unavailable")
 
 
 # ---------------------------------------------------------------------------
