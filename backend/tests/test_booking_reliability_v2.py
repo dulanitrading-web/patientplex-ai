@@ -29,3 +29,9 @@ def test_connected_calendar_failure_does_not_invent_slots():
     response = asyncio.run(engine.check_availability(doctor, "2030-01-01"))
     assert response["available"] is False
     assert response["slots"] == []
+
+
+def test_calendar_slot_formats_match_clinic_time():
+    assert BookingEngine._slot_minutes({"start": "10:00"}) == 600
+    assert BookingEngine._slot_minutes({"start": "2030-01-01T10:00:00+05:30"}) == 600
+    assert BookingEngine._slot_minutes({"start": "2030-01-01T04:30:00+00:00"}) == 600
