@@ -108,8 +108,8 @@ async def book_appointment(
                 treatment=body.treatment,
                 date_str=body.date.strftime("%A, %d %B %Y"),
                 time_str=body.time,
-                clinic_address=doctor.address or "",
-                clinic_phone=doctor.phone_number or "",
+                clinic_address=doctor.clinic_address or "",
+                clinic_phone=doctor.phone or "",
             )
         except Exception:
             pass  # Don't fail the booking if email fails

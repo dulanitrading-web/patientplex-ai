@@ -109,3 +109,46 @@ async def test_booking_survives_notification_failure(client, onboarded_doctor, m
     funnel = await client.get("/api/v1/conversions/funnel", headers=onboarded_doctor)
     assert funnel.status_code == 200
     assert funnel.json()["total_stages_tracked"] == 1
+
+
+@pytest.mark.asyncio
+async def test_manual_booking_confirms_assigned_practitioner(
+    client, onboarded_doctor, monkeypatch
+):
+    send_confirmation = AsyncMock(return_value={"sent": True})
+    monkeypatch.setattr(
+        "app.services.email_service.send_appointment_confirmation", send_confirmation
+    )
+    staff_response = await client.post(
+        "/api/v1/staff/", headers=onboarded_doctor, json={
+            "full_name": "Synthetic Orthodontist",
+            "specialty": "Orthodontics",
+            "services": ["Braces"],
+        },
+    )
+    staff_response.raise_for_status()
+    staff_id = staff_response.json()["staff"]["id"]
+    booking = {
+        "staff_id": staff_id,
+        "patient_name": "Synthetic Patient",
+        "patient_phone": "+919000000002",
+        "patient_email": "synthetic-patient@example.com",
+        "treatment": "Smile Design",
+        "date": "2026-12-15",
+        "time": "10:00",
+    }
+    wrong_service = await client.post(
+        "/api/v1/appointments/book", headers=onboarded_doctor, json=booking
+    )
+    assert wrong_service.status_code == 422
+    send_confirmation.assert_not_awaited()
+
+    booking["treatment"] = "Braces"
+    response = await client.post(
+        "/api/v1/appointments/book", headers=onboarded_doctor, json=booking
+    )
+    assert response.status_code == 200
+    assert response.json()["appointment"]["staff_id"] == staff_id
+    send_confirmation.assert_awaited_once()
+    assert send_confirmation.await_args.kwargs["doctor_name"] == "Synthetic Orthodontist"
+    assert send_confirmation.await_args.kwargs["clinic_address"] == "123 Test Road"
