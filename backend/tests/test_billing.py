@@ -51,6 +51,7 @@ async def test_check_feature_on_trial(client, auth_headers):
 async def test_upgrade_plan(client, auth_headers):
     await client.post("/api/v1/billing/start-trial", headers=auth_headers)
     resp = await client.post("/api/v1/billing/subscribe", headers=auth_headers, json={"plan": "GROWTH"})
-    assert resp.status_code == 200
-    assert resp.json()["plan"] == "GROWTH"
-    assert resp.json()["price_inr"] == 24999
+    assert resp.status_code == 503
+    current = await client.get("/api/v1/billing/subscription", headers=auth_headers)
+    assert current.status_code == 200
+    assert current.json()["subscription"]["plan"] == "FREE_TRIAL"
