@@ -314,7 +314,7 @@ def generate_treatment_page_html(doctor: Doctor, treatment: str) -> str:
                 keyword: params.get('utm_term') || params.get('keyword') || null,
                 lead_source: params.get('utm_source') ? 'Google Ads' : 'Website',
                 landing_page: '{treatment_slug}',
-                doctor_slug: '{generate_slug(doctor)}',
+                doctor_id: '{doctor.id}',
                 utm_source: params.get('utm_source') || null,
                 utm_medium: params.get('utm_medium') || null,
                 utm_campaign: params.get('utm_campaign') || null,
@@ -330,7 +330,7 @@ def generate_treatment_page_html(doctor: Doctor, treatment: str) -> str:
                 }});
                 const result = await resp.json();
 
-                if (result.success) {{
+                if (resp.ok && result.success) {{
                     document.getElementById('leadForm').classList.add('hidden');
                     document.getElementById('successMsg').classList.remove('hidden');
                     // Track conversion
