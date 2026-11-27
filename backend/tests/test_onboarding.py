@@ -8,7 +8,9 @@ async def test_get_specialties(client, auth_headers):
     resp = await client.get("/api/v1/onboarding/specialties", headers=auth_headers)
     assert resp.status_code == 200
     data = resp.json()
-    assert len(data) == 10
+    from app.schemas.specialty import SPECIALTY_CONFIGS
+    assert {item['specialty'] for item in data} == {cfg.specialty for cfg in SPECIALTY_CONFIGS.values()}
+    assert len(data) == len(SPECIALTY_CONFIGS)
     # Each specialty should have services and keywords
     for spec in data:
         assert "specialty" in spec
