@@ -135,25 +135,6 @@ for idx_name, table, cols in indexes:
     cur.execute(f'CREATE INDEX IF NOT EXISTS {idx_name} ON {table} ({cols})')
     print(f'  ✓ index {idx_name} — OK')
 
-# Set subdomain_slug for doctors that don't have one yet
-# This enables the public booking page at /book/{slug}
-cur.execute("""
-    UPDATE doctors
-    SET subdomain_slug = TRIM(BOTH '-' FROM LOWER(REPLACE(REPLACE(full_name, ' ', '-'), '.', '')))
-    WHERE subdomain_slug IS NULL OR subdomain_slug = ''
-""")
-updated = cur.statusmessage
-print(f'  ✓ Set subdomain slugs — {updated}')
-
-# Fix trailing dashes in existing slugs
-cur.execute("""
-    UPDATE doctors
-    SET subdomain_slug = TRIM(BOTH '-' FROM subdomain_slug)
-    WHERE subdomain_slug LIKE '%-' OR subdomain_slug LIKE '-%'
-""")
-fixed = cur.statusmessage
-print(f'  ✓ Fixed slug formatting — {fixed}')
-
 cur.execute("""
     SELECT a.atttypid = 'staff_role_enum'::regtype
     FROM pg_attribute a
