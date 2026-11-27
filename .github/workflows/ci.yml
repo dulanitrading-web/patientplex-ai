@@ -141,6 +141,19 @@ jobs:
           python create_tables.py
           python create_tables.py
 
+      - name: Replay Render build migration twice
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/patientplex_test
+        run: |
+          bash -n build.sh
+          ./build.sh
+          ./build.sh
+          if env -u DATABASE_URL ./build.sh; then
+            echo "Render build unexpectedly passed without DATABASE_URL"
+            exit 1
+          fi
+
   security-scan:
     runs-on: ubuntu-latest
     steps:
