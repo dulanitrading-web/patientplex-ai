@@ -91,6 +91,8 @@ async def initialize_clinic_data(
     Safe to call multiple times — skips if data already exists.
     """
 
+    raise HTTPException(status_code=410, detail="Synthetic clinic initialization is disabled")
+
     # Check if data already seeded
     existing_patients = await db.execute(
         select(func.count(Patient.id)).where(Patient.doctor_id == doctor.id)
