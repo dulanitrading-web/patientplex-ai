@@ -1,14 +1,16 @@
-name: Frontend dependency candidate
+name: Frontend dependency validation
 on:
   pull_request:
     branches: [main]
     paths:
       - '.github/workflows/dependency-candidate.yml'
+      - 'frontend/package.json'
+      - 'frontend/package-lock.json'
+      - 'frontend/eslint.config.mjs'
 permissions:
   contents: read
 jobs:
   resolve:
-    if: github.head_ref == 'patientplex-v2/integration'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -18,12 +20,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Resolve pinned candidate
-        run: |
-          npm pkg set 'dependencies.next=16.4.6' 'dependencies.framer-motion=^12.0.0' 'dependencies.lucide-react=^0.468.0' 'dependencies.react=^19.0.0' 'dependencies.react-dom=^19.0.0' 'devDependencies.eslint-config-next=16.4.6' 'devDependencies.eslint=^9.0.0' 'devDependencies.@types/react=^19.0.0' 'devDependencies.@types/react-dom=^19.0.0' 'scripts.lint=eslint .'
-          npm install --package-lock-only --ignore-scripts
-          npm ci
-          printf '%s\n' 'import next from "eslint-config-next/core-web-vitals";' 'export default [...next, {ignores:[".next/**","out/**","next-env.d.ts"]}];' > eslint.config.mjs
+      - name: Install locked dependencies
+        run: npm ci
       - name: Check types
         run: npx tsc --noEmit
       - name: Lint
@@ -37,11 +35,3 @@ jobs:
       - name: Audit
         if: always()
         run: npm audit --audit-level=moderate
-      - name: Preserve generated dependency files
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-dependency-candidate
-          path: |
-            frontend/package.json
-            frontend/package-lock.json
