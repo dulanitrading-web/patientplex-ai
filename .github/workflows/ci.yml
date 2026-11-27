@@ -19,7 +19,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U test -d patientplex_test"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -44,7 +44,7 @@ jobs:
         run: |
           cd backend
           pip install -r requirements.txt
-          pip install pytest pytest-asyncio httpx
+          pip install pytest pytest-asyncio aiosqlite httpx
 
       - name: Python syntax check
         run: |
@@ -115,7 +115,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U test -d patientplex_test"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -131,13 +131,14 @@ jobs:
           cd backend
           pip install -r requirements.txt
 
-      - name: Run migrations
+      - name: Validate fresh schema bootstrap
         env:
           DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/patientplex_test
           SECRET_KEY: test-secret-key-for-ci-only
           ENVIRONMENT: development
         run: |
           cd backend
+          python create_tables.py
           python create_tables.py
 
   security-scan:
@@ -159,6 +160,8 @@ jobs:
           node-version: '20'
 
       - name: npm audit
+        if: always()
         run: |
           cd frontend
+          npm ci
           npm audit --audit-level=high
