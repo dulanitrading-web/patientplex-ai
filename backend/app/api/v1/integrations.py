@@ -157,8 +157,10 @@ async def google_ads_callback(
         raise HTTPException(status_code=404, detail="Doctor not found")
 
     refresh_token = tokens.get("refresh_token")
-    doctor.google_ads_refresh_token = encrypt_value(refresh_token) if refresh_token else None
-    doctor.google_ads_connected = True
+    if refresh_token:
+        doctor.google_ads_refresh_token = encrypt_value(refresh_token)
+    doctor.google_ads_connected = False
+    doctor.google_ads_customer_id = None
 
     # Try to get their customer ID
     try:
@@ -173,7 +175,10 @@ async def google_ads_callback(
     except Exception as e:
         logger.warning("Could not auto-detect Google Ads customer ID: %s", e, exc_info=True)
 
+    doctor.google_ads_connected = bool(doctor.google_ads_refresh_token and doctor.google_ads_customer_id)
     await db.commit()
+    if not doctor.google_ads_connected:
+        return RedirectResponse(url=f"{FRONTEND_BASE}/dashboard/settings?google_ads=error")
 
     logger.info("Google Ads connected for doctor %s (customer: %s)",
                 doctor.full_name, doctor.google_ads_customer_id)
@@ -279,6 +284,7 @@ async def meta_ads_callback(
                 params={"access_token": long_token, "fields": "id,name,account_status"},
                 timeout=30,
             )
+            resp3.raise_for_status()
             ad_accounts = resp3.json().get("data", [])
 
             # Get pages
@@ -304,13 +310,17 @@ async def meta_ads_callback(
         raise HTTPException(status_code=404, detail="Doctor not found")
 
     doctor.meta_ads_access_token = encrypt_value(long_token) if long_token else None
-    doctor.meta_ads_connected = True
+    doctor.meta_ads_connected = bool(long_token and ad_accounts)
+    doctor.meta_ads_account_id = None
+    doctor.meta_ads_page_id = None
     if ad_accounts:
         doctor.meta_ads_account_id = ad_accounts[0]["id"]
     if pages:
         doctor.meta_ads_page_id = pages[0]["id"]
 
     await db.commit()
+    if not doctor.meta_ads_connected:
+        return RedirectResponse(url=f"{FRONTEND_BASE}/dashboard/settings?meta_ads=error")
 
     logger.info("Meta Ads connected for doctor %s (ad_account: %s, page: %s)",
                 doctor.full_name, doctor.meta_ads_account_id, doctor.meta_ads_page_id)
