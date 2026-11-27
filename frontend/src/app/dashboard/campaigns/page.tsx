@@ -53,6 +53,8 @@ interface AIIntelligence {
 export default function CampaignsPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [adsEnabled, setAdsEnabled] = useState<boolean | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [intelligence, setIntelligence] = useState<AIIntelligence | null>(null);
   const [intelLoading, setIntelLoading] = useState(false);
@@ -67,9 +69,15 @@ export default function CampaignsPage() {
   const loadCampaigns = useCallback(async () => {
     try {
       const data = await getCampaigns();
-      setCampaigns(data.campaigns || []);
-    } catch {
-      setCampaigns([]);
+      // A successful response with no campaigns is EMPTY, not an error.
+      if (!data || typeof data !== "object") throw new Error("Invalid response from server");
+      setCampaigns(Array.isArray(data.campaigns) ? data.campaigns : []);
+      setAdsEnabled(typeof data.ads_enabled === "boolean" ? data.ads_enabled : null);
+      setError(null);
+    } catch (e) {
+      // A failed request is NOT an empty clinic — surface it distinctly.
+      setError(e instanceof Error ? e.message : "Failed to load campaigns");
+      // keep any previously loaded campaigns; do not fake an empty list
     } finally {
       setLoading(false);
     }
@@ -216,12 +224,14 @@ export default function CampaignsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-slate-900">Campaigns</h1>
-        <a
-          href="/dashboard/campaigns/new"
-          className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium transition-colors inline-block"
-        >
-          + Launch New
-        </a>
+        {adsEnabled !== false && (
+          <a
+            href="/dashboard/campaigns/new"
+            className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium transition-colors inline-block"
+          >
+            + Launch New
+          </a>
+        )}
       </div>
 
       {/* ── AI Intelligence Panel ── */}
@@ -352,20 +362,49 @@ export default function CampaignsPage() {
         </div>
       )}
 
+      {/* ── Failed request (distinct from empty / disabled) ── */}
+      {error && (
+        <div className="bg-red-50 rounded-xl p-6 border border-red-200 text-center">
+          <AlertCircle className="w-10 h-10 text-red-500 mx-auto mb-3" />
+          <h2 className="text-lg font-semibold text-slate-900 mb-1">Couldn’t load campaigns</h2>
+          <p className="text-slate-600 text-sm mb-4">{error}</p>
+          <button
+            onClick={() => loadCampaigns()}
+            className="inline-block px-5 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {/* ── Ads disabled on server (distinct from empty / error) ── */}
+      {!error && adsEnabled === false && (
+        <div className="bg-amber-50 rounded-xl p-6 border border-amber-200 text-center">
+          <AlertCircle className="w-10 h-10 text-amber-500 mx-auto mb-3" />
+          <h2 className="text-lg font-semibold text-slate-900 mb-1">Ads are disabled</h2>
+          <p className="text-slate-600 text-sm mb-4">
+            Ad integrations are turned off on this server. Synced campaigns, if any, are shown below;
+            ad publishing and budget changes are unavailable.
+          </p>
+        </div>
+      )}
+
       {/* ── Campaign Cards ── */}
-      {campaigns.length === 0 ? (
+      {!error && campaigns.length === 0 ? (
         <div className="bg-white rounded-xl p-8 border border-slate-200 text-center">
           <AlertCircle className="w-12 h-12 text-slate-400 mx-auto mb-3" />
           <h2 className="text-lg font-semibold text-slate-900 mb-1">No campaigns yet</h2>
           <p className="text-slate-500 text-sm mb-4">Launch your first AI-powered campaigns across Google, Meta, and more.</p>
-          <a
-            href="/dashboard/campaigns/new"
-            className="inline-block px-5 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium transition-colors"
-          >
-            Create Your First Campaign
-          </a>
+          {adsEnabled !== false && (
+            <a
+              href="/dashboard/campaigns/new"
+              className="inline-block px-5 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium transition-colors"
+            >
+              Create Your First Campaign
+            </a>
+          )}
         </div>
-      ) : (
+      ) : !error && campaigns.length > 0 ? (
         <div className="space-y-4">
           {campaigns.filter(c => platformFilter === "ALL" || c.platform === platformFilter).map((c) => {
             const sc = statusConfig[c.status] || statusConfig.DRAFT;
@@ -549,7 +588,7 @@ export default function CampaignsPage() {
             );
           })}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
