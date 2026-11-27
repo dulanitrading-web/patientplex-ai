@@ -72,41 +72,32 @@ async def capture_lead(
     This is a public endpoint — no auth required.
     Rate limited to 10 requests per minute per IP.
     """
-    logger.info(
-        "Lead captured: %s | %s | %s | source=%s | keyword=%s",
-        body.patient_name,
-        body.patient_phone,
-        body.treatment,
-        body.lead_source,
-        body.keyword,
-    )
+    # Explicit clinic routing: never assign an inquiry to an arbitrary clinic.
+    from uuid import UUID
 
-    # Find the doctor to notify
     doctor = None
     if body.doctor_id:
-        from uuid import UUID
         try:
-            doctor = await db.get(Doctor, UUID(body.doctor_id))
-        except (ValueError, Exception):
-            pass
+            doctor_uuid = UUID(body.doctor_id)
+        except ValueError:
+            raise HTTPException(status_code=422, detail="Invalid clinic identifier")
+        doctor = await db.get(Doctor, doctor_uuid)
+        if doctor is None:
+            raise HTTPException(status_code=404, detail="Clinic not found")
 
-    if not doctor and body.doctor_slug:
+    if body.doctor_slug:
         result = await db.execute(
             select(Doctor).where(Doctor.subdomain_slug == body.doctor_slug)
         )
-        doctor = result.scalar_one_or_none()
+        slug_doctor = result.scalar_one_or_none()
+        if slug_doctor is None:
+            raise HTTPException(status_code=404, detail="Clinic not found")
+        if doctor is not None and doctor.id != slug_doctor.id:
+            raise HTTPException(status_code=422, detail="Conflicting clinic identifiers")
+        doctor = slug_doctor
 
-    if not doctor:
-        # Default: get the first doctor (single-clinic mode)
-        result = await db.execute(select(Doctor).limit(1))
-        doctor = result.scalar_one_or_none()
-
-    if not doctor:
-        logger.warning("Lead captured but no doctor found to notify")
-        return LeadCaptureResponse(
-            success=True,
-            message="Thank you! We'll contact you shortly.",
-        )
+    if doctor is None:
+        raise HTTPException(status_code=422, detail="Clinic identifier required")
 
     # Save lead to patients table (with dedup on phone number)
     lead_id = None
@@ -130,7 +121,6 @@ async def capture_lead(
 
         if patient:
             # Update existing patient instead of creating duplicate
-            patient.total_visits = (patient.total_visits or 0) + 1
             patient.updated_at = datetime.now(timezone.utc)
             if body.patient_email and not patient.email:
                 patient.email = body.patient_email
@@ -153,9 +143,9 @@ async def capture_lead(
         lead_id = str(patient.id)
         logger.info("Lead saved to DB: patient_id=%s", lead_id)
     except Exception as exc:
-        logger.error("Failed to save lead to DB: %s", exc)
+        logger.error("Lead persistence failed (%s)", type(exc).__name__)
         await db.rollback()
-        # Continue — still send the email alert even if DB save fails
+        raise HTTPException(status_code=503, detail="Unable to save inquiry; please retry") from exc
 
     # Send email alert to doctor
     try:
@@ -170,7 +160,7 @@ async def capture_lead(
             landing_page=body.landing_page,
         )
     except Exception as exc:
-        logger.error("Failed to send lead alert email: %s", exc)
+        logger.error("Lead notification failed (%s)", type(exc).__name__)
 
     # Track conversion
     try:
@@ -189,7 +179,7 @@ async def capture_lead(
             },
         )
     except Exception as exc:
-        logger.debug("Conversion tracking skipped: %s", exc)
+        logger.debug("Conversion tracking skipped (%s)", type(exc).__name__)
 
     return LeadCaptureResponse(
         success=True,
@@ -212,7 +202,7 @@ async def _send_lead_alert_email(
     from app.services.email_service import send_email, _is_configured
 
     if not _is_configured():
-        logger.warning("Email not configured — lead alert not sent for %s", patient_name)
+        logger.warning("Email not configured — lead alert not sent")
         return
 
     now = datetime.now(timezone.utc)
@@ -281,6 +271,6 @@ async def _send_lead_alert_email(
     # Send to doctor's email
     result = await send_email(doctor_email, subject, html)
     if result.get("sent"):
-        logger.info("Lead alert sent to %s for patient %s", doctor_email, patient_name)
+        logger.info("Lead alert sent")
     else:
-        logger.warning("Lead alert failed for %s: %s", doctor_email, result.get("reason"))
+        logger.warning("Lead alert failed")
