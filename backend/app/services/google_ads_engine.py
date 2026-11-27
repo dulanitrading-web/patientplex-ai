@@ -104,15 +104,16 @@ class GoogleAdsEngine:
 
     @property
     def is_connected(self) -> bool:
-        return self.client is not None
+        return bool(self._rest_access_token) or self.client is not None
 
     async def connect_with_refresh_token(self, refresh_token: str) -> bool:
         """Connect to Google Ads using a doctor's OAuth refresh token.
 
         Uses the REST API (no SDK needed) — gets an access token via OAuth refresh.
-        Falls back to SDK if available.
         """
         import httpx
+
+        self._rest_access_token = None
 
         dev_token = os.getenv("GOOGLE_ADS_DEVELOPER_TOKEN", "")
         client_id = settings.GOOGLE_CLIENT_ID
@@ -135,13 +136,31 @@ class GoogleAdsEngine:
                     },
                     timeout=15,
                 )
-                resp.raise_for_status()
-                self._rest_access_token = resp.json().get("access_token")
+                if not resp.is_success:
+                    try:
+                        error = resp.json().get("error")
+                    except (ValueError, AttributeError):
+                        error = None
+                    known_errors = (
+                        "invalid_grant", "invalid_client", "unauthorized_client",
+                        "invalid_request", "unsupported_grant_type", "invalid_scope",
+                        "temporarily_unavailable",
+                    )
+                    logger.warning(
+                        "Clinic Google Ads OAuth refresh rejected: HTTP %s, code=%s",
+                        resp.status_code, error if error in known_errors else "unknown",
+                    )
+                    return False
+                access_token = resp.json().get("access_token")
+                if not isinstance(access_token, str) or not access_token:
+                    logger.warning("Clinic Google Ads OAuth refresh returned no access token")
+                    return False
+                self._rest_access_token = access_token
                 self._rest_developer_token = dev_token
                 logger.info("Google Ads REST connection ready")
                 return True
         except Exception as exc:
-            logger.error("Failed to get Google Ads access token: %s", exc)
+            logger.error("Clinic Google Ads OAuth refresh failed: %s", type(exc).__name__)
             return False
 
     # ------------------------------------------------------------------

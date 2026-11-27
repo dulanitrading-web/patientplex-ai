@@ -584,8 +584,7 @@ async def import_google_ads_campaigns(
     if not doctor.google_ads_connected or not doctor.google_ads_refresh_token or not doctor.google_ads_customer_id:
         raise HTTPException(status_code=409, detail="Reconnect Google Ads and select an accessible customer account")
     engine = GoogleAdsEngine(db)
-    await engine.connect_with_refresh_token(decrypt_value(doctor.google_ads_refresh_token))
-    if not engine.is_connected:
+    if not await engine.connect_with_refresh_token(decrypt_value(doctor.google_ads_refresh_token)):
         raise HTTPException(status_code=502, detail="Google Ads authorization failed")
     customer_id = doctor.google_ads_customer_id
     # Fetch campaigns from Google Ads API
@@ -687,8 +686,7 @@ async def resync_google_ads_campaigns(
     if not doctor.google_ads_connected or not doctor.google_ads_refresh_token or not doctor.google_ads_customer_id:
         raise HTTPException(status_code=409, detail="Reconnect Google Ads before synchronizing")
     engine = GoogleAdsEngine(db)
-    await engine.connect_with_refresh_token(decrypt_value(doctor.google_ads_refresh_token))
-    if not engine.is_connected:
+    if not await engine.connect_with_refresh_token(decrypt_value(doctor.google_ads_refresh_token)):
         raise HTTPException(status_code=502, detail="Google Ads authorization failed")
     customer_id = doctor.google_ads_customer_id
     customer_id = customer_id.replace("-", "").strip()
