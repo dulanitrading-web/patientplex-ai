@@ -123,8 +123,7 @@ async def receive_message(request: Request):
                     continue
 
                 if message.get("type") != "text":
-                    logger.info("Ignoring non-text message type=%s from %s",
-                                message.get("type"), message.get("from", ""))
+                    logger.info("Ignoring non-text WhatsApp message")
                     continue
 
                 sender_phone = message.get("from", "")
@@ -175,7 +174,7 @@ async def _process_whatsapp_message(
                 }
             })
             if doctor is None:
-                logger.warning("No doctor found for incoming message from %s", sender_phone)
+                logger.warning("No clinic matched incoming WhatsApp message")
                 return
 
             # Process through AI receptionist
@@ -188,8 +187,8 @@ async def _process_whatsapp_message(
                 message=response_text,
                 phone_number_id=phone_number_id,
             )
-    except Exception:
-        logger.exception("Failed to process WhatsApp message from %s", sender_phone)
+    except Exception as exc:
+        logger.error("WhatsApp processing failed: %s", type(exc).__name__)
 
 
 async def _send_with_retry(

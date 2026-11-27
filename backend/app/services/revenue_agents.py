@@ -130,7 +130,7 @@ class SlotFillerAgent:
             result = await whatsapp_service.send_message(to=lead.phone, message=message)
             if "error" not in result:
                 sent_count += 1
-                logger.info("Slot-filler: sent to %s for Dr. %s", lead.phone, doctor.full_name)
+                logger.info("Slot-filler sent")
 
         return {
             "doctor": doctor.full_name,
@@ -207,7 +207,7 @@ class WinBackAgent:
             result = await whatsapp_service.send_message(to=patient.phone, message=message)
             if "error" not in result:
                 sent_count += 1
-                logger.info("Win-back: sent to %s (last visit %d months ago)", patient.phone, months_ago)
+                logger.info("Win-back sent")
 
         return {
             "doctor": doctor.full_name,
@@ -276,7 +276,7 @@ class ReviewAgent:
             result = await whatsapp_service.send_message(to=appt.patient_phone, message=message)
             if "error" not in result:
                 sent_count += 1
-                logger.info("Review request sent to %s after appointment", appt.patient_phone)
+                logger.info("Post-appointment review request sent")
 
         return {"appointments_processed": len(appointments), "review_requests_sent": sent_count}
 

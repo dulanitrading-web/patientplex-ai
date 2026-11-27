@@ -289,7 +289,7 @@ class AIReceptionist:
         if intent == PatientIntent.BOOKING:
             conversation.status = ConversationStatus.BOOKING_IN_PROGRESS
         if is_urgent:
-            logger.warning("URGENT patient message from %s: %s", patient_phone, incoming_message[:80])
+            logger.warning("Urgent message detected by receptionist")
 
         # Build Claude messages from conversation history
         claude_messages = self._build_claude_messages(conversation)
@@ -431,7 +431,7 @@ class AIReceptionist:
             )
             self.db.add(conversation)
             await self.db.flush()
-            logger.info("New conversation created for %s with Dr. %s", patient_phone, self.doctor.full_name)
+            logger.info("Receptionist conversation created")
 
         return conversation
 

@@ -48,10 +48,10 @@ class WhatsAppService:
                 url = f"{self.api_url}/{pid}/messages"
                 resp = await client.post(url, json=payload, headers=self.headers, timeout=30)
                 resp.raise_for_status()
-                logger.info("WhatsApp message sent to %s", to)
+                logger.info("WhatsApp message accepted")
                 return resp.json()
         except httpx.HTTPError as exc:
-            logger.error("Failed to send WhatsApp message to %s: %s", to, exc)
+            logger.error("WhatsApp send failed: %s", type(exc).__name__)
             return {"error": str(exc)}
 
     async def send_template_message(
@@ -81,7 +81,7 @@ class WhatsAppService:
                 resp.raise_for_status()
                 return resp.json()
         except httpx.HTTPError as exc:
-            logger.error("Template message failed: %s", exc)
+            logger.error("WhatsApp template send failed: %s", type(exc).__name__)
             return {"error": str(exc)}
 
     async def send_booking_confirmation(
