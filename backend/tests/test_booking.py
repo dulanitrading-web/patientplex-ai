@@ -152,3 +152,11 @@ async def test_manual_booking_confirms_assigned_practitioner(
     send_confirmation.assert_awaited_once()
     assert send_confirmation.await_args.kwargs["doctor_name"] == "Synthetic Orthodontist"
     assert send_confirmation.await_args.kwargs["clinic_address"] == "123 Test Road"
+
+
+    booking["time"] = "10:15"
+    overlap = await client.post(
+        "/api/v1/appointments/book", headers=onboarded_doctor, json=booking
+    )
+    assert overlap.status_code == 409
+    send_confirmation.assert_awaited_once()

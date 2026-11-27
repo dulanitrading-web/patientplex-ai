@@ -57,17 +57,33 @@ async def book_appointment(
         raise HTTPException(status_code=400, detail="Time must be in HH:MM format")
 
     practitioner = None
+    duration_minutes = 30
     if body.staff_id:
         practitioner = await db.scalar(select(ClinicStaff).where(
             ClinicStaff.id == body.staff_id,
             ClinicStaff.doctor_id == doctor.id,
             ClinicStaff.is_active.is_(True),
-        ))
+        ).with_for_update())
         if practitioner is None:
             raise HTTPException(status_code=404, detail="Practitioner is unavailable at this clinic")
         offered_services = {service.strip().casefold() for service in (practitioner.services or [])}
         if body.treatment.strip().casefold() not in offered_services:
             raise HTTPException(status_code=422, detail="This practitioner does not offer the selected treatment")
+
+        duration_minutes = practitioner.slot_duration_minutes
+        start = datetime.combine(body.date, appt_time)
+        end = start + timedelta(minutes=duration_minutes)
+        existing = await db.scalars(select(Appointment).where(
+            Appointment.doctor_id == doctor.id,
+            Appointment.staff_id == practitioner.id,
+            Appointment.appointment_date.between(body.date - timedelta(days=1), end.date()),
+            Appointment.status != AppointmentStatus.CANCELLED,
+        ))
+        for booking in existing:
+            booked_start = datetime.combine(booking.appointment_date, booking.appointment_time)
+            booked_end = booked_start + timedelta(minutes=booking.duration_minutes)
+            if start < booked_end and booked_start < end:
+                raise HTTPException(status_code=409, detail="This practitioner already has an overlapping appointment")
 
     appointment = Appointment(
         doctor_id=doctor.id,
@@ -76,7 +92,7 @@ async def book_appointment(
         treatment=body.treatment,
         appointment_date=body.date,
         appointment_time=appt_time,
-        duration_minutes=30,
+        duration_minutes=duration_minutes,
         status=AppointmentStatus.CONFIRMED,
         notes=body.notes,
         source=body.source,
