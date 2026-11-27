@@ -115,8 +115,8 @@ class GoogleAdsEngine:
         import httpx
 
         dev_token = os.getenv("GOOGLE_ADS_DEVELOPER_TOKEN", "")
-        client_id = os.getenv("GOOGLE_ADS_CLIENT_ID", "") or os.getenv("GOOGLE_CLIENT_ID", "")
-        client_secret = os.getenv("GOOGLE_ADS_CLIENT_SECRET", "") or os.getenv("GOOGLE_CLIENT_SECRET", "")
+        client_id = settings.GOOGLE_CLIENT_ID
+        client_secret = settings.GOOGLE_CLIENT_SECRET
 
         if not (dev_token and client_id and client_secret and refresh_token):
             logger.warning("Missing credentials for Google Ads connect")
