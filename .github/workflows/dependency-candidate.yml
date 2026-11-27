@@ -20,7 +20,7 @@ jobs:
           node-version: '22'
       - name: Resolve pinned candidate
         run: |
-          npm pkg set 'dependencies.next=16.4.6' 'dependencies.react=^19.0.0' 'dependencies.react-dom=^19.0.0' 'devDependencies.eslint-config-next=16.4.6' 'devDependencies.eslint=^9.0.0' 'devDependencies.@types/react=^19.0.0' 'devDependencies.@types/react-dom=^19.0.0' 'scripts.lint=eslint .'
+          npm pkg set 'dependencies.next=16.4.6' 'dependencies.framer-motion=^12.0.0' 'dependencies.lucide-react=^0.468.0' 'dependencies.react=^19.0.0' 'dependencies.react-dom=^19.0.0' 'devDependencies.eslint-config-next=16.4.6' 'devDependencies.eslint=^9.0.0' 'devDependencies.@types/react=^19.0.0' 'devDependencies.@types/react-dom=^19.0.0' 'scripts.lint=eslint .'
           npm install --package-lock-only --ignore-scripts
           npm ci
           printf '%s\n' 'import next from "eslint-config-next/core-web-vitals";' 'export default [...next, {ignores:[".next/**","out/**","next-env.d.ts"]}];' > eslint.config.mjs
