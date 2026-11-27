@@ -1,0 +1,44 @@
+name: Frontend dependency candidate
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/dependency-candidate.yml'
+permissions:
+  contents: read
+jobs:
+  resolve:
+    if: github.head_ref == 'patientplex-v2/integration'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Resolve pinned candidate
+        run: |
+          npm install --package-lock-only --ignore-scripts --save-exact next@15.5.29
+          npm install --package-lock-only --ignore-scripts --save-dev --save-exact eslint-config-next@15.5.29
+          npm ci
+      - name: Check types
+        run: npx tsc --noEmit
+      - name: Lint
+        run: npm run lint
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+      - name: Audit
+        if: always()
+        run: npm audit --audit-level=moderate
+      - name: Preserve generated dependency files
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dependency-candidate
+          path: |
+            frontend/package.json
+            frontend/package-lock.json
