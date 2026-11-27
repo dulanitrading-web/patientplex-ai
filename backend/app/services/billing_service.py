@@ -15,6 +15,7 @@ from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
 import httpx
+from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -78,37 +79,8 @@ class BillingService:
 
         Returns a dict with subscription_id and short_url for checkout.
         """
-        config = PLAN_CONFIG[plan]
-
-        # In production: create Razorpay plan and subscription
-        # Step 1: Create or get Razorpay customer
-        # Step 2: Create subscription
-        # customer = await self._create_razorpay_customer(doctor)
-        # sub = await self._create_razorpay_sub(customer["id"], plan_id)
-
-        # For now, update the local subscription
-        subscription = await self.get_subscription(doctor.id)
-        if not subscription:
-            subscription = await self.create_trial(doctor.id)
-
-        now = datetime.now(timezone.utc)
-        subscription.plan = plan
-        subscription.status = SubscriptionStatus.ACTIVE
-        subscription.price_inr = config["price_inr"]
-        subscription.current_period_start = now
-        subscription.current_period_end = now + timedelta(days=30)
-        subscription.conversations_this_month = 0
-
-        await self.db.commit()
-
-        return {
-            "subscription_id": str(subscription.id),
-            "plan": plan.value,
-            "price_inr": config["price_inr"],
-            "status": "active",
-            # In production: return Razorpay checkout URL
-            # "checkout_url": sub["short_url"],
-        }
+        # Never grant paid access without a verified provider payment flow.
+        raise HTTPException(status_code=503, detail="Paid checkout is not yet available")
 
     async def handle_razorpay_webhook(self, event: str, payload: dict) -> dict:
         """Process Razorpay webhook events.
@@ -120,7 +92,9 @@ class BillingService:
         - payment.failed — payment failed, mark as past_due
         """
         if event == "subscription.activated":
-            sub_id = payload.get("subscription", {}).get("id")
+            sub_id = payload.get("subscription", {}).get("entity", {}).get("id")
+            if not sub_id:
+                return {"handled": False, "reason": "missing subscription id"}
             result = await self.db.execute(
                 select(Subscription).where(Subscription.razorpay_subscription_id == sub_id)
             )
@@ -131,10 +105,12 @@ class BillingService:
                 return {"handled": True, "action": "activated"}
 
         elif event == "subscription.charged":
-            sub_id = payload.get("subscription", {}).get("id")
+            sub_id = payload.get("subscription", {}).get("entity", {}).get("id")
             payment_id = payload.get("payment", {}).get("entity", {}).get("id")
             amount = payload.get("payment", {}).get("entity", {}).get("amount", 0)
 
+            if not sub_id:
+                return {"handled": False, "reason": "missing subscription id"}
             result = await self.db.execute(
                 select(Subscription).where(Subscription.razorpay_subscription_id == sub_id)
             )
@@ -161,7 +137,9 @@ class BillingService:
                 return {"handled": True, "action": "charged", "invoice_id": str(invoice.id)}
 
         elif event == "payment.failed":
-            sub_id = payload.get("subscription", {}).get("id")
+            sub_id = payload.get("subscription", {}).get("entity", {}).get("id")
+            if not sub_id:
+                return {"handled": False, "reason": "missing subscription id"}
             result = await self.db.execute(
                 select(Subscription).where(Subscription.razorpay_subscription_id == sub_id)
             )
