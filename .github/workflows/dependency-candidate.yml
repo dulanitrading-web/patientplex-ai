@@ -20,12 +20,10 @@ jobs:
           node-version: '22'
       - name: Resolve pinned candidate
         run: |
-          npm install --package-lock-only --ignore-scripts --save-exact next@16.4.6
-          npm install --package-lock-only --ignore-scripts --save-dev --save-exact eslint-config-next@16.4.6
-          npm install --package-lock-only --ignore-scripts --save-exact react@19 react-dom@19
-          npm install --package-lock-only --ignore-scripts --save-dev --save-exact eslint@9 @types/react@19 @types/react-dom@19
-          npm pkg set 'scripts.lint=eslint .'
+          npm pkg set 'dependencies.next=16.4.6' 'dependencies.react=^19.0.0' 'dependencies.react-dom=^19.0.0' 'devDependencies.eslint-config-next=16.4.6' 'devDependencies.eslint=^9.0.0' 'devDependencies.@types/react=^19.0.0' 'devDependencies.@types/react-dom=^19.0.0' 'scripts.lint=eslint .'
+          npm install --package-lock-only --ignore-scripts
           npm ci
+          printf '%s\n' 'import next from "eslint-config-next/core-web-vitals";' 'export default [...next, {ignores:[".next/**","out/**","next-env.d.ts"]}];' > eslint.config.mjs
       - name: Check types
         run: npx tsc --noEmit
       - name: Lint
