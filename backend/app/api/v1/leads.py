@@ -162,12 +162,7 @@ async def capture_lead(
     except Exception as exc:
         logger.error("Lead notification failed (%s)", type(exc).__name__)
 
-    # Track conversion
-    try:
-        # No lead-captured stage exists in the current conversion enum.
-        # Do not fabricate a different funnel event.
-    except Exception as exc:
-        logger.debug("Conversion tracking skipped (%s)", type(exc).__name__)
+    # Lead attribution remains on the patient record; a dedicated funnel stage is pending.
 
     return LeadCaptureResponse(
         success=True,
