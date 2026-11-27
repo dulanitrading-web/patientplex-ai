@@ -1,8 +1,6 @@
 """PatientPlex AI — Base Agent class.
 
-All 14 agents extend this. Uses the real repo's config (CLAUDE_API_KEY, not
-ANTHROPIC_API_KEY) and defaults DEMO_MODE to True until real API credentials
-are configured.
+Shared execution and text generation for scheduled agents.
 """
 import logging
 import time
@@ -11,6 +9,7 @@ from datetime import datetime
 from typing import Any, Optional
 
 from app.core.config import settings
+from app.services.ai import AIProviderError, generate_text
 
 logger = logging.getLogger(__name__)
 
@@ -24,9 +23,6 @@ class BaseAgent:
     description: str = ""
 
     def __init__(self):
-        # Real config uses CLAUDE_API_KEY.  DEMO_MODE may not be in settings;
-        # default to True so agents return sample data until real credentials
-        # and database are connected.
         self.demo_mode: bool = getattr(settings, "DEMO_MODE", True)
         self._start_time: float = 0.0
 
@@ -50,24 +46,16 @@ class BaseAgent:
     async def call_claude(
         self, prompt: str, max_tokens: int = 4096
     ) -> dict:
-        """Call Claude API.  Returns canned response in demo mode."""
+        """Generate text through the configured provider, or return the demo response."""
         if self.demo_mode:
             return {"response": f"[DEMO] Prompt received ({len(prompt)} chars)"}
         try:
-            import anthropic
-
-            client = anthropic.AsyncAnthropic(
-                api_key=settings.CLAUDE_API_KEY  # matches real config
+            response = await generate_text(
+                "Follow the task instructions.", prompt, max_tokens=max_tokens
             )
-            message = await client.messages.create(
-                model="claude-sonnet-4-20250514",
-                max_tokens=max_tokens,
-                messages=[{"role": "user", "content": prompt}],
-            )
-            return {"response": message.content[0].text}
-        except Exception as e:
-            logger.error(f"Claude API error: {e}")
-            return {"error": str(e)}
+            return {"response": response}
+        except AIProviderError as error:
+            return {"error": str(error)}
 
     # ── Execution wrapper ────────────────────────────────────────────
 

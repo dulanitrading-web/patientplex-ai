@@ -123,8 +123,7 @@ async def receive_message(request: Request):
                     continue
 
                 if message.get("type") != "text":
-                    logger.info("Ignoring non-text message type=%s from %s",
-                                message.get("type"), message.get("from", ""))
+                    logger.info("Ignoring non-text WhatsApp message")
                     continue
 
                 sender_phone = message.get("from", "")
@@ -175,7 +174,7 @@ async def _process_whatsapp_message(
                 }
             })
             if doctor is None:
-                logger.warning("No doctor found for incoming message from %s", sender_phone)
+                logger.warning("No clinic matched incoming WhatsApp message")
                 return
 
             # Process through AI receptionist
@@ -188,8 +187,8 @@ async def _process_whatsapp_message(
                 message=response_text,
                 phone_number_id=phone_number_id,
             )
-    except Exception:
-        logger.exception("Failed to process WhatsApp message from %s", sender_phone)
+    except Exception as exc:
+        logger.error("WhatsApp processing failed: %s", type(exc).__name__)
 
 
 async def _send_with_retry(
@@ -199,28 +198,18 @@ async def _send_with_retry(
     max_attempts: int = 3,
     backoff_seconds: tuple[int, ...] = (30, 120, 600),
 ) -> dict:
-    """Send a WhatsApp message with exponential backoff retry.
+    """Retry explicit rate-limit responses without resending ambiguous deliveries."""
+    if max_attempts < 1:
+        raise ValueError("max_attempts must be positive")
 
-    Retries on failure: 30s, 2min, 10min.
-    """
     for attempt in range(max_attempts):
         result = await whatsapp_service.send_message(
             to=to, message=message, phone_number_id=phone_number_id,
         )
-        if "error" not in result:
-            return result
-        if attempt < max_attempts - 1:
-            delay = backoff_seconds[attempt] if attempt < len(backoff_seconds) else backoff_seconds[-1]
-            logger.warning(
-                "WhatsApp send to %s failed (attempt %d/%d), retrying in %ds: %s",
-                to, attempt + 1, max_attempts, delay, result.get("error"),
-            )
-            await asyncio.sleep(delay)
-        else:
-            logger.error(
-                "WhatsApp send to %s failed after %d attempts: %s",
-                to, max_attempts, result.get("error"),
-            )
+        if not result.get("retryable") or attempt + 1 == max_attempts:
+            break
+        if backoff_seconds:
+            await asyncio.sleep(backoff_seconds[min(attempt, len(backoff_seconds) - 1)])
     return result
 
 

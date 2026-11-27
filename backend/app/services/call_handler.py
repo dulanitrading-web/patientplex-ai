@@ -53,7 +53,7 @@ class CallHandler:
         # Find the doctor by their clinic phone number
         doctor = await self._find_doctor_by_phone(clinic_phone, doctor_id)
         if not doctor:
-            logger.warning("No doctor found for clinic phone %s", clinic_phone)
+            logger.warning("No clinic matched inbound call")
             # Still log the call
             doctor_id_val = doctor_id or UUID("00000000-0000-0000-0000-000000000000")
         else:
@@ -226,7 +226,7 @@ class CallHandler:
                 conversation_id=conversation.id,
             )
 
-            logger.info("WhatsApp follow-up sent to %s for missed call", call_log.caller_phone)
+            logger.info("WhatsApp follow-up sent for missed call")
         else:
             logger.error("Failed to send WhatsApp follow-up: %s", result)
 

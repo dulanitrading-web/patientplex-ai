@@ -24,10 +24,10 @@ from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.auth import get_current_doctor
-from app.core.config import settings
 from app.db.session import get_db
 from app.models.conversation import Appointment, AppointmentStatus
 from app.models.doctor import Doctor
+from app.services.ai import AIProviderError, configured, generate_text
 
 logger = logging.getLogger(__name__)
 
@@ -81,9 +81,8 @@ async def chat_message(
     # Gather clinic data context
     context = await _gather_clinic_context(doctor, db)
 
-    # Try Claude API first, fall back to rule-based
-    if settings.CLAUDE_API_KEY:
-        reply_data = await _claude_response(body.message, context, doctor, body.history)
+    if configured():
+        reply_data = await _provider_response(body.message, context, doctor, body.history)
     else:
         reply_data = _rule_based_response(body.message, context, doctor)
 
@@ -214,11 +213,10 @@ async def _gather_clinic_context(doctor: Doctor, db: AsyncSession) -> dict:
     }
 
 
-# ─── Claude API Response ───
+# ─── Provider Response ───
 
-async def _claude_response(message: str, context: dict, doctor: Doctor, history: list | None = None) -> dict:
-    """Get a response from Claude API with the doctor's context and conversation history."""
-    import httpx
+async def _provider_response(message: str, context: dict, doctor: Doctor, history: list | None = None) -> dict:
+    """Generate a reply with clinic-level statistics and recent history."""
 
     system_prompt = f"""You are PatientPlex AI Assistant — the AI helper for {context['doctor_name']} at {context['clinic_name']} ({context['specialty']}, {context['city']}).
 
@@ -252,42 +250,25 @@ RULES:
 - Keep responses under 200 words unless a detailed report is requested.
 """
 
+    recent_history = "\n".join(
+        f"{entry.role}: {entry.content}" for entry in (history or [])[-8:]
+    )
+    user_prompt = f"{recent_history}\nuser: {message}" if recent_history else message
     try:
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(
-                "https://api.anthropic.com/v1/messages",
-                headers={
-                    "x-api-key": settings.CLAUDE_API_KEY,
-                    "anthropic-version": "2023-06-01",
-                    "content-type": "application/json",
-                },
-                json={
-                    "model": "claude-sonnet-4-20250514",
-                    "max_tokens": 1024,
-                    "system": system_prompt,
-                    "messages": [
-                        *([{"role": h.role, "content": h.content} for h in (history or [])[-8:]]),
-                        {"role": "user", "content": message},
-                    ],
-                },
-                timeout=30,
-            )
-            resp.raise_for_status()
-            data = resp.json()
-            reply_text = data["content"][0]["text"]
+        reply_text = await generate_text(system_prompt, user_prompt)
+    except AIProviderError:
+        response = _rule_based_response(message, context, doctor)
+        response["reply"] = f"AI provider unavailable. {response['reply']}"
+        return response
 
-            return {
-                "reply": reply_text,
-                "data": {
-                    "today_appointments": context["today_appointments"],
-                    "this_month_revenue": context["total_revenue"],
-                    "active_campaigns": context["active_campaigns"],
-                },
-            }
-    except Exception as exc:
-        logger.error("Claude API error: %s", exc)
-        # Fall back to rule-based
-        return _rule_based_response(message, context, doctor)
+    return {
+        "reply": reply_text,
+        "data": {
+            "today_appointments": context["today_appointments"],
+            "this_month_revenue": context["total_revenue"],
+            "active_campaigns": context["active_campaigns"],
+        },
+    }
 
 
 # ─── Rule-Based Fallback ───

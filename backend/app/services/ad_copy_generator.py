@@ -1,4 +1,4 @@
-"""AI-powered ad copy generator using Claude API.
+"""AI-powered ad copy generation.
 
 Generates Google Ads RSA headlines/descriptions and Meta ad copy
 tailored to each doctor's specialty, services, and location.
@@ -7,11 +7,9 @@ tailored to each doctor's specialty, services, and location.
 import json
 import logging
 
-import httpx
-
-from app.core.config import settings
 from app.models.doctor import Doctor
 from app.schemas.specialty import SPECIALTY_CONFIGS
+from app.services.ai import AIProviderError, generate_text
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +51,7 @@ Return as JSON with "variations" (list of objects with primary_text, headline, d
 
 
 async def generate_google_ad_copy(doctor: Doctor) -> dict:
-    """Generate Google Ads RSA copy using Claude API.
+    """Generate Google Ads RSA copy using the configured provider.
 
     Returns dict with 'headlines' and 'descriptions' lists.
     Falls back to template-based copy if API is unavailable.
@@ -69,7 +67,7 @@ async def generate_google_ad_copy(doctor: Doctor) -> dict:
         city=doctor.city or "",
     )
 
-    result = await _call_claude(prompt)
+    result = await _generate_ad_copy(prompt)
     if result:
         return result
 
@@ -78,7 +76,7 @@ async def generate_google_ad_copy(doctor: Doctor) -> dict:
 
 
 async def generate_meta_ad_copy(doctor: Doctor) -> dict:
-    """Generate Meta (Facebook/Instagram) ad copy using Claude API.
+    """Generate Meta (Facebook/Instagram) ad copy using the configured provider.
 
     Returns dict with 'variations' list.
     """
@@ -93,47 +91,23 @@ async def generate_meta_ad_copy(doctor: Doctor) -> dict:
         city=doctor.city or "",
     )
 
-    result = await _call_claude(prompt)
+    result = await _generate_ad_copy(prompt)
     if result:
         return result
 
     return _fallback_meta_copy(doctor)
 
 
-async def _call_claude(prompt: str) -> dict | None:
-    """Call Claude API and parse JSON response."""
-    if not settings.CLAUDE_API_KEY:
-        return None
-
+async def _generate_ad_copy(prompt: str) -> dict | None:
+    """Parse generated copy and fall back explicitly for campaign drafting."""
     try:
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(
-                "https://api.anthropic.com/v1/messages",
-                json={
-                    "model": "claude-sonnet-4-20250514",
-                    "max_tokens": 1000,
-                    "messages": [{"role": "user", "content": prompt}],
-                },
-                headers={
-                    "x-api-key": settings.CLAUDE_API_KEY,
-                    "anthropic-version": "2023-06-01",
-                    "content-type": "application/json",
-                },
-                timeout=30,
-            )
-            resp.raise_for_status()
-            data = resp.json()
-            text = data["content"][0]["text"]
-
-            # Extract JSON from response (Claude may wrap in markdown code blocks)
-            if "```json" in text:
-                text = text.split("```json")[1].split("```")[0]
-            elif "```" in text:
-                text = text.split("```")[1].split("```")[0]
-
-            return json.loads(text.strip())
-    except Exception as exc:
-        logger.error("Claude ad copy generation failed: %s", exc)
+        text = await generate_text("Return only the requested JSON object.", prompt)
+        if text.startswith("```"):
+            text = text.split("\n", 1)[-1].removesuffix("```").strip()
+        result = json.loads(text)
+        return result if isinstance(result, dict) else None
+    except (AIProviderError, ValueError):
+        logger.warning("Using template ad copy because generated copy is unavailable")
         return None
 
 

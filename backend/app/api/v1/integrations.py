@@ -353,8 +353,7 @@ async def verify_whatsapp(
 ):
     """Send a test message to verify WhatsApp number is working.
 
-    Uses the Meta WhatsApp Cloud API to send a template message.
-    If the message sends successfully, marks the number as verified.
+    Marks the configuration as verified when Meta accepts the message.
     """
     if not doctor.whatsapp_number:
         raise HTTPException(status_code=400, detail="No WhatsApp number configured")
@@ -369,56 +368,21 @@ async def verify_whatsapp(
             }
         raise HTTPException(status_code=400, detail="WhatsApp API not configured")
 
-    import httpx
+    from app.services.whatsapp import whatsapp_service
 
-    try:
-        # Send test message via Meta Cloud API
-        phone_number_id = settings.WHATSAPP_PHONE_NUMBER_ID
-        if not phone_number_id:
-            raise HTTPException(
-                status_code=400,
-                detail="WHATSAPP_PHONE_NUMBER_ID not configured. Set it in Render environment variables (find it in Meta Business Suite → WhatsApp → API Setup).",
-            )
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(
-                f"{settings.WHATSAPP_API_URL}/{phone_number_id}/messages",
-                headers={
-                    "Authorization": f"Bearer {settings.WHATSAPP_API_TOKEN}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "messaging_product": "whatsapp",
-                    "to": doctor.whatsapp_number.replace("+", ""),
-                    "type": "text",
-                    "text": {
-                        "body": f"✅ PatientPlex AI connected! Your WhatsApp number {doctor.whatsapp_number} is now linked to your clinic dashboard. Patients will receive automated booking confirmations here."
-                    },
-                },
-                timeout=30,
-            )
+    result = await whatsapp_service.send_message(
+        to=doctor.whatsapp_number.lstrip("+"),
+        message="PatientPlex AI verification message for your clinic.",
+    )
+    if not result.get("messages"):
+        return {
+            "status": "error",
+            "message": result.get("error", "WhatsApp did not accept the verification message"),
+        }
 
-            if resp.status_code == 200:
-                doctor.whatsapp_verified = True
-                await db.commit()
-                return {"status": "verified", "message": "WhatsApp verification message sent successfully! ✅"}
-            else:
-                error_data = resp.json()
-                # Extract human-readable error message from Meta API response
-                error_msg = "WhatsApp API error"
-                if isinstance(error_data, dict):
-                    err_obj = error_data.get("error", error_data)
-                    if isinstance(err_obj, dict):
-                        error_msg = err_obj.get("message", str(err_obj))
-                    else:
-                        error_msg = str(err_obj)
-                else:
-                    error_msg = str(error_data)
-                logger.error("WhatsApp verify failed: %s (status %d)", error_msg, resp.status_code)
-                return {"status": "error", "message": error_msg}
-
-    except Exception as exc:
-        logger.error("WhatsApp verification failed: %s", exc)
-        return {"status": "error", "message": str(exc)}
+    doctor.whatsapp_verified = True
+    await db.commit()
+    return {"status": "verified", "message": "WhatsApp accepted the verification message."}
 
 
 # ---------------------------------------------------------------------------

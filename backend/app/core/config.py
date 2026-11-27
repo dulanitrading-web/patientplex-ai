@@ -86,6 +86,10 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://localhost:6379/0"
 
     # Claude API (AI ad copy generation + receptionist)
+    AI_PROVIDER: str = "anthropic"
+    AI_MODEL: str = ""
+    OPENAI_API_KEY: str = ""
+    ANTHROPIC_API_KEY: str = ""
     CLAUDE_API_KEY: str = ""
 
     # Free/alternative LLM (OpenAI-compatible endpoint — Groq, Together, Ollama, etc.)
