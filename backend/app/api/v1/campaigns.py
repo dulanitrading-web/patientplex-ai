@@ -9,6 +9,7 @@ from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.auth import get_current_doctor
+from app.core.config import settings
 from app.db.session import get_db
 from app.models.campaign import AdPlatform, Campaign, CampaignStatus
 from app.models.doctor import Doctor
@@ -19,6 +20,22 @@ from app.services.linkedin_ads_engine import LinkedInAdsEngine
 from app.services.whatsapp_ads_engine import WhatsAppAdsEngine
 
 router = APIRouter(prefix="/campaigns", tags=["campaigns"])
+
+
+def require_ads_enabled():
+    """Gate ad publishing and budget writes behind ADS_ENABLED.
+
+    Campaign LISTING and reads are always available to authenticated clinics;
+    only mutating / provider-write operations require ads to be enabled.
+    """
+    if not settings.ADS_ENABLED:
+        raise HTTPException(
+            status_code=403,
+            detail="Ad publishing is disabled on this server (ADS_ENABLED=false)",
+        )
+
+
+ADS_WRITE = [Depends(require_ads_enabled)]
 
 
 class LaunchRequest(BaseModel):
@@ -51,7 +68,7 @@ class CampaignStatusRequest(BaseModel):
     status: str  # "ENABLED" or "PAUSED"
 
 
-@router.post("/launch")
+@router.post("/launch", dependencies=ADS_WRITE)
 async def launch_campaigns(
     body: LaunchRequest,
     doctor: Doctor = Depends(get_current_doctor),
@@ -214,6 +231,7 @@ async def list_campaigns(
     return {
         "campaigns": [_serialize_campaign(c) for c in campaigns],
         "count": len(campaigns),
+        "ads_enabled": settings.ADS_ENABLED,
     }
 
 
@@ -228,7 +246,7 @@ async def get_campaign(
     return _serialize_campaign(campaign, detailed=True)
 
 
-@router.put("/{campaign_id}/pause")
+@router.put("/{campaign_id}/pause", dependencies=ADS_WRITE)
 async def pause_campaign(
     campaign_id: UUID,
     doctor: Doctor = Depends(get_current_doctor),
@@ -243,7 +261,7 @@ async def pause_campaign(
     return {"message": "Campaign paused", "campaign_id": str(campaign_id), **result}
 
 
-@router.put("/{campaign_id}/resume")
+@router.put("/{campaign_id}/resume", dependencies=ADS_WRITE)
 async def resume_campaign(
     campaign_id: UUID,
     doctor: Doctor = Depends(get_current_doctor),
@@ -258,7 +276,7 @@ async def resume_campaign(
     return {"message": "Campaign resumed", "campaign_id": str(campaign_id), **result}
 
 
-@router.put("/{campaign_id}/budget")
+@router.put("/{campaign_id}/budget", dependencies=ADS_WRITE)
 async def update_budget(
     campaign_id: UUID,
     body: BudgetUpdate,
@@ -272,7 +290,7 @@ async def update_budget(
     return {"message": "Budget updated", "daily_budget": body.daily_budget, **result}
 
 
-@router.post("/{campaign_id}/sync")
+@router.post("/{campaign_id}/sync", dependencies=ADS_WRITE)
 async def sync_performance(
     campaign_id: UUID,
     doctor: Doctor = Depends(get_current_doctor),
@@ -305,7 +323,7 @@ async def sync_performance(
 # ------------------------------------------------------------------
 
 
-@router.put("/{campaign_id}/status")
+@router.put("/{campaign_id}/status", dependencies=ADS_WRITE)
 async def update_campaign_status(
     campaign_id: UUID,
     body: CampaignStatusRequest,
@@ -344,7 +362,7 @@ async def update_campaign_status(
     return {"message": f"Campaign {body.status.lower()} (local)", "campaign_id": str(campaign_id), "api": "local"}
 
 
-@router.put("/{campaign_id}/keywords")
+@router.put("/{campaign_id}/keywords", dependencies=ADS_WRITE)
 async def update_keywords(
     campaign_id: UUID,
     body: KeywordUpdateRequest,
@@ -386,7 +404,7 @@ async def update_keywords(
     }
 
 
-@router.put("/{campaign_id}/negative-keywords")
+@router.put("/{campaign_id}/negative-keywords", dependencies=ADS_WRITE)
 async def add_negative_keywords(
     campaign_id: UUID,
     body: NegativeKeywordRequest,
@@ -425,7 +443,7 @@ async def add_negative_keywords(
     }
 
 
-@router.put("/{campaign_id}/ad-copy")
+@router.put("/{campaign_id}/ad-copy", dependencies=ADS_WRITE)
 async def update_ad_copy(
     campaign_id: UUID,
     body: AdCopyUpdateRequest,
@@ -868,6 +886,7 @@ def _serialize_campaign(c: Campaign, detailed: bool = False) -> dict:
         "cpc": c.cpc,
         "ctr": c.ctr,
         "created_at": c.created_at.isoformat(),
+        "last_synced_at": c.last_synced_at.isoformat() if c.last_synced_at else None,
     }
     if detailed:
         data.update({
@@ -880,7 +899,6 @@ def _serialize_campaign(c: Campaign, detailed: bool = False) -> dict:
             "descriptions": c.descriptions,
             "ad_copy": c.ad_copy,
             "landing_page_url": c.landing_page_url,
-            "last_synced_at": c.last_synced_at.isoformat() if c.last_synced_at else None,
             "error_message": c.error_message,
         })
     return data

@@ -228,10 +228,13 @@ app.include_router(bookings.router, prefix=settings.API_V1_PREFIX)
 app.include_router(billing.router, prefix=settings.API_V1_PREFIX)
 app.include_router(signals.router, prefix=settings.API_V1_PREFIX)
 
-# Ad platform integrations — parked behind ADS_ENABLED flag until a customer needs them.
+# Campaign LISTING (clinic-scoped reads) is always available.
+# Ad publishing and budget writes inside campaigns.py remain gated on ADS_ENABLED.
+app.include_router(campaigns.router, prefix=settings.API_V1_PREFIX)
+
+# Other ad platform integrations — parked behind ADS_ENABLED flag until a customer needs them.
 # Code is preserved; set ADS_ENABLED=true in env to activate.
 if settings.ADS_ENABLED:
-    app.include_router(campaigns.router, prefix=settings.API_V1_PREFIX)
     app.include_router(landing_pages.router, prefix=settings.API_V1_PREFIX)
     app.include_router(intelligence.router, prefix=settings.API_V1_PREFIX)
     app.include_router(chatgpt_ads.router, prefix=settings.API_V1_PREFIX)
