@@ -441,11 +441,15 @@ class BookingEngine:
 
     @staticmethod
     def _slot_hour(slot: dict) -> int:
-        start = slot.get("start", "00:00")
-        return int(start.split(":")[0])
+        return BookingEngine._slot_minutes(slot) // 60
 
     @staticmethod
     def _slot_minutes(slot: dict) -> int:
-        start = slot.get("start", "00:00")
-        h, m = map(int, start.split(":"))
-        return h * 60 + m
+        start = slot["start"]
+        if "T" in start:
+            value = datetime.fromisoformat(start)
+            if value.tzinfo is not None:
+                value = value.astimezone(timezone(timedelta(hours=5, minutes=30)))
+            return value.hour * 60 + value.minute
+        value = time.fromisoformat(start)
+        return value.hour * 60 + value.minute
