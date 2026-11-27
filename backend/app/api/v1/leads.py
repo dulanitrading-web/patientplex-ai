@@ -138,9 +138,9 @@ async def capture_lead(
             )
             db.add(patient)
 
-        await db.commit()
-        await db.refresh(patient)
+        await db.flush()
         lead_id = str(patient.id)
+        await db.commit()
         logger.info("Lead saved to DB: patient_id=%s", lead_id)
     except Exception as exc:
         logger.error("Lead persistence failed (%s)", type(exc).__name__)
@@ -164,20 +164,8 @@ async def capture_lead(
 
     # Track conversion
     try:
-        from app.services.conversion_tracker import ConversionTracker
-        tracker = ConversionTracker(db)
-        await tracker.track_event(
-            doctor_id=doctor.id,
-            event_type="lead_captured",
-            source=body.lead_source,
-            utm_source=body.utm_source,
-            utm_campaign=body.utm_campaign,
-            metadata={
-                "patient_name": body.patient_name,
-                "treatment": body.treatment,
-                "keyword": body.keyword,
-            },
-        )
+        # No lead-captured stage exists in the current conversion enum.
+        # Do not fabricate a different funnel event.
     except Exception as exc:
         logger.debug("Conversion tracking skipped (%s)", type(exc).__name__)
 
@@ -200,6 +188,9 @@ async def _send_lead_alert_email(
 ) -> None:
     """Send a lead alert email to the doctor — matches the format they expect."""
     from app.services.email_service import send_email, _is_configured
+    from html import escape
+    from urllib.parse import quote
+    import re
 
     if not _is_configured():
         logger.warning("Email not configured — lead alert not sent")
@@ -214,7 +205,13 @@ async def _send_lead_alert_email(
     clinic_name = doctor.clinic_name or "Clinic"
     doctor_email = doctor.email
 
-    subject = f"[Lead Alert] {patient_name} — {treatment}"
+    subject = f"[Lead Alert] {patient_name} — {treatment}".replace('\r', ' ').replace('\n', ' ')
+    digits = re.sub(r'[^0-9]', '', patient_phone)
+    if len(digits) == 10:
+        digits = '91' + digits
+    whatsapp_text = quote(f'Hi {patient_name.split()[0] if patient_name.split() else "there"}, this is {clinic_name}. We received your inquiry about {treatment}. When would you like to visit?', safe='')
+    patient_name, patient_phone, treatment, clinic_name, lead_source = map(escape, (patient_name, patient_phone, treatment, clinic_name, lead_source))
+    patient_email, keyword, landing_page = (escape(v) if v else None for v in (patient_email, keyword, landing_page))
 
     html = f"""
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px;">
@@ -256,7 +253,7 @@ async def _send_lead_alert_email(
             </div>
 
             <div style="margin-top: 20px; text-align: center;">
-                <a href="https://wa.me/91{patient_phone.replace('+', '').replace(' ', '').replace('-', '').lstrip('91')}?text=Hi%20{patient_name.split()[0]}%2C%20this%20is%20{clinic_name}.%20We%20received%20your%20inquiry%20about%20{treatment.replace(' ', '%20')}.%20When%20would%20you%20like%20to%20visit%3F"
+                <a href="https://wa.me/{digits}?text={whatsapp_text}"
                    style="display: inline-block; background: #25D366; color: white; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">
                     💬 WhatsApp the Patient
                 </a>
