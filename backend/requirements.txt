@@ -30,7 +30,7 @@ twilio>=9.0.0,<10.0.0
 slowapi>=0.1.9,<1.0.0
 
 # Encryption
-cryptography>=49.0.0,<50.0.0
+cryptography>=50.0.0,<51.0.0
 
 # Redis (caching + session store)
 redis[hiredis]>=5.0.0,<6.0.0
