@@ -48,8 +48,8 @@ import {
   getLeadStats,
   getMetricTrend,
   getPatientStats,
-  initializeClinicData,
-  getSeedStatus,
+
+
 } from "@/lib/api";
 
 /* ================================================================
@@ -200,31 +200,8 @@ export default function DashboardPage() {
     }
   }, [period]);
 
-  // Auto-initialize clinic data if dashboard is empty
-  const [initialized, setInitialized] = useState(false);
-
   useEffect(() => {
-    async function init() {
-      // First load dashboard
-      await loadDashboard();
-
-      // Check if data exists, if not auto-seed
-      if (!initialized) {
-        try {
-          const status = await getSeedStatus().catch(() => null);
-          if (status && !status.initialized) {
-            await initializeClinicData().catch(() => null);
-            // Reload with fresh data
-            await loadDashboard();
-          }
-          setInitialized(true);
-        } catch {
-          setInitialized(true);
-        }
-      }
-    }
-    init();
-    // Auto-refresh every 90 seconds — data syncs under 2 minutes
+    loadDashboard();
     const interval = setInterval(() => loadDashboard(), 90000);
     return () => clearInterval(interval);
   }, [loadDashboard]);
